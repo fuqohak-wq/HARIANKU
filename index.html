@@ -167,37 +167,69 @@ function handleFileSelect(input){
 
   const reader = new FileReader();
   reader.onload = function(e) {
+    const img = new Image();
+    img.src = e.target.result;
     
-    // Kirim data ke REST API Apps Script doPost(e)
-    fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "uploadFile",
-        base64Data: e.target.result,
-        fileName: file.name
-      })
-    })
-    .then(res => res.json())
-    .then(response => {
-      // Kembalikan UI Tombol seperti semula
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
-      document.getElementById('loader-cam').classList.add('hidden');
+    img.onload = function() {
+      // --- PROSES KOMPRESI GAMBAR HP OTOMATIS ---
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
       
-      if (response.status === "success") {
-        alert("🎉 Kalori berhasil dianalisa AI!");
-        loadDashboard(); // Refresh data tampilan terbaru dari Sheets
+      // Batasi resolusi maksimal ke 800px (Sangat cukup untuk dibaca AI OpenRouter)
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
       } else {
-        alert("🚨 Gagal memproses data: " + response.message);
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
       }
-    })
-    .catch(err => {
-      // Mengatasi fallback jika koneksi internet terputus
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
-      document.getElementById('loader-cam').classList.add('hidden');
-      alert("🚨 Koneksi ke Apps Script Putus: " + err.toString());
-    });
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Mengubah gambar menjadi Base64 ringan dengan kualitas 70%
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+      
+      // --- KIRIM DATA RINGAN KE APPS SCRIPT ---
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          aksi: "uploadFile",
+          base64Data: compressedBase64,
+          fileName: file.name
+        })
+      })
+      .then(res => res.json())
+      .then(response => {
+        document.getElementById('icon-cam').classList.remove('hidden');
+        document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+        document.getElementById('loader-cam').classList.add('hidden');
+        
+        if (response.status === "success") {
+          alert("🎉 Kalori berhasil dianalisa AI lewat HP!");
+          loadDashboard(); 
+        } else {
+          alert("🚨 Gagal memproses data: " + response.message);
+        }
+      })
+      .catch(err => {
+        document.getElementById('icon-cam').classList.remove('hidden');
+        document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+        document.getElementById('loader-cam').classList.add('hidden');
+        alert("🚨 Koneksi putus/Data terlalu besar: " + err.toString());
+      });
+    };
   };
 
   reader.readAsDataURL(file);
