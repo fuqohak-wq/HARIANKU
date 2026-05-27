@@ -527,29 +527,40 @@ function handleFileSelect(input){
     'loader-cam'
   ).classList.remove('hidden');
 
-  const reader =
-    new FileReader();
+  const reader = new FileReader();
+      reader.onload = function(e) {
+        
+        // Ganti dengan URL Web App Apps Script Mas yang berakhiran /exec
+        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-  reader.onload =
-    async function(e){
-
-    try{
-
-      const response =
-        await fetch(API_URL,{
-
-          method:'POST',
-
-          body:JSON.stringify({
-
-            type:'upload',
-
-            base64Data:e.target.result,
-
-            fileName:file.name
-
+        fetch(URL_APPS_SCRIPT, {
+          method: "POST",
+          body: JSON.stringify({
+            aksi: "uploadFile",
+            base64Data: e.target.result,
+            fileName: file.name
           })
+        })
+        .then(res => res.json())
+        .then(response => {
+          // Mengembalikan fungsi tombol ke semula
+          document.getElementById('icon-cam').classList.remove('hidden');
+          document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+          document.getElementById('loader-cam').classList.add('hidden');
+          
+          if (response.status === "success") {
+            showPremiumModal(response.data);
+            trackerData.kaloriHariIni = response.updatedCalories;
+            renderUI();
+          } else {
+            alert("🚨 Gagal di Vercel: " + response.message);
+          }
+        })
+        .catch(err => {
+          alert("🚨 Koneksi ke Apps Script Putus: " + err.toString());
+        });
 
+      };
         });
 
       const result =
