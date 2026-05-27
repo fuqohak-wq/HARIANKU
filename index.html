@@ -1,621 +1,208 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Fuqohak Daily Tracker</title>
-
-<meta name="theme-color"
-content="#1e56e3">
-
-<link rel="manifest"
-href="manifest.json">
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link
-href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-rel="stylesheet">
-
-<style>
-
-body{
-
-  font-family:'Plus Jakarta Sans',sans-serif;
-
-  background:#f8fafc;
-
-  margin:0;
-
-}
-
-.app-container{
-
-  max-width:480px;
-
-  margin:auto;
-
-  min-height:100vh;
-
-  background:white;
-
-}
-
-.card-gradient{
-
-  background:
-  linear-gradient(
-    135deg,
-    #1e56e3 0%,
-    #0ea5e9 100%
-  );
-
-}
-
-.loader{
-
-  border-top-color:#fff;
-
-  animation:spin 1s linear infinite;
-
-}
-
-@keyframes spin{
-
-  0%{
-    transform:rotate(0deg);
-  }
-
-  100%{
-    transform:rotate(360deg);
-  }
-
-}
-
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fuqohak Daily Tracker</title>
+  <meta name="theme-color" content="#1e56e3">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; margin: 0; }
+    .app-container { max-width: 480px; margin: auto; min-height: 100vh; background: white; }
+    .card-gradient { background: linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%); }
+    .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
-
 <body>
 
-<div class="app-container pb-24">
-
-<!-- HEADER -->
-
-<div class="card-gradient pt-12 pb-20 px-6 rounded-b-[3rem] shadow-2xl">
-
-<div>
-
-<p id="display-quote"
-class="text-blue-100 text-xs italic mb-1">
-
-"Semangat pagi, pejuang!"
-
-</p>
-
-<h1 class="text-2xl font-bold text-white">
-
-Halo, Mas Fuqohak 👋
-
-</h1>
-
-<div
-class="mt-6 bg-black/20 rounded-2xl p-4">
-
-<p id="display-directive"
-class="text-sm font-semibold text-white">
-
-Sistem sedang memantau jadwalmu...
-
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- MAIN CARD -->
-
-<div class="px-6 -mt-12">
-
-<div class="grid grid-cols-2 gap-4">
-
-<!-- KALORI -->
-
-<div
-class="bg-white p-5 rounded-[2rem] shadow-xl">
-
-<p class="text-[10px] font-bold text-slate-400 uppercase">
-
-Kalori In
-
-</p>
-
-<div
-class="flex items-baseline gap-1 mt-1">
-
-<h2
-class="text-3xl font-bold text-slate-800"
-id="val-kalori">
-
-0
-
-</h2>
-
-<span
-class="text-xs text-slate-400 font-bold">
-
-kcal
-
-</span>
-
-</div>
-
-<div
-class="w-full bg-slate-100 h-1.5 mt-3 rounded-full overflow-hidden">
-
-<div
-id="bar-kalori"
-class="bg-blue-500 h-full"
-style="width:0%"></div>
-
-</div>
-
-</div>
-
-<!-- AIR -->
-
-<div
-onclick="tambahAir()"
-class="bg-white p-5 rounded-[2rem] shadow-xl cursor-pointer">
-
-<p class="text-[10px] font-bold text-slate-400 uppercase">
-
-Hidrasi
-
-</p>
-
-<div
-class="flex items-baseline gap-1 mt-1 text-blue-500">
-
-<h2
-class="text-3xl font-bold"
-id="val-air">
-
-0
-
-</h2>
-
-<span class="text-xs font-bold">
-
-/8 Gelas
-
-</span>
-
-</div>
-
-<p
-class="text-[9px] text-blue-400 mt-3 font-bold">
-
-Klik tambah +
-
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- SPIRITUAL -->
-
-<div class="px-6 mt-8">
-
-<div
-class="flex justify-between items-center mb-4">
-
-<h3
-class="text-lg font-bold text-slate-800">
-
-Ibadah & Spiritual
-
-</h3>
-
-<span
-id="val-konsistensi"
-class="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-3 py-1 rounded-full">
-
-0% Konsisten
-
-</span>
-
-</div>
-
-<div class="space-y-3">
-
-<!-- SHALAT -->
-
-<div
-class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-
-<div class="flex items-center gap-4">
-
-<span class="text-2xl">
-
-🕌
-
-</span>
-
-<div>
-
-<p
-class="text-sm font-bold text-slate-700">
-
-Shalat Jamaah
-
-</p>
-
-<p
-class="text-[10px] text-slate-400">
-
-Auto tracker aktif
-
-</p>
-
-</div>
-
-</div>
-
-<p
-class="text-lg font-bold text-blue-600"
-id="val-shalat">
-
-0/5
-
-</p>
-
-</div>
-
-<!-- MUROJAAH -->
-
-<div
-class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-
-<div class="flex items-center gap-4">
-
-<span class="text-2xl">
-
-📖
-
-</span>
-
-<div>
-
-<p
-class="text-sm font-bold text-slate-700">
-
-Murojaah
-
-</p>
-
-<p
-class="text-[10px] text-slate-400">
-
-Target harian
-
-</p>
-
-</div>
-
-</div>
-
-<p
-class="text-lg font-bold text-blue-600"
-id="val-murojaah">
-
-0
-
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- AI TRACKER -->
-
-<div
-class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-full max-w-[480px] px-6">
-
-<div class="relative">
-
-<input
-type="file"
-id="file-input"
-class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50"
-onchange="handleFileSelect(this)">
-
-<div
-id="btn-upload"
-class="bg-slate-900 rounded-3xl p-5 shadow-2xl flex items-center justify-center gap-3">
-
-<span
-id="icon-cam"
-class="text-2xl">
-
-📸
-
-</span>
-
-<span
-id="text-cam"
-class="text-white font-bold">
-
-Cek Kalori Makanan
-
-</span>
-
-<div
-id="loader-cam"
-class="loader rounded-full border-2 border-slate-500 h-6 w-6 hidden"></div>
-
-</div>
-
-</div>
-
-</div>
+<div class="app-container pb-24 relative">
+
+  <div class="card-gradient pt-12 pb-20 px-6 rounded-b-[3rem] shadow-2xl">
+    <div>
+      <p id="display-quote" class="text-blue-100 text-xs italic mb-1">"Semangat pagi, pejuang!"</p>
+      <h1 class="text-2xl font-bold text-white">Halo, Mas Fuqohak 👋</h1>
+      <div class="mt-6 bg-black/20 rounded-2xl p-4">
+        <p id="display-directive" class="text-sm font-semibold text-white">Sistem sedang memantau jadwalmu...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-6 -mt-12">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-white p-5 rounded-[2rem] shadow-xl">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Kalori In</p>
+        <div class="flex items-baseline gap-1 mt-1">
+          <h2 class="text-3xl font-bold text-slate-800" id="val-kalori">0</h2>
+          <span class="text-xs text-slate-400 font-bold">kcal</span>
+        </div>
+        <div class="w-full bg-slate-100 h-1.5 mt-3 rounded-full overflow-hidden">
+          <div id="bar-kalori" class="bg-blue-500 h-full transition-all" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div onclick="tambahAir()" class="bg-white p-5 rounded-[2rem] shadow-xl cursor-pointer">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Hidrasi</p>
+        <div class="flex items-baseline gap-1 mt-1 text-blue-500">
+          <h2 class="text-3xl font-bold" id="val-air">0</h2>
+          <span class="text-xs font-bold">/8 Gelas</span>
+        </div>
+        <p class="text-[9px] text-blue-400 mt-3 font-bold">Klik tambah +</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-6 mt-8">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-bold text-slate-800">Ibadah & Spiritual</h3>
+      <span id="val-konsistensi" class="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-3 py-1 rounded-full">0% Konsisten</span>
+    </div>
+    <div class="space-y-3">
+      <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
+        <div class="flex items-center gap-4">
+          <span class="text-2xl">🕌</span>
+          <div>
+            <p class="text-sm font-bold text-slate-700">Shalat Jamaah</p>
+            <p class="text-[10px] text-slate-400">Auto tracker aktif</p>
+          </div>
+        </div>
+        <p class="text-lg font-bold text-blue-600" id="val-shalat">0/5</p>
+      </div>
+
+      <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
+        <div class="flex items-center gap-4">
+          <span class="text-2xl">📖</span>
+          <div>
+            <p class="text-sm font-bold text-slate-700">Murojaah</p>
+            <p class="text-[10px] text-slate-400">Target harian</p>
+          </div>
+        </div>
+        <p class="text-lg font-bold text-blue-600" id="val-murojaah">0</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-full max-w-[480px] px-6">
+    <div class="relative">
+      <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)">
+      <div id="btn-upload" class="bg-slate-900 rounded-3xl p-5 shadow-2xl flex items-center justify-center gap-3">
+        <span id="icon-cam" class="text-2xl">📸</span>
+        <span id="text-cam" class="text-white font-bold">Cek Kalori Makanan</span>
+        <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-6 w-6 hidden"></div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
-
 // ======================================
-// APPS SCRIPT URL
+// CONFIGURATION URL
 // ======================================
-
-const API_URL =
-
-"https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
-
-// ======================================
+const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 let trackerData = {};
 
 // ======================================
-// LOAD DASHBOARD
+// INITIALIZATION ON LOAD
 // ======================================
-
 window.onload = async function(){
-
   await loadDashboard();
-
 };
 
 // ======================================
-
+// METHOD: FETCH DASHBOARD DATA
+// ======================================
 async function loadDashboard(){
+  try {
+    const res = await fetch(API_URL + "?api=1");
+    const json = await res.json();
+    
+    if (json.status === "success" || json.data) {
+      const data = json.data;
+      trackerData = data;
 
-  try{
+      // Pemetaan data berdasarkan struktur penamaan baru Mas Fuqohak
+      document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
+      document.getElementById("val-air").innerText = data["MINUM AIR"]?.value || 0;
+      document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
+      document.getElementById("val-murojaah").innerText = data["MUROJAAH"]?.value || 0;
+      document.getElementById("val-konsistensi").innerText = (data["MOOD"]?.score || 0) + "% Konsisten";
 
-    const res = await fetch(
-
-      API_URL +
-      "?api=1"
-
-    );
-
-    const json =
-      await res.json();
-
-    const data =
-      json.data;
-
-    trackerData = data;
-
-    document.getElementById(
-      "val-kalori"
-    ).innerText =
-
-      data["KALORI MASUK"]?.value || 0;
-
-    document.getElementById(
-      "val-air"
-    ).innerText =
-
-      data["MINUM AIR"]?.value || 0;
-
-    document.getElementById(
-      "val-shalat"
-    ).innerText =
-
-      (data["SHALAT JAMAAH"]?.value || 0)
-      + "/5";
-
-    document.getElementById(
-      "val-murojaah"
-    ).innerText =
-
-      data["MUROJAAH"]?.value || 0;
-
-    document.getElementById(
-      "val-konsistensi"
-    ).innerText =
-
-      (data["MOOD"]?.score || 0)
-      + "% Konsisten";
-
-    // BAR
-
-    const kal =
-      Number(
-        data["KALORI MASUK"]?.value || 0
-      );
-
-    const persen =
-      (kal / 2000) * 100;
-
-    document.getElementById(
-      "bar-kalori"
-    ).style.width =
-
-      Math.min(persen,100)
-      + "%";
-
-  }catch(err){
-
-    console.log(err);
-
-    alert(
-      "Gagal mengambil dashboard"
-    );
-
+      // Progress Bar Kalori
+      const kal = Number(data["KALORI MASUK"]?.value || 0);
+      const persen = (kal / 2000) * 100;
+      document.getElementById("bar-kalori").style.width = Math.min(persen, 100) + "%";
+    }
+  } catch(err) {
+    console.error(err);
+    alert("🚨 Gagal mengambil data dashboard");
   }
-
 }
 
 // ======================================
-// AIR
+// METHOD: HIDRASI INTERACTION
 // ======================================
-
 function tambahAir(){
-
-  let air =
-    Number(
-      document.getElementById(
-        "val-air"
-      ).innerText
-    );
-
+  let air = Number(document.getElementById("val-air").innerText);
   air++;
-
-  document.getElementById(
-    "val-air"
-  ).innerText = air;
-
+  document.getElementById("val-air").innerText = air;
+  
+  // OPTIONAL: Mas bisa tambahkan fetch POST di sini jika ingin langsung simpan ke Sheets
 }
 
 // ======================================
-// AI TRACKER
+// METHOD: FILE UPLOAD TO APPS SCRIPT API
 // ======================================
-
 function handleFileSelect(input){
-
-  const file =
-    input.files[0];
-
+  const file = input.files[0];
   if(!file) return;
 
-  document.getElementById(
-    'icon-cam'
-  ).classList.add('hidden');
-
-  document.getElementById(
-    'text-cam'
-  ).innerText =
-
-    "AI sedang menganalisa...";
-
-  document.getElementById(
-    'loader-cam'
-  ).classList.remove('hidden');
+  // Set UI ke mode Loading Animasi
+  document.getElementById('icon-cam').classList.add('hidden');
+  document.getElementById('text-cam').innerText = "AI sedang menganalisa...";
+  document.getElementById('loader-cam').classList.remove('hidden');
 
   const reader = new FileReader();
-      reader.onload = function(e) {
-        
-        // Ganti dengan URL Web App Apps Script Mas yang berakhiran /exec
-        const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
-
-        fetch(URL_APPS_SCRIPT, {
-          method: "POST",
-          body: JSON.stringify({
-            aksi: "uploadFile",
-            base64Data: e.target.result,
-            fileName: file.name
-          })
-        })
-        .then(res => res.json())
-        .then(response => {
-          // Mengembalikan fungsi tombol ke semula
-          document.getElementById('icon-cam').classList.remove('hidden');
-          document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
-          document.getElementById('loader-cam').classList.add('hidden');
-          
-          if (response.status === "success") {
-            showPremiumModal(response.data);
-            trackerData.kaloriHariIni = response.updatedCalories;
-            renderUI();
-          } else {
-            alert("🚨 Gagal di Vercel: " + response.message);
-          }
-        })
-        .catch(err => {
-          alert("🚨 Koneksi ke Apps Script Putus: " + err.toString());
-        });
-
-      };
-        });
-
-      const result =
-        await response.json();
-
-      console.log(result);
-
-      if(result.status === "success"){
-
-        alert(
-          "Kalori berhasil dianalisa AI"
-        );
-
-        loadDashboard();
-
-      }else{
-
-        alert(
-          "AI gagal membaca gambar"
-        );
-
+  reader.onload = function(e) {
+    
+    // Kirim data ke REST API Apps Script doPost(e)
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "uploadFile",
+        base64Data: e.target.result,
+        fileName: file.name
+      })
+    })
+    .then(res => res.json())
+    .then(response => {
+      // Kembalikan UI Tombol seperti semula
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+      document.getElementById('loader-cam').classList.add('hidden');
+      
+      if (response.status === "success") {
+        alert("🎉 Kalori berhasil dianalisa AI!");
+        loadDashboard(); // Refresh data tampilan terbaru dari Sheets
+      } else {
+        alert("🚨 Gagal memproses data: " + response.message);
       }
-
-    }catch(err){
-
-      console.log(err);
-
-      alert(
-        "Upload gagal"
-      );
-
-    }
-
-    document.getElementById(
-      'icon-cam'
-    ).classList.remove('hidden');
-
-    document.getElementById(
-      'text-cam'
-    ).innerText =
-
-      "Cek Kalori Makanan";
-
-    document.getElementById(
-      'loader-cam'
-    ).classList.add('hidden');
-
+    })
+    .catch(err => {
+      // Mengatasi fallback jika koneksi internet terputus
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+      document.getElementById('loader-cam').classList.add('hidden');
+      alert("🚨 Koneksi ke Apps Script Putus: " + err.toString());
+    });
   };
 
   reader.readAsDataURL(file);
-
 }
-
 </script>
 
 </body>
 </html>
-```
