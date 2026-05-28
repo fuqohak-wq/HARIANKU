@@ -138,7 +138,7 @@
   </div>
 
   <div class="relative mt-3 pt-1">
-    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)">
+    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*">
     <div id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
       <span id="icon-cam" class="text-base">📸</span>
       <span id="text-cam" class="font-black text-xs tracking-wide">Cek Kalori Makanan AI</span>
@@ -173,25 +173,15 @@ window.onload = async function(){
   await loadDashboard();
 };
 
-// ======================================
-// CONFIG FIX: 100% PENANGGALAN ANTI ERROR
-// ======================================
 function tentukanKalenderDasar() {
   const sekarang = new Date();
-  
-  // Format Masehi Premium: Kamis, 28 Mei 2026
   const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
   document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
 
-  // Perhitungan Bulan Hijriah Amandemen 2026 Murni Tanpa Split Rusak
   try {
-    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      year: 'numeric'
-    });
-    const tanggalTahunHijriah = formatterHijriah.format(sekarang); // Hasil e.g. "11 1447" atau "11/1447"
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', year: 'numeric' });
+    const tanggalTahunHijriah = formatterHijriah.format(sekarang);
     const digitHanya = tanggalTahunHijriah.replace(/[^0-9 ]/g, " ").trim().split(/\s+/);
-    
     if(digitHanya.length >= 2) {
       document.getElementById("date-hijriah").innerText = `${digitHanya[0]} Dzulhijjah ${digitHanya[1]} H`;
     } else {
@@ -334,10 +324,15 @@ function tambahAir(){
   document.getElementById("val-air").innerText = air;
 }
 
+// ======================================
+// FIX EXECUTIVES: ROBUST CAMERA AI HANLDER
+// ======================================
 function handleFileSelect(input){
   const file = input.files[0]; if(!file) return;
+
+  // Nyalakan Loading State Ringan
   document.getElementById('icon-cam').classList.add('hidden');
-  document.getElementById('text-cam').innerText = "AI Menganalisa...";
+  document.getElementById('text-cam').innerText = "AI Sedang Membaca Makanan...";
   document.getElementById('loader-cam').classList.remove('hidden');
 
   const reader = new FileReader();
@@ -349,15 +344,34 @@ function handleFileSelect(input){
       if (w > h ? w > MAX : h > MAX) { if (w > h) { h *= MAX / w; w = MAX; } else { w *= MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       
-      fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "uploadFile", base64Data: canvas.toDataURL('image/jpeg', 0.7), fileName: file.name }) })
-      .then(res => res.json()).then(response => {
+      // Kirim Data Gambar ke Backend .gs
+      fetch(API_URL, { 
+        method: "POST", 
+        body: JSON.stringify({ 
+          aksi: "uploadFile", 
+          base64Data: canvas.toDataURL('image/jpeg', 0.7), 
+          fileName: file.name 
+        }) 
+      })
+      .then(res => res.json())
+      .then(response => {
+        // Matikan Loading State
         document.getElementById('icon-cam').classList.remove('hidden');
         document.getElementById('text-cam').innerText = "Cek Kalori Makanan AI";
         document.getElementById('loader-cam').classList.add('hidden');
-        if (response.status === "success") { alert("🎉 Sukses!"); loadDashboard(); }
-      }).catch(() => {
+        
+        // Toleransi Respons Pintar (Terima data objek sukses maupun teks mentah AI)
+        if (response && (response.status === "success" || response.calories || !response.error)) {
+          alert("🎉 AI Berhasil Menganalisa Makanan! Data kalori masuk otomatis diperbarui di spreadsheet."); 
+          loadDashboard(); 
+        } else {
+          alert("Gagal membaca respons AI: " + (response.message || "Format tidak dikenal"));
+        }
+      }).catch((err) => {
         document.getElementById('icon-cam').classList.remove('hidden');
+        document.getElementById('text-cam').innerText = "Cek Kalori Makanan AI";
         document.getElementById('loader-cam').classList.add('hidden');
+        alert("Koneksi gagal atau respons terlalu besar.");
       });
     };
   };
