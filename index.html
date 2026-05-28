@@ -2,15 +2,16 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
   
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     body { 
@@ -24,10 +25,10 @@
       align-items: center;
     }
     
-    /* Background Pelangi Premium Bergerak Hidup & Enak Dipandang */
+    /* MODIFIKASI CRITICAL: Otomatis Full Screen 100% Lebar & Tinggi Khusus di Layar Lebar/Tablet Mas */
     .app-container { 
       width: 100%; 
-      max-width: 480px; 
+      max-width: 100%; /* Diubah dari 480px menjadi 100% agar memenuhi layar tablet Huawei Mas */
       height: 100vh; 
       background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #311042 50%, #1e3a8a 75%, #0f172a 100%);
       background-size: 400% 400%;
@@ -39,23 +40,21 @@
       position: relative; 
     }
     
+    /* Jika di masa depan Mas ingin membatasi lebar di PC Desktop saja */
+    @media (min-width: 1200px) {
+      .app-container {
+        max-width: 600px;
+        height: 95vh;
+        border-radius: 32px;
+      }
+    }
+
     @keyframes rainbowMotion {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* Penanganan Khusus untuk Tablet Huawei MatePad agar Tetap Presisi di Tengah */
-    @media (min-width: 768px) {
-      .app-container {
-        height: 94vh;
-        border-radius: 32px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-      }
-    }
-
-    /* Balutan Warna Teks Khusus Agar Terbaca Tajam Di Mode Siang / Malam */
     .text-glow {
       color: #ffffff !important;
       text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8), 0px 0px 10px rgba(99, 102, 241, 0.4);
@@ -75,191 +74,185 @@
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .fade-out { opacity: 0; transform: scale(0.9); transition: all 0.25s ease; }
     
-    /* Custom Overlay Modal Hasil AI */
     #ai-result-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.85); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(8px); }
-
     ::-webkit-scrollbar { width: 0px; }
   </style>
 </head>
 <body>
 
-<div id="main-app" class="app-container p-4 shadow-2xl">
+<div id="main-app" class="app-container p-5 shadow-2xl">
 
-  <div id="header-gradient" class="p-4 rounded-[2rem] shadow-lg relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-2 border border-white/10" style="background: rgba(255,255,255,0.08);">
+  <div id="header-gradient" class="p-4 rounded-[1.5rem] shadow-lg relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-2 border border-white/10" style="background: rgba(255,255,255,0.08);">
     <div class="flex justify-between items-center z-10">
-      <div class="flex flex-col gap-0.5 max-w-[60%]">
-        <h1 class="text-base font-extrabold tracking-tight text-glow">Mas Fuqohak</h1>
+      <div class="flex flex-col gap-0.5 max-w-[65%]">
+        <h1 class="text-lg font-extrabold tracking-tight text-glow">Mas Fuqohak</h1>
         <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
-          <div id="user-mood" class="text-[9px] font-black bg-yellow-400 text-slate-900 px-2 py-0.5 rounded-md shadow-sm">🔄 Analisa...</div>
-          <div class="text-[9px] font-black text-rose-300 uppercase tracking-tight animate-pulse bg-black/30 px-1.5 py-0.5 rounded border border-rose-500/30 truncate max-w-[120px]" id="header-must-do">HARUS: Lari Pagi</div>
+          <div id="user-mood" class="text-[10px] font-black bg-yellow-400 text-slate-900 px-2 py-0.5 rounded-md shadow-sm">🔄 Analisa...</div>
+          <div class="text-[10px] font-black text-rose-300 uppercase tracking-tight animate-pulse bg-black/30 px-1.5 py-0.5 rounded border border-rose-500/30 truncate max-w-[180px]" id="header-must-do">HARUS: Memuat data...</div>
         </div>
       </div>
       
-      <div class="flex items-center gap-2 text-right">
+      <div class="flex items-center gap-3 text-right">
         <div class="flex flex-col justify-center">
-          <span id="date-masehi" class="text-[10px] font-bold leading-tight text-glow">Memuat Tanggal...</span>
-          <span id="date-hijriah" class="text-[9px] text-indigo-200 font-bold mt-0.5 leading-none">Memuat Hijriah...</span>
+          <span id="date-masehi" class="text-[11px] font-bold leading-tight text-glow">Memuat Tanggal...</span>
+          <span id="date-hijriah" class="text-[10px] text-indigo-200 font-bold mt-0.5 leading-none">Memuat Hijriah...</span>
         </div>
-        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1.5 rounded-full text-sm hover:scale-110 active:scale-90 transition shadow-inner">☀️</button>
-        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1.5 rounded-xl text-[10px] font-bold flex items-center gap-0.5">
+        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-2 rounded-full text-base hover:scale-110 active:scale-90 transition shadow-inner">☀️</button>
+        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-2 rounded-xl text-[11px] font-bold flex items-center gap-0.5">
           <span id="lock-icon">🔓</span>
         </button>
       </div>
     </div>
 
     <div class="bg-black/30 rounded-xl p-2 border border-white/5 shadow-inner">
-      <p id="display-quote" class="text-[10px] font-semibold italic text-slate-200 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
+      <p id="display-quote" class="text-[11px] font-semibold italic text-slate-200 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
     </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-3 mt-1">
-    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-kalori">
-      <p class="text-[9px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">🔥 Kalori In</p>
+  <div class="grid grid-cols-2 gap-4 mt-2">
+    <div class="glass-card p-4 rounded-2xl shadow-sm" id="card-kalori">
+      <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">🔥 Kalori In</p>
       <div class="flex items-baseline gap-0.5">
-        <h2 class="text-xl font-black text-glow" id="val-kalori">0</h2>
-        <span class="text-[9px] text-slate-300 font-bold">kcal</span>
+        <h2 class="text-2xl font-black text-glow" id="val-kalori">0</h2>
+        <span class="text-[10px] text-slate-300 font-bold">kcal</span>
       </div>
-      <div class="w-full bg-white/20 h-1.5 mt-1 rounded-full overflow-hidden">
+      <div class="w-full bg-white/20 h-2 mt-1.5 rounded-full overflow-hidden">
         <div id="bar-kalori" class="bg-gradient-to-r from-teal-400 to-indigo-400 h-full transition-all duration-500" style="width:0%"></div>
       </div>
     </div>
 
-    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-out">
-      <p class="text-[9px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">🏃‍♂️ Kalori Out</p>
+    <div class="glass-card p-4 rounded-2xl shadow-sm" id="card-out">
+      <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">🏃‍♂️ Kalori Out</p>
       <div class="flex items-baseline gap-0.5">
-        <h2 class="text-xl font-black text-amber-300 text-glow" id="val-kalori-keluar">0</h2>
-        <span class="text-[9px] font-bold text-amber-200">kcal</span>
+        <h2 class="text-2xl font-black text-amber-300 text-glow" id="val-kalori-keluar">0</h2>
+        <span class="text-[10px] font-bold text-amber-200">kcal</span>
       </div>
     </div>
 
-    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-air">
-      <p class="text-[9px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">💧 Hidrasi</p>
+    <div onclick="tambahAir()" class="glass-card p-4 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-air">
+      <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">💧 Hidrasi</p>
       <div class="flex items-baseline gap-0.5">
-        <h2 class="text-xl font-black text-blue-300 text-glow" id="val-air">0</h2>
-        <span class="text-[9px] font-bold text-blue-200">/8 Gelas</span>
+        <h2 class="text-2xl font-black text-blue-300 text-glow" id="val-air">0</h2>
+        <span class="text-[10px] font-bold text-blue-200">/8 Gelas</span>
       </div>
     </div>
 
-    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-hp">
-      <p class="text-[9px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">📱 Screen Time</p>
+    <div class="glass-card p-4 rounded-2xl shadow-sm" id="card-hp">
+      <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">📱 Screen Time</p>
       <div class="flex items-baseline gap-0.5">
-        <h2 class="text-xl font-black text-rose-300 text-glow" id="val-hp">0</h2>
-        <span class="text-[9px] font-bold text-rose-200">Jam</span>
+        <h2 class="text-2xl font-black text-rose-300 text-glow" id="val-hp">0</h2>
+        <span class="text-[10px] font-bold text-rose-200">Jam</span>
       </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-2 gap-3 mt-1">
-    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-3 shadow-md hover:scale-[1.01] active:scale-95 transition text-white relative overflow-hidden border border-white/10">
-      <p class="text-[9px] font-bold text-indigo-200 uppercase tracking-wider">🇬🇧 English Hub</p>
-      <div class="flex justify-between items-baseline mt-1">
-        <span class="text-[11px] font-bold text-white truncate max-w-[70px]">Belajar AI ➔</span>
-        <span class="text-base font-black text-white" id="val-english">0 M</span>
+  <div class="grid grid-cols-2 gap-4 mt-2">
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-4 shadow-md hover:scale-[1.01] active:scale-95 transition text-white relative overflow-hidden border border-white/10">
+      <p class="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">🇬🇧 English Hub</p>
+      <div class="flex justify-between items-baseline mt-2">
+        <span class="text-xs font-bold text-white truncate">Belajar AI ➔</span>
+        <span class="text-lg font-black text-white" id="val-english">0 M</span>
       </div>
     </a>
 
-    <a href="https://script.google.com/macros/s/AKfycbyYcuh6lXfOAM9ZhThgWUT3TZ96x9aiHEIB7qJPw6DAWyWLq710s6lAcdFwVcObSp7Z/exec" target="_blank" class="block glass-card p-3 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition" id="card-menulis">
-      <p class="text-[9px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">✍️ Menulis</p>
-      <div class="flex justify-between items-baseline mt-1">
-        <span class="text-[11px] text-slate-300 font-bold">Progres ➔</span>
-        <span class="text-base font-black text-emerald-300 text-glow" id="val-menulis">0</span>
+    <a href="https://script.google.com/macros/s/AKfycbyYcuh6lXfOAM9ZhThgWUT3TZ96x9aiHEIB7qJPw6DAWyWLq710s6lAcdFwVcObSp7Z/exec" target="_blank" class="block glass-card p-4 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition" id="card-menulis">
+      <p class="text-[10px] font-extrabold text-indigo-200 uppercase tracking-wider sub-glow">✍️ Menulis</p>
+      <div class="flex justify-between items-baseline mt-2">
+        <span class="text-xs text-slate-300 font-bold">Progres ➔</span>
+        <span class="text-lg font-black text-emerald-300 text-glow" id="val-menulis">0</span>
       </div>
     </a>
   </div>
 
-  <div class="glass-card p-3 rounded-2xl shadow-sm mt-1" id="card-shalat">
-    <div class="flex justify-between items-center border-b border-white/10 pb-1.5 mb-1.5">
-      <h3 class="text-xs font-black text-glow" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
-      <span id="val-konsistensi" class="text-[9px] font-black bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-500/20">0%</span>
+  <div class="glass-card p-4 rounded-2xl shadow-sm mt-2" id="card-shalat">
+    <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
+      <h3 class="text-sm font-black text-glow" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
+      <span id="val-konsistensi" class="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-500/20">0%</span>
     </div>
     <div class="flex justify-between text-center">
-      <div class="flex items-center gap-1">
-        <span class="text-xs">🕌</span>
-        <span class="text-[11px] font-bold text-slate-200 sub-glow">Jamaah:</span>
-        <span class="text-xs font-black text-emerald-300 text-glow" id="val-shalat">0/5</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm">🕌</span>
+        <span class="text-xs font-bold text-slate-200 sub-glow">Jamaah:</span>
+        <span class="text-sm font-black text-emerald-300 text-glow" id="val-shalat">0/5</span>
       </div>
-      <div id="card-murojaah" class="flex items-center gap-1">
-        <span class="text-xs">📖</span>
-        <span class="text-[11px] font-bold text-slate-200 sub-glow">Murojaah:</span>
-        <span class="text-xs font-black text-emerald-300 text-glow" id="val-murojaah">0</span>
+      <div id="card-murojaah" class="flex items-center gap-1.5">
+        <span class="text-sm">📖</span>
+        <span class="text-xs font-bold text-slate-200 sub-glow">Murojaah:</span>
+        <span class="text-sm font-black text-emerald-300 text-glow" id="val-murojaah">0</span>
       </div>
     </div>
   </div>
 
-  <div class="glass-card p-3 rounded-2xl shadow-md mt-1 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
-    <h3 class="text-xs font-black text-glow mb-1.5" id="title-tugas">📋 Tugas Hari Ini</h3>
-    <div id="tugas-container" class="space-y-1.5 overflow-y-auto flex-1 max-h-[120px] pr-1">
-      <p id="tugas-empty" class="text-[10px] text-slate-300 text-center py-2 italic">Sinkronisasi tugas...</p>
+  <div class="glass-card p-4 rounded-2xl shadow-md mt-2 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
+    <h3 class="text-sm font-black text-glow mb-2" id="title-tugas">📋 Tugas Hari Ini</h3>
+    <div id="tugas-container" class="space-y-2 overflow-y-auto flex-1 max-h-[160px] pr-1">
+      <p id="tugas-empty" class="text-[11px] text-slate-300 text-center py-2 italic">Sinkronisasi tugas...</p>
     </div>
-    <div class="flex gap-1.5 mt-2 pt-1.5 border-t border-white/10">
-      <input type="text" id="tugas-input" placeholder="Tugas baru..." class="w-full bg-black/20 border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-white focus:outline-none focus:border-indigo-400">
-      <button onclick="simpanTugasKeSheet()" class="bg-white text-slate-900 font-black text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition">Tambah</button>
+    <div class="flex gap-2 mt-2 pt-2 border-t border-white/10">
+      <input type="text" id="tugas-input" placeholder="Tugas baru..." class="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-indigo-400">
+      <button onclick="simpanTugasKeSheet()" class="bg-white text-slate-900 font-black text-xs px-4 py-2 rounded-lg active:scale-95 transition">Tambah</button>
     </div>
   </div>
 
-  <div class="relative mt-3 pt-1">
+  <div class="relative mt-4 pt-1">
     <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*">
-    <div id="btn-upload" class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl p-3 shadow-md flex items-center justify-center gap-2 hover:from-indigo-500 hover:to-blue-500 active:scale-95 transition duration-300 border border-white/10">
-      <span id="icon-cam" class="text-base">📸</span>
-      <span id="text-cam" class="font-black text-xs tracking-wide text-glow">AMBIL FOTO / AMBIL GALERI</span>
-      <div id="loader-cam" class="loader rounded-full border-2 border-slate-300 h-4 w-4 hidden"></div>
+    <div id="btn-upload" class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl p-4 shadow-md flex items-center justify-center gap-2 hover:from-indigo-500 hover:to-blue-500 active:scale-95 transition duration-300 border border-white/10">
+      <span id="icon-cam" class="text-lg">📸</span>
+      <span id="text-cam" class="font-black text-sm tracking-wide text-glow">AMBIL FOTO LANGSUNG / BUKA GALERI</span>
+      <div id="loader-cam" class="loader rounded-full border-2 border-slate-300 h-5 w-5 hidden"></div>
     </div>
-  </div>
-
-  <div class="text-center mt-1">
-    <button onclick="alert('Sentuh ikon tiga titik (⋮) dipojok kanan atas browser Chrome Huawei Mas, kemudian pilih opsi \'Tambahkan ke Layar Utama / Add to Home Screen\'')" class="text-[8px] font-bold text-slate-400 hover:text-white transition tracking-wide">⚙️ KELOLA IKON APLIKASI DI TABLET</button>
   </div>
 
 </div>
 
 <div id="ai-result-modal" onclick="tutupModalHasil()">
-  <div class="bg-slate-900 border border-white/20 rounded-[2rem] w-full max-w-[380px] p-5 text-white max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+  <div class="bg-slate-900 border border-white/20 rounded-[2rem] w-full max-w-[420px] p-6 text-white max-h-[85vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
     
     <div class="text-center border-b border-white/10 pb-3 mb-4">
       <span class="text-3xl">✨</span>
-      <h3 class="text-lg font-black tracking-tight text-glow mt-1">Hasil Analisis Gizi</h3>
-      <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
+      <h3 class="text-xl font-black tracking-tight text-glow mt-1">Hasil Analisis Gizi</h3>
+      <p id="modal-title-makanan" class="text-sm font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
     </div>
 
     <div class="grid grid-cols-4 gap-2 text-center mb-4">
       <div class="bg-white/5 rounded-xl p-2 border border-white/5">
-        <p class="text-[8px] font-bold text-slate-400">BERAT</p>
-        <p id="m-gram" class="text-xs font-black text-white">0g</p>
+        <p class="text-[9px] font-bold text-slate-400">BERAT</p>
+        <p id="m-gram" class="text-sm font-black text-white">0g</p>
       </div>
       <div class="bg-indigo-500/20 rounded-xl p-2 border border-indigo-500/30">
-        <p class="text-[8px] font-bold text-indigo-300">KALORI</p>
-        <p id="m-kalori" class="text-xs font-black text-indigo-300">0 kcal</p>
+        <p class="text-[9px] font-bold text-indigo-300">KALORI</p>
+        <p id="m-kalori" class="text-sm font-black text-indigo-300">0 kcal</p>
       </div>
       <div class="bg-emerald-500/20 rounded-xl p-2 border border-emerald-500/30">
-        <p class="text-[8px] font-bold text-emerald-300">PROTEIN</p>
-        <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
+        <p class="text-[9px] font-bold text-emerald-300">PROTEIN</p>
+        <p id="m-protein" class="text-sm font-black text-emerald-300">0g</p>
       </div>
       <div class="bg-amber-500/20 rounded-xl p-2 border border-amber-500/30">
-        <p class="text-[8px] font-bold text-amber-300">KARBO</p>
-        <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
+        <p class="text-[9px] font-bold text-amber-300">KARBO</p>
+        <p id="m-karbo" class="text-sm font-black text-amber-300">0g</p>
       </div>
     </div>
 
-    <div class="space-y-3 text-[11px] leading-relaxed border-t border-white/10 pt-3">
+    <div class="space-y-4 text-xs leading-relaxed border-t border-white/10 pt-3">
       <div>
-        <p class="font-extrabold text-teal-300">💚 SEHAT GAK?</p>
+        <p class="font-extrabold text-teal-300 text-[13px]">💚 SEHAT GAK?</p>
         <p id="m-sehat" class="text-slate-300 font-medium">Memuat ulasan kesehatan...</p>
       </div>
       <div>
-        <p class="font-extrabold text-sky-300">💡 TIPS DIET GIZI:</p>
+        <p class="font-extrabold text-sky-300 text-[13px]">💡 TIPS DIET GIZI:</p>
         <p id="m-tips" class="text-slate-300 font-medium">Memuat tips dari Coach...</p>
       </div>
-      <div class="bg-black/30 p-2.5 rounded-xl border border-white/5 italic text-center text-slate-200">
+      <div class="bg-black/30 p-3 rounded-xl border border-white/5 italic text-center text-slate-200">
         <p id="m-bijak">"Kalimat bijak mutiara makanan harian..."</p>
       </div>
       
       <div class="bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 mt-2">
-        <p class="font-black text-rose-300 text-[10px] tracking-wider uppercase">🎯 MAS FUQOHAK SEKARANG HARUS:</p>
-        <p id="m-aksi" class="text-white font-bold text-xs uppercase mt-0.5 tracking-tight">Tindakan...</p>
+        <p class="font-black text-rose-300 text-[11px] tracking-wider uppercase">🎯 MAS FUQOHAK SEKARANG HARUS:</p>
+        <p id="m-aksi" class="text-white font-bold text-sm uppercase mt-0.5 tracking-tight">Tindakan...</p>
       </div>
     </div>
 
-    <button onclick="tutupModalHasil()" class="w-full bg-white text-slate-900 font-black text-xs py-3 rounded-xl mt-5 hover:bg-slate-100 active:scale-95 transition">SAYA PAHAM, LANJUTKAN</button>
+    <button onclick="tutupModalHasil()" class="w-full bg-white text-slate-900 font-black text-sm py-3 rounded-xl mt-5 hover:bg-slate-100 active:scale-95 transition">SAYA PAHAM, LANJUTKAN</button>
   </div>
 </div>
 
@@ -347,8 +340,8 @@ function renderTugasDariDatabase(tugasList) {
     item.className = "tugas-item flex items-center justify-between bg-white/5 border border-white/5 px-2.5 py-1.5 rounded-lg";
     item.id = `db-tugas-${itemData.rowId}`;
     item.innerHTML = `
-      <p class="text-[11px] font-bold text-slate-200 truncate max-w-[240px]">${itemData.tugas}</p>
-      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2 py-0.5 rounded font-bold text-[9px]">✓</button>
+      <p class="text-xs font-bold text-slate-200 truncate max-w-[75%]">${itemData.tugas}</p>
+      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2 py-0.5 rounded font-bold text-[10px]">✓</button>
     `;
     container.appendChild(item);
   });
@@ -445,7 +438,6 @@ function handleFileSelect(input){
       if (response && response.status === "success") {
         const ai = response.data;
         
-        // Memasukkan hasil bacaan AI ke Modal Pop-up Kustom
         document.getElementById("modal-title-makanan").innerText = ai.makanan + " (" + ai.minuman + ")";
         document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
         document.getElementById("m-kalori").innerText = (response.totalCal || 0) + " kcal";
@@ -456,10 +448,7 @@ function handleFileSelect(input){
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Makanlah untuk hidup, bukan hidup untuk makan.'}"`;
         document.getElementById("m-aksi").innerText = ai.aksi || "Lanjutkan aktivitas produktif.";
         
-        // Update label rekomendasi di komponen header utama
         document.getElementById("header-must-do").innerText = "HARUS: " + (ai.aksi || "Rutin Olahraga");
-
-        // Tampilkan Modal Jendela Pop-up ke Layar
         document.getElementById("ai-result-modal").style.display = "flex";
         
         loadDashboard(); 
