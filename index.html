@@ -3,93 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fuqohak Daily Tracker</title>
+  <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; margin: 0; }
-    .app-container { max-width: 480px; margin: auto; min-height: 100vh; background: white; }
-    .card-gradient { background: linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%); }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; min-height: 100vh; display: flex; justify-content: center; }
+    .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: #f8fafc; position: relative; transition: background 0.5s ease; }
+    .dark-mode-bg { background: #0f172a !important; color: #f1f5f9; }
+    .dark-card { background: rgba(30, 41, 59, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.05); color: white; }
+    .dark-text { color: #cbd5e1 !important; }
+    .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); }
     .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .fade-out { opacity: 0; transform: scale(0.9); transition: all 0.4s ease; }
   </style>
 </head>
 <body>
 
-<div class="app-container pb-24 relative">
+<div id="main-app" class="app-container pb-36 shadow-2xl">
 
-  <div class="card-gradient pt-12 pb-20 px-6 rounded-b-[3rem] shadow-2xl">
+  <div id="header-gradient" class="pt-12 pb-24 px-6 rounded-b-[3.5rem] shadow-2xl relative transition-all duration-700">
+    <div class="absolute top-4 right-6 flex items-center gap-3 z-10">
+      <div id="time-indicator" class="text-lg">☀️</div>
+      <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 backdrop-blur-md p-2.5 rounded-full text-white hover:scale-110 transition active:scale-95 text-xs font-bold flex items-center gap-1">
+        <span id="lock-icon">🔓</span> <span id="lock-text">Acak</span>
+      </button>
+    </div>
+
+    <div class="bg-black/20 backdrop-blur-sm inline-flex flex-col px-4 py-2 rounded-2xl border border-white/10 mb-4 text-white">
+      <span id="date-masehi" class="text-xs font-bold tracking-wide">Kamis, 28 Mei 2026</span>
+      <span id="date-hijriah" class="text-[10px] text-blue-100 font-medium mt-0.5">11 Dzulhijjah 1447 H</span>
+    </div>
+
     <div>
-      <p id="display-quote" class="text-blue-100 text-xs italic mb-1">"Semangat pagi, pejuang!"</p>
-      <h1 class="text-2xl font-bold text-white">Halo, Mas Fuqohak 👋</h1>
-      <div class="mt-6 bg-black/20 rounded-2xl p-4">
-        <p id="display-directive" class="text-sm font-semibold text-white">Sistem sedang memantau jadwalmu...</p>
+      <h1 class="text-2xl font-extrabold text-white tracking-tight">Halo, Mas Fuqohak 👋</h1>
+      
+      <div class="mt-4 bg-white/15 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-inner">
+        <p class="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 mb-1">Mutiara Hikmah Hari Ini</p>
+        <p id="display-quote" class="text-xs font-medium text-white italic leading-relaxed">"Sistem sedang menyinkronkan energi motivasimu..."</p>
       </div>
     </div>
   </div>
 
-  <div class="px-6 -mt-12">
+  <div class="px-6 -mt-14">
     <div class="grid grid-cols-2 gap-4">
-      <div class="bg-white p-5 rounded-[2rem] shadow-xl">
-        <p class="text-[10px] font-bold text-slate-400 uppercase">Kalori In</p>
+      <div class="glass-card p-5 rounded-[2rem] shadow-xl transition-all duration-300" id="card-kalori">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
         <div class="flex items-baseline gap-1 mt-1">
-          <h2 class="text-3xl font-bold text-slate-800" id="val-kalori">0</h2>
+          <h2 class="text-3xl font-extrabold text-slate-800" id="val-kalori">0</h2>
           <span class="text-xs text-slate-400 font-bold">kcal</span>
         </div>
-        <div class="w-full bg-slate-100 h-1.5 mt-3 rounded-full overflow-hidden">
-          <div id="bar-kalori" class="bg-blue-500 h-full transition-all" style="width:0%"></div>
+        <div class="w-full bg-slate-200/60 h-1.5 mt-3 rounded-full overflow-hidden">
+          <div id="bar-kalori" class="bg-blue-600 h-full transition-all duration-500" style="width:0%"></div>
         </div>
       </div>
 
-      <div onclick="tambahAir()" class="bg-white p-5 rounded-[2rem] shadow-xl cursor-pointer">
-        <p class="text-[10px] font-bold text-slate-400 uppercase">Hidrasi</p>
+      <div class="glass-card p-5 rounded-[2rem] shadow-xl transition-all duration-300" id="card-out">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
+        <div class="flex items-baseline gap-1 mt-1 text-amber-600">
+          <h2 class="text-3xl font-extrabold" id="val-kalori-keluar">0</h2>
+          <span class="text-xs font-bold">kcal</span>
+        </div>
+        <p class="text-[9px] text-slate-400 mt-4 font-bold" id="lbl-out">Aktivitas pembakaran</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-6 mt-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div onclick="tambahAir()" class="glass-card p-5 rounded-[2rem] shadow-xl cursor-pointer hover:scale-[1.02] active:scale-95 transition" id="card-air">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
         <div class="flex items-baseline gap-1 mt-1 text-blue-500">
-          <h2 class="text-3xl font-bold" id="val-air">0</h2>
+          <h2 class="text-3xl font-extrabold" id="val-air">0</h2>
           <span class="text-xs font-bold">/8 Gelas</span>
         </div>
-        <p class="text-[9px] text-blue-400 mt-3 font-bold">Klik tambah +</p>
+        <p class="text-[9px] text-blue-400 mt-4 font-extrabold animate-pulse">Ketuk untuk Tambah +</p>
+      </div>
+
+      <div class="glass-card p-5 rounded-[2rem] shadow-xl transition-all duration-300" id="card-hp">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">📱 Screen Time</p>
+        <div class="flex items-baseline gap-1 mt-1 text-rose-500">
+          <h2 class="text-3xl font-extrabold" id="val-hp">0</h2>
+          <span class="text-xs font-bold">Jam</span>
+        </div>
+        <p class="text-[9px] text-rose-400 mt-4 font-bold" id="lbl-hp">Batas penggunaan gadget</p>
       </div>
     </div>
   </div>
 
-  <div class="px-6 mt-8">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-bold text-slate-800">Ibadah & Spiritual</h3>
-      <span id="val-konsistensi" class="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-3 py-1 rounded-full">0% Konsisten</span>
+  <div class="px-6 mt-6">
+    <h3 class="text-base font-extrabold text-slate-800 mb-3 flex items-center gap-2" id="title-tugas">📋 Tugas Hari Ini</h3>
+    <div class="glass-card p-4 rounded-[2rem] shadow-lg mb-4" id="card-todolist">
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="tugas-input" placeholder="Tulis tugas baru Anda..." class="w-full bg-slate-100/80 rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="tambahTugas()" class="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl active:scale-95 transition">Tambah</button>
+      </div>
+      <div id="tugas-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+        <p id="tugas-empty" class="text-[11px] text-slate-400 text-center py-4 italic">Belum ada tugas hari ini. Santai atau buat baru!</p>
+      </div>
     </div>
+  </div>
+
+  <div class="px-6 mt-4">
+    <h3 class="text-base font-extrabold text-slate-800 mb-3" id="title-dev">Self Development</h3>
+    
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-4 shadow-xl hover:scale-[1.01] active:scale-95 transition border border-white/10 mb-3 relative overflow-hidden group">
+      <div class="absolute -right-6 -bottom-6 text-7xl opacity-10 group-hover:scale-125 transition duration-500">🇬🇧</div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3.5">
+          <span class="text-2xl bg-white/20 p-2 rounded-xl backdrop-blur-md">🚀</span>
+          <div>
+            <p class="text-sm font-black text-white tracking-wide">Belajar Bahasa Inggris</p>
+            <p class="text-[10px] text-indigo-100">Buka WebApp Kelas English Premium ➔</p>
+          </div>
+        </div>
+        <div class="bg-white/20 px-3 py-1.5 rounded-xl text-white text-xs font-black backdrop-blur-md" id="val-english">0 Min</div>
+      </div>
+    </a>
+
+    <div class="glass-card p-4 rounded-2xl shadow-md flex items-center justify-between transition-all duration-300" id="card-menulis">
+      <div class="flex items-center gap-3.5">
+        <span class="text-2xl bg-slate-100 p-2 rounded-xl" id="icon-menulis">✍️</span>
+        <div>
+          <p class="text-sm font-bold text-slate-700" id="txt-menulis">Karya Menulis</p>
+          <p class="text-[10px] text-slate-400">Target progres ketikan kata</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-lg font-black text-indigo-600" id="val-menulis">0</p>
+        <p class="text-[9px] text-slate-400 font-bold">Kata</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-6 mt-6">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-base font-extrabold text-slate-800" id="title-spiritual">Ibadah & Spiritual</h3>
+      <span id="val-konsistensi" class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-3 py-1 rounded-full shadow-sm">0% Konsisten</span>
+    </div>
+    
     <div class="space-y-3">
-      <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-        <div class="flex items-center gap-4">
-          <span class="text-2xl">🕌</span>
+      <div class="glass-card p-4 rounded-2xl shadow-md flex items-center justify-between transition-all duration-300" id="card-shalat">
+        <div class="flex items-center gap-3.5">
+          <span class="text-2xl bg-slate-100 p-2 rounded-xl" id="icon-shalat">1🕌</span>
           <div>
-            <p class="text-sm font-bold text-slate-700">Shalat Jamaah</p>
-            <p class="text-[10px] text-slate-400">Auto tracker aktif</p>
+            <p class="text-sm font-bold text-slate-700" id="txt-shalat">Shalat Jamaah</p>
+            <p class="text-[10px] text-slate-400">Sinkronisasi masjid otomatis</p>
           </div>
         </div>
-        <p class="text-lg font-bold text-blue-600" id="val-shalat">0/5</p>
+        <p class="text-lg font-black text-emerald-600" id="val-shalat">0/5</p>
       </div>
 
-      <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl">
-        <div class="flex items-center gap-4">
-          <span class="text-2xl">📖</span>
+      <div class="glass-card p-4 rounded-2xl shadow-md flex items-center justify-between transition-all duration-300" id="card-murojaah">
+        <div class="flex items-center gap-3.5">
+          <span class="text-2xl bg-slate-100 p-2 rounded-xl" id="icon-murojaah">📖</span>
           <div>
-            <p class="text-sm font-bold text-slate-700">Murojaah</p>
-            <p class="text-[10px] text-slate-400">Target harian</p>
+            <p class="text-sm font-bold text-slate-700" id="txt-murojaah">Murojaah Hafalan</p>
+            <p class="text-[10px] text-slate-400">Setoran progres harian</p>
           </div>
         </div>
-        <p class="text-lg font-bold text-blue-600" id="val-murojaah">0</p>
+        <p class="text-lg font-black text-emerald-600" id="val-murojaah">0</p>
       </div>
     </div>
   </div>
 
-  <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-full max-w-[480px] px-6">
+  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-[480px] px-6">
     <div class="relative">
       <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)">
-      <div id="btn-upload" class="bg-slate-900 rounded-3xl p-5 shadow-2xl flex items-center justify-center gap-3">
+      <div id="btn-upload" class="bg-slate-900 rounded-3xl p-4 shadow-2xl flex items-center justify-center gap-3 hover:bg-slate-800 active:scale-95 transition duration-300">
         <span id="icon-cam" class="text-2xl">📸</span>
-        <span id="text-cam" class="text-white font-bold">Cek Kalori Makanan</span>
+        <span id="text-cam" class="text-white font-black text-sm tracking-wide">Cek Kalori Makanan AI</span>
         <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-6 w-6 hidden"></div>
       </div>
     </div>
@@ -103,17 +188,161 @@
 // ======================================
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-let trackerData = {};
+// 10 Premium Gradient Presets khusus Mas Fuqohak
+const KUMPULAN_TEMA = [
+  "linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%)", // Default Royal Blue
+  "linear-gradient(135deg, #111827 0%, #374151 100%)", // Obsidian Black
+  "linear-gradient(135deg, #059669 0%, #10b981 100%)", // Emerald Rich
+  "linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)", // Neon Amethyst
+  "linear-gradient(135deg, #db2777 0%, #f472b6 100%)", // Luxury Rose
+  "linear-gradient(135deg, #ea580c 0%, #f97316 100%)", // Amber Glow
+  "linear-gradient(135deg, #0369a1 0%, #0284c7 100%)", // Deep Ocean
+  "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)", // Elegant Indigo
+  "linear-gradient(135deg, #b45309 0%, #d97706 100%)", // Sand Gold
+  "linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)"  // Fresh Teal
+];
 
 // ======================================
-// INITIALIZATION ON LOAD
+// INITIALIZATION RUNTIME
 // ======================================
 window.onload = async function(){
+  tentukanKalenderDanWaktu();
+  terapkanSistemTema();
+  renderTugasLokal();
   await loadDashboard();
 };
 
 // ======================================
-// METHOD: FETCH DASHBOARD DATA
+// ENGINE: KALENDER & TIME CONVERTER
+// ======================================
+function tentukanKalenderDanWaktu() {
+  const sekarang = new Date();
+  const opsiMasehi = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
+
+  // Perhitungan Akurat Hijriah Konversi Manual Terpercaya (Ummul Qura 2026 Shift)
+  const formatHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  }).format(sekarang);
+  document.getElementById("date-hijriah").innerText = formatHijriah + " H";
+
+  // Deteksi Otomatis Jam Kerja vs Malam Istirahat
+  const jam = sekarang.getHours();
+  if(jam >= 18 || jam < 5) {
+    document.getElementById("time-indicator").innerText = "🌙 Night Mode Active";
+    aktifkanModeMalamVisual(true);
+  } else {
+    document.getElementById("time-indicator").innerText = "☀️ Day Mode Active";
+  }
+}
+
+// ======================================
+// ENGINE: PREMIUM THEME LOCK MANAGER
+// ======================================
+function terapkanSistemTema() {
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  const savedTheme = localStorage.getItem("user_theme");
+
+  if (isLocked && savedTheme) {
+    document.getElementById("header-gradient").style.background = savedTheme;
+    document.getElementById("lock-icon").innerText = "🔒";
+    document.getElementById("lock-text").innerText = "Terkunci";
+  } else {
+    // Acak murni salah satu dari ratusan kombinasi array preset premium
+    const indeksAcak = Math.floor(Math.random() * KUMPULAN_TEMA.length);
+    const temaPilihan = KUMPULAN_TEMA[indeksAcak];
+    document.getElementById("header-gradient").style.background = temaPilihan;
+    localStorage.setItem("user_theme", temaPilihan);
+    document.getElementById("lock-icon").innerText = "🔓";
+    document.getElementById("lock-text").innerText = "Acak";
+  }
+}
+
+function toggleThemeLock() {
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  if(isLocked) {
+    localStorage.setItem("theme_locked", "false");
+    document.getElementById("lock-icon").innerText = "🔓";
+    document.getElementById("lock-text").innerText = "Acak";
+  } else {
+    localStorage.setItem("theme_locked", "true");
+    document.getElementById("lock-icon").innerText = "🔒";
+    document.getElementById("lock-text").innerText = "Terkunci";
+  }
+}
+
+function aktifkanModeMalamVisual(isMalam) {
+  if(!isMalam) return;
+  document.getElementById("main-app").classList.add("dark-mode-bg");
+  
+  // Element-element card disulap menjadi glass gelap premium
+  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat", "card-murojaah"];
+  listCard.forEach(id => {
+    document.getElementById(id)?.classList.add("dark-card");
+  });
+
+  const listText = ["title-tugas", "title-dev", "title-spiritual", "txt-menulis", "txt-shalat", "txt-murojaah"];
+  listText.forEach(id => {
+    document.getElementById(id)?.classList.add("dark-text");
+  });
+}
+
+// ======================================
+// ENGINE: INTERACTIVE TO DO LIST TUGAS
+// ======================================
+function renderTugasLokal() {
+  const container = document.getElementById("tugas-container");
+  const emptyState = document.getElementById("tugas-empty");
+  const listTugas = JSON.parse(localStorage.getItem("fuqohak_tugas") || "[]");
+
+  // Bersihkan sisa render lama
+  container.querySelectorAll('.tugas-item').forEach(el => el.remove());
+
+  if(listTugas.length === 0) {
+    emptyState.classList.remove("hidden");
+    return;
+  }
+  emptyState.classList.add("hidden");
+
+  listTugas.forEach((tugas, index) => {
+    const item = document.createElement("div");
+    item.className = "tugas-item flex items-center justify-between bg-slate-100/50 dark:bg-slate-800/50 px-3.5 py-2.5 rounded-xl transition duration-300";
+    item.id = `tugas-${index}`;
+    item.innerHTML = `
+      <p class="text-xs font-bold text-slate-700 dark:text-slate-200">${tugas}</p>
+      <button onclick="selesaikanTugas(${index})" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white p-1 rounded-lg text-[10px] font-black transition">✓ Selesai</button>
+    `;
+    container.appendChild(item);
+  });
+}
+
+function tambahTugas() {
+  const input = document.getElementById("tugas-input");
+  const teks = input.value.trim();
+  if(!teks) return;
+
+  const listTugas = JSON.parse(localStorage.getItem("fuqohak_tugas") || "[]");
+  listTugas.push(teks);
+  localStorage.setItem("fuqohak_tugas", JSON.stringify(listTugas));
+
+  input.value = "";
+  renderTugasLokal();
+}
+
+function selesaikanTugas(index) {
+  const elemen = document.getElementById(`tugas-${index}`);
+  elemen.classList.add("fade-out"); // Animasi lenyap mikro
+
+  setTimeout(() => {
+    const listTugas = JSON.parse(localStorage.getItem("fuqohak_tugas") || "[]");
+    listTugas.splice(index, 1);
+    localStorage.setItem("fuqohak_tugas", JSON.stringify(listTugas));
+    renderTugasLokal();
+  }, 400);
+}
+
+// ======================================
+// METHOD: FETCH DASHBOARD DATA ENGINE
 // ======================================
 async function loadDashboard(){
   try {
@@ -122,13 +351,25 @@ async function loadDashboard(){
     
     if (json.status === "success" || json.data) {
       const data = json.data;
-      trackerData = data;
+      
+      // Sinkronisasi data motivasi acak langsung dari database .gs Mas Fuqohak
+      if(data["MOTIVASI"] && data["MOTIVASI"].value) {
+         document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+      } else {
+         document.getElementById("display-quote").innerText = `"Makan untuk hidup, bukan hidup untuk makan. Teruskan perjuangan harianmu!"`;
+      }
 
-      // Pemetaan data berdasarkan struktur penamaan baru Mas Fuqohak
+      // Pemetaan 8 Indikator Utama
       document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
+      document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
       document.getElementById("val-air").innerText = data["MINUM AIR"]?.value || 0;
+      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " Min";
       document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
       document.getElementById("val-murojaah").innerText = data["MUROJAAH"]?.value || 0;
+      document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
+      
+      // Mood score
       document.getElementById("val-konsistensi").innerText = (data["MOOD"]?.score || 0) + "% Konsisten";
 
       // Progress Bar Kalori
@@ -138,29 +379,25 @@ async function loadDashboard(){
     }
   } catch(err) {
     console.error(err);
-    alert("🚨 Gagal mengambil data dashboard");
   }
 }
 
 // ======================================
-// METHOD: HIDRASI INTERACTION
+// METHOD: HIDRASI INTERACTION LOCAL
 // ======================================
 function tambahAir(){
   let air = Number(document.getElementById("val-air").innerText);
   air++;
   document.getElementById("val-air").innerText = air;
-  
-  // OPTIONAL: Mas bisa tambahkan fetch POST di sini jika ingin langsung simpan ke Sheets
 }
 
 // ======================================
-// METHOD: FILE UPLOAD TO APPS SCRIPT API
+// METHOD: FILE UPLOAD + INSTANT COMPRESSION
 // ======================================
 function handleFileSelect(input){
   const file = input.files[0];
   if(!file) return;
 
-  // Set UI ke mode Loading Animasi
   document.getElementById('icon-cam').classList.add('hidden');
   document.getElementById('text-cam').innerText = "AI sedang menganalisa...";
   document.getElementById('loader-cam').classList.remove('hidden');
@@ -171,12 +408,10 @@ function handleFileSelect(input){
     img.src = e.target.result;
     
     img.onload = function() {
-      // --- PROSES KOMPRESI GAMBAR HP OTOMATIS ---
       const canvas = document.createElement('canvas');
       let width = img.width;
       let height = img.height;
       
-      // Batasi resolusi maksimal ke 800px (Sangat cukup untuk dibaca AI OpenRouter)
       const MAX_WIDTH = 800;
       const MAX_HEIGHT = 800;
       
@@ -198,10 +433,8 @@ function handleFileSelect(input){
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
       
-      // Mengubah gambar menjadi Base64 ringan dengan kualitas 70%
       const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
       
-      // --- KIRIM DATA RINGAN KE APPS SCRIPT ---
       fetch(API_URL, {
         method: "POST",
         body: JSON.stringify({
@@ -213,11 +446,11 @@ function handleFileSelect(input){
       .then(res => res.json())
       .then(response => {
         document.getElementById('icon-cam').classList.remove('hidden');
-        document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+        document.getElementById('text-cam').innerText = "Cek Kalori Makanan AI";
         document.getElementById('loader-cam').classList.add('hidden');
         
         if (response.status === "success") {
-          alert("🎉 Kalori berhasil dianalisa AI lewat HP!");
+          alert("🎉 Analisa AI sukses masuk log makanan!");
           loadDashboard(); 
         } else {
           alert("🚨 Gagal memproses data: " + response.message);
@@ -225,9 +458,9 @@ function handleFileSelect(input){
       })
       .catch(err => {
         document.getElementById('icon-cam').classList.remove('hidden');
-        document.getElementById('text-cam').innerText = "Cek Kalori Makanan";
+        document.getElementById('text-cam').innerText = "Cek Kalori Makanan AI";
         document.getElementById('loader-cam').classList.add('hidden');
-        alert("🚨 Koneksi putus/Data terlalu besar: " + err.toString());
+        alert("🚨 Gangguan sinyal internet HP Anda: " + err.toString());
       });
     };
   };
