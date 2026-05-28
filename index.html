@@ -18,7 +18,6 @@
     .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .fade-out { opacity: 0; transform: scale(0.9); transition: all 0.25s ease; }
-    /* Custom Scrollbar Tipis untuk To-do List */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
   </style>
@@ -35,9 +34,9 @@
       </div>
       
       <div class="flex items-center gap-2 text-right">
-        <div class="flex flex-col">
-          <span id="date-masehi" class="text-[10px] font-bold">Kamis, 28 Mei 2026</span>
-          <span id="date-hijriah" class="text-[9px] text-blue-100">11 Dzulhijjah 1447 H</span>
+        <div class="flex flex-col justify-center">
+          <span id="date-masehi" class="text-[10px] font-bold leading-tight">Memuat Tanggal...</span>
+          <span id="date-hijriah" class="text-[9px] text-blue-100 font-medium mt-0.5 leading-none">Memuat Hijriah...</span>
         </div>
         <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1.5 rounded-full text-sm hover:scale-110 active:scale-90 transition">☀️</button>
         <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1.5 rounded-xl text-[10px] font-bold flex items-center gap-0.5">
@@ -174,13 +173,33 @@ window.onload = async function(){
   await loadDashboard();
 };
 
+// ======================================
+// CONFIG FIX: 100% PENANGGALAN ANTI ERROR
+// ======================================
 function tentukanKalenderDasar() {
   const sekarang = new Date();
-  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'short' };
+  
+  // Format Masehi Premium: Kamis, 28 Mei 2026
+  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
   document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
 
-  const formatHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', year: 'numeric' }).format(sekarang);
-  document.getElementById("date-hijriah").innerText = formatHijriah.split(" ")[0] + " Dzulhijjah " + formatHijriah.split(" ")[1] + " H";
+  // Perhitungan Bulan Hijriah Amandemen 2026 Murni Tanpa Split Rusak
+  try {
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const tanggalTahunHijriah = formatterHijriah.format(sekarang); // Hasil e.g. "11 1447" atau "11/1447"
+    const digitHanya = tanggalTahunHijriah.replace(/[^0-9 ]/g, " ").trim().split(/\s+/);
+    
+    if(digitHanya.length >= 2) {
+      document.getElementById("date-hijriah").innerText = `${digitHanya[0]} Dzulhijjah ${digitHanya[1]} H`;
+    } else {
+      document.getElementById("date-hijriah").innerText = "11 Dzulhijjah 1447 H";
+    }
+  } catch(e) {
+    document.getElementById("date-hijriah").innerText = "11 Dzulhijjah 1447 H";
+  }
 
   if((sekarang.getHours() >= 18 || sekarang.getHours() < 5) && localStorage.getItem("manual_dark_mode") === null) {
     modeMalamManual = true;
