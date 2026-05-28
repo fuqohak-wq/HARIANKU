@@ -468,6 +468,14 @@ function handleFileSelect(input){
   reader.readAsDataURL(file);
 }
 </script>
-
+// Tambahkan ini di bagian paling bawah tag <script> index.html Mas:
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('PWA Service Worker Terdaftar Sempurna!', reg))
+      .catch(err => console.error('PWA Service Worker Gagal:', err));
+  });
+}
+  
 </body>
 </html>
