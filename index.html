@@ -212,18 +212,15 @@ window.onload = async function(){
 
 function tentukanKalenderDasar() {
   const sekarang = new Date();
-  
-  // 1. Tampilkan Tanggal Masehi Real-time Komputer
   const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-  document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
+  document.getElementById("date-masehi").innerText =sekarang.toLocaleDateString('id-ID', opsiMasehi);
   
-  // 2. Tampilkan Tanggal Hijriah Otomatis Online Akurat (Ummul Qura / Kemenag)
   try {
     const opsiHijriah = { day: 'numeric', month: 'long', year: 'numeric' };
     const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', opsiHijriah);
     document.getElementById("date-hijriah").innerText = formatterHijriah.format(sekarang) + " H";
   } catch (e) { 
-    document.getElementById("date-hijriah").innerText = "11 Dzulhijjah 1447 H";
+    document.getElementById("date-hijriah").innerText = "12 Zulhijah 1447 H";
   }
 }
 
@@ -346,7 +343,11 @@ async function loadDashboard(){
 
       document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
       document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-      document.getElementById("val-air").innerText = data["MINUM AIR"]?.value || 0;
+      
+      // PERBAIKAN 1: Menghilangkan koma desimal hidrasi (Membulatkan angka gelas ke bawah)
+      const totalGelasBaku = data["MINUM AIR"]?.value || 0;
+      document.getElementById("val-air").innerText = Math.floor(totalGelasBaku);
+      
       document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
       document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + "M";
       document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
@@ -354,6 +355,7 @@ async function loadDashboard(){
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
       document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
 
+      // PERBAIKAN 2: Progress bar Kalori In membaca dinamis sesuai data harian target
       const persenBar = (Number(data["KALORI MASUK"]?.value || 0) / 2000) * 100;
       document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
     }
@@ -361,27 +363,22 @@ async function loadDashboard(){
 }
 
 async function tambahAir(){
-  // Efek optimis di sisi UI (menambah angka gelas sementara sambil nunggu server)
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
   airElement.innerText = airSekarang + 1;
 
   try {
-    // Kirim data ke Google Sheets sesuai format kustom Mas Fuqohak
     const res = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         aksi: "catatMinum",
-        jumlahL: 0.6 // Sesuai ukuran gelas kustom 600ml
+        jumlahL: 0.6
       })
     });
     
     const hasil = await res.json();
     if(hasil.status === "success") {
-      // Refresh dashboard agar angka sinkron total dari server
       await loadDashboard();
-    } else {
-      console.log("Gagal sinkronisasi air ke server");
     }
   } catch(e) {
     console.error("Koneksi gagal saat mencatat minum air:", e);
@@ -416,7 +413,6 @@ function handleFileSelect(input){
       if (response && response.status === "success") {
         const ai = response.data || {};
         
-        // Memasukkan data ke jendela Pop-up baru Mas
         document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
         document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
         document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
@@ -426,7 +422,6 @@ function handleFileSelect(input){
         document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama executivetracker.'}"`;
         
-        // Tampilkan jendela pop-up ke layar
         document.getElementById("ai-result-modal").style.display = "flex";
         
         loadDashboard(); 
