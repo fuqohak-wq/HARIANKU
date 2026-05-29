@@ -360,9 +360,32 @@ async function loadDashboard(){
   } catch(err) { console.error(err); }
 }
 
-function tambahAir(){
-  let air = Number(document.getElementById("val-air").innerText); air++;
-  document.getElementById("val-air").innerText = air;
+async function tambahAir(){
+  // Efek optimis di sisi UI (menambah angka gelas sementara sambil nunggu server)
+  let airElement = document.getElementById("val-air");
+  let airSekarang = Number(airElement.innerText);
+  airElement.innerText = airSekarang + 1;
+
+  try {
+    // Kirim data ke Google Sheets sesuai format kustom Mas Fuqohak
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "catatMinum",
+        jumlahL: 0.6 // Sesuai ukuran gelas kustom 600ml
+      })
+    });
+    
+    const hasil = await res.json();
+    if(hasil.status === "success") {
+      // Refresh dashboard agar angka sinkron total dari server
+      await loadDashboard();
+    } else {
+      console.log("Gagal sinkronisasi air ke server");
+    }
+  } catch(e) {
+    console.error("Koneksi gagal saat mencatat minum air:", e);
+  }
 }
 
 function handleFileSelect(input){
