@@ -1,247 +1,430 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Lifestyle Tracker - Mas Fuqohak</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fuqohak Executive Tracker</title>
+  <meta name="theme-color" content="#1e56e3">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; overflow: hidden; }
+    .app-container { width: 100%; max-width: 480px; height: 100vh; background: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; }
+    .dark-mode-bg { background: #0b1329 !important; color: #f1f5f9 !important; }
+    .dark-card { background: rgba(30, 41, 59, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; color: white !important; }
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .fade-out { opacity: 0; transform: scale(0.9); transition: all 0.25s ease; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+    
+    /* Overlay Kustom Pop-up AI */
+    #ai-result-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.8); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(5px); }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen antialiased selection:bg-emerald-500 selection:text-white">
+<body>
 
-    <div class="max-w-md mx-auto p-4 space-y-6 pb-24">
-        
-        <header class="flex justify-between items-center bg-slate-800/50 backdrop-blur-md p-4 rounded-2xl border border-slate-700/50 shadow-xl">
-            <div>
-                <h1 class="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-                    <span>🌟</span> AI Tracker
-                </h1>
-                <p id="date-masehi" class="text-xs text-slate-400 mt-0.5">Memuat tanggal...</p>
-            </div>
-            <div class="text-right bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
-                <span id="date-hijriah" class="text-xs font-bold text-emerald-400 block">⏳ Menghitung...</span>
-            </div>
-        </header>
+<div id="main-app" class="app-container p-4 shadow-2xl">
 
-        <section class="bg-gradient-to-br from-slate-800 to-slate-850 p-5 rounded-3xl border border-slate-700/60 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
-            
-            <div class="flex items-center gap-3 mb-4">
-                <div class="p-2.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xl">📸</div>
-                <div>
-                    <h2 class="text-base font-bold text-white leading-tight">AI Food & Meal Scanner</h2>
-                    <p class="text-xs text-slate-400">Foto atau upload makanan untuk hitung kalori otomatis</p>
-                </div>
-            </div>
-
-            <div class="relative bg-slate-950 rounded-2xl border-2 border-dashed border-slate-700/80 overflow-hidden group aspect-video flex flex-col justify-center items-center p-4">
-                <video id="camera-video" class="hidden absolute inset-0 w-full h-full object-cover"></video>
-                <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-cover" />
-                
-                <div id="upload-placeholder" class="text-center space-y-2 group-hover:scale-105 transition duration-300">
-                    <span class="text-3xl block">🍲</span>
-                    <span class="text-xs font-semibold text-slate-400 block">Belum ada foto makanan</span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                <button id="btn-camera" onclick="toggleKamera()" class="bg-slate-700 hover:bg-slate-650 text-white font-bold py-3 px-4 rounded-xl text-xs transition active:scale-95 flex justify-center items-center gap-2 border border-slate-600/50">
-                    <span id="cam-icon">📷</span> <span id="cam-text">Buka Kamera</span>
-                </button>
-                
-                <label class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs transition active:scale-95 flex justify-center items-center gap-2 cursor-pointer text-center shadow-lg shadow-emerald-900/20">
-                    <span>📤</span> Upload Galeri
-                    <input type="file" id="file-input" accept="image/*" onchange="previewFile()" class="hidden">
-                </label>
-            </div>
-
-            <button id="btn-proses-ai" onclick="prosesMakananDenganAI()" class="w-full mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-extrabold py-3.5 rounded-xl text-xs transition shadow-lg disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider border-b-4 border-amber-700 active:border-b-0 hidden">
-                🔥 Analisis Kalori via AI
-            </button>
-        </section>
-
-        <section class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Kalori Masuk</span>
-                <span id="val-kalori-masuk" class="text-xl font-extrabold text-emerald-400 block mt-0.5">0 kcal</span>
-            </div>
-            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Air Minum</span>
-                <span id="val-minum" class="text-xl font-extrabold text-blue-400 block mt-0.5">0 ml</span>
-            </div>
-            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Menulis</span>
-                <span id="val-menulis" class="text-xl font-extrabold text-amber-400 block mt-0.5">0 Kata</span>
-            </div>
-            <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">English Track</span>
-                <span id="val-english" class="text-xl font-extrabold text-indigo-400 block mt-0.5">0 Menit</span>
-            </div>
-        </section>
-
-        <section class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 space-y-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Evaluasi & Rekomendasi AI</h3>
-            <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/30">
-                <p id="ai-rekomendasi" class="text-xs italic text-slate-300 leading-relaxed">"Memuat rekomendasi kesehatan dari AI..."</p>
-            </div>
-        </section>
-
+  <div id="header-gradient" class="p-4 rounded-[2rem] shadow-lg relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-2">
+    <div class="flex justify-between items-center z-10">
+      <div>
+        <h1 class="text-base font-extrabold tracking-tight">Mas Fuqohak</h1>
+        <div class="flex flex-col gap-0.5 mt-0.5">
+          <div id="user-mood" class="text-[10px] font-bold text-yellow-300">🔄 Analisa Mood...</div>
+          <div id="user-must-do" class="text-[9px] font-black text-rose-200 uppercase tracking-tight">HARUS: Sinkronisasi...</div>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2 text-right">
+        <div class="flex flex-col justify-center">
+          <span id="date-masehi" class="text-[10px] font-bold leading-tight">Memuat Tanggal...</span>
+          <span id="date-hijriah" class="text-[9px] text-blue-100 font-medium mt-0.5 leading-none">Memuat Hijriah...</span>
+        </div>
+        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1.5 rounded-full text-sm hover:scale-110 active:scale-90 transition">☀️</button>
+        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1.5 rounded-xl text-[10px] font-bold flex items-center gap-0.5">
+          <span id="lock-icon">🔓</span>
+        </button>
+      </div>
     </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz4WIiha9JSemWqoC4603207orwCm3eYd3XlMwXzNZBTLHvWsITLlyecHnjB4hvr-i03w/exec";
-        let streamKamera = null;
+    <div class="bg-black/15 rounded-xl p-2 border border-white/5 shadow-inner">
+      <p id="display-quote" class="text-[10px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
+    </div>
+  </div>
 
-        // FUNGSI KALENDER HIJRIAH OTOMATIS ONLINE (SISTEM UMMUL QURA / KEMENAG)
-        function hitungKalenderHijriahAkurat() {
-            const sekarang = new Date();
-            
-            // 1. Tampilkan Tanggal Masehi Komputer
-            const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
-            
-            // 2. Tampilkan Tanggal Hijriah Sinkronisasi Otomatis
-            try {
-                const opsiHijriah = { day: 'numeric', month: 'long', year: 'numeric' };
-                const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', opsiHijriah);
-                document.getElementById("date-hijriah").innerText = formatterHijriah.format(sekarang) + " H";
-            } catch (e) { 
-                document.getElementById("date-hijriah").innerText = "Dzulhijjah 1447 H"; 
-            }
-        }
+  <div class="grid grid-cols-2 gap-3 mt-1">
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-kalori">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
+      <div class="flex items-baseline gap-0.5">
+        <h2 class="text-xl font-extrabold text-slate-800" id="val-kalori">0</h2>
+        <span class="text-[9px] text-slate-400 font-bold">kcal</span>
+      </div>
+      <div class="w-full bg-slate-200/60 h-1 mt-1 rounded-full overflow-hidden">
+        <div id="bar-kalori" class="bg-blue-600 h-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
 
-        // FITUR SINKRONISASI DATA DARI SPREADSHEET
-        async function loadDashboardData() {
-            try {
-                const res = await fetch(API_URL + "?aksi=getTrackerData");
-                const json = await res.json();
-                if(json.status === "success" || json.data) {
-                    const data = json.data || json;
-                    document.getElementById('val-kalori-masuk').innerText = (data["KALORI MASUK"]?.value || 0) + " kcal";
-                    document.getElementById('val-minum').innerText = (data["MINUM AIR"]?.value || 0) + " ml";
-                    document.getElementById('val-menulis').innerText = (data["MENULIS"]?.value || 0) + " Kata";
-                    document.getElementById('val-english').innerText = (data["ENGLISH"]?.value || 0) + " Menit";
-                    if(data["REKOMENDASI"]) {
-                        document.getElementById('ai-rekomendasi').innerText = data["REKOMENDASI"];
-                    }
-                }
-            } catch(e) { console.error("Gagal sinkronisasi data sheet:", e); }
-        }
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-out">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
+      <div class="flex items-baseline gap-0.5 text-amber-600">
+        <h2 class="text-xl font-extrabold" id="val-kalori-keluar">0</h2>
+        <span class="text-[9px] font-bold">kcal</span>
+      </div>
+    </div>
 
-        // FITUR KAMERA JALAN
-        async function toggleKamera() {
-            const video = document.getElementById('camera-video');
-            const preview = document.getElementById('image-preview');
-            const placeholder = document.getElementById('upload-placeholder');
-            const btnText = document.getElementById('cam-text');
-            const btnIcon = document.getElementById('cam-icon');
+    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-air">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
+      <div class="flex items-baseline gap-0.5 text-blue-500">
+        <h2 class="text-xl font-extrabold" id="val-air">0</h2>
+        <span class="text-[9px] font-bold">/8 Gelas</span>
+      </div>
+    </div>
 
-            if (streamKamera) {
-                // Ambil gambar dari kamera
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext('2d').drawImage(video, 0, 0);
-                
-                preview.src = canvas.toDataURL('image/jpeg');
-                preview.classList.remove('hidden');
-                
-                // Matikan kamera kembali
-                streamKamera.getTracks().forEach(track => track.stop());
-                streamKamera = null;
-                video.classList.add('hidden');
-                btnText.innerText = "Buka Kamera";
-                btnIcon.innerText = "📷";
-                document.getElementById('btn-proses-ai').classList.remove('hidden');
-            } else {
-                // Nyalakan Kamera
-                try {
-                    preview.classList.add('hidden');
-                    placeholder.classList.add('hidden');
-                    streamKamera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                    video.srcObject = streamKamera;
-                    video.classList.remove('hidden');
-                    video.play();
-                    btnText.innerText = "Ambil Foto";
-                    btnIcon.innerText = "📸";
-                } catch (err) {
-                    alert("Akses kamera ditolak atau tidak didukung.");
-                }
-            }
-        }
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-hp">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">📱 Screen Time</p>
+      <div class="flex items-baseline gap-0.5 text-rose-500">
+        <h2 class="text-xl font-extrabold" id="val-hp">0</h2>
+        <span class="text-[9px] font-bold">Jam</span>
+      </div>
+    </div>
+  </div>
 
-        // FITUR PREVIEW DARI UPLOAD FILE GALERI
-        function previewFile() {
-            const file = document.getElementById('file-input').files[0];
-            const preview = document.getElementById('image-preview');
-            const placeholder = document.getElementById('upload-placeholder');
-            const video = document.getElementById('camera-video');
+  <div class="grid grid-cols-2 gap-3 mt-1">
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-3 shadow-md hover:scale-[1.01] active:scale-95 transition text-white relative overflow-hidden">
+      <p class="text-[9px] font-bold text-indigo-200 uppercase tracking-wider">🇬🇧 English Hub</p>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[11px] font-bold text-white truncate max-w-[70px]">Belajar AI ➔</span>
+        <span class="text-base font-black text-white" id="val-english">0 M</span>
+      </div>
+    </a>
 
-            if (file) {
-                if(streamKamera) {
-                    streamKamera.getTracks().forEach(track => track.stop());
-                    streamKamera = null;
-                    video.classList.add('hidden');
-                    document.getElementById('cam-text').innerText = "Buka Kamera";
-                    document.getElementById('cam-icon').innerText = "📷";
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    document.getElementById('btn-proses-ai').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
-        }
+    <a href="https://script.google.com/macros/s/AKfycbyYcuh6lXfOAM9ZhThgWUT3TZ96x9aiHEIB7qJPw6DAWyWLq710s6lAcdFwVcObSp7Z/exec" target="_blank" class="block glass-card p-3 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition" id="card-menulis">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">✍️ Menulis</p>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[11px] text-slate-500 dark:text-slate-300 font-bold">Progres ➔</span>
+        <span class="text-base font-black text-indigo-600" id="val-menulis">0</span>
+      </div>
+    </a>
+  </div>
 
-        // FITUR KIRIM KE AI SPREADSHEET UNTUK SCAN MAKANAN AUTOMATIS
-        async function prosesMakananDenganAI() {
-            const btn = document.getElementById('btn-proses-ai');
-            const preview = document.getElementById('image-preview');
-            if(!preview.src) return;
+  <div class="glass-card p-3 rounded-2xl shadow-sm mt-1" id="card-shalat">
+    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-1.5 mb-1.5">
+      <h3 class="text-xs font-extrabold text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
+      <span id="val-konsistensi" class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">0%</span>
+    </div>
+    <div class="flex justify-between text-center">
+      <div class="flex items-center gap-1">
+        <span class="text-xs">🕌</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Jamaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-shalat">0/5</span>
+      </div>
+      <div id="card-murojaah" class="flex items-center gap-1">
+        <span class="text-xs">📖</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Murojaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-murojaah">0</span>
+      </div>
+    </div>
+  </div>
 
-            btn.disabled = true;
-            btn.innerText = "⚡ MENGANALISIS MAKANAN VIA AI...";
+  <div class="glass-card p-3 rounded-2xl shadow-md mt-1 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
+    <h3 class="text-xs font-extrabold text-slate-800 mb-1.5" id="title-tugas">📋 Tugas Hari Ini</h3>
+    <div id="tugas-container" class="space-y-1.5 overflow-y-auto flex-1 max-h-[120px] pr-1">
+      <p id="tugas-empty" class="text-[10px] text-slate-400 text-center py-2 italic">Sinkronisasi tugas...</p>
+    </div>
+    <div class="flex gap-1.5 mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700">
+      <input type="text" id="tugas-input" placeholder="Tugas baru..." class="w-full bg-slate-100/80 dark:bg-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-700 dark:text-white focus:outline-none">
+      <button onclick="simpanTugasKeSheet()" class="bg-slate-900 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition">Tambah</button>
+    </div>
+  </div>
 
-            try {
-                const payload = {
-                    aksi: "scanMakananAI",
-                    image_base64: preview.src
-                };
+  <div class="relative mt-3 pt-1">
+    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*" capture="environment">
+    <div id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
+      <span id="icon-cam" class="text-base">📸</span>
+      <span id="text-cam" class="font-black text-xs tracking-wide">Ambil Foto Makanan (Kamera HP)</span>
+      <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-4 w-4 hidden"></div>
+    </div>
+  </div>
 
-                const res = await fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                const hasil = await res.json();
+</div>
 
-                if(hasil.status === "success") {
-                    alert(`AI Sukses mendeteksi menu Anda! Kalori otomatis bertambah.`);
-                    loadDashboardData();
-                } else {
-                    alert("AI gagal membaca gambar: " + hasil.message);
-                }
-            } catch(e) {
-                alert("Koneksi terputus saat menghubungi AI.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "🔥 Analisis Kalori via AI";
-            }
-        }
+<div id="ai-result-modal" onclick="tutupModalHasil()">
+  <div class="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-[360px] p-5 text-white max-h-[80vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
+    <div class="text-center border-b border-white/10 pb-2 mb-3">
+      <span class="text-2xl">✨</span>
+      <h3 class="text-base font-black tracking-tight text-white mt-1">Hasil Analisis Nutrisi AI</h3>
+      <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 text-center mb-3">
+      <div class="bg-white/5 rounded-xl p-1.5">
+        <p class="text-[8px] text-slate-400 font-bold">BERAT</p>
+        <p id="m-gram" class="text-xs font-black">0g</p>
+      </div>
+      <div class="bg-blue-500/20 rounded-xl p-1.5">
+        <p class="text-[8px] text-blue-300 font-bold">KALORI</p>
+        <p id="m-kalori" class="text-xs font-black text-blue-300">0 kcal</p>
+      </div>
+      <div class="bg-emerald-500/20 rounded-xl p-1.5">
+        <p class="text-[8px] text-emerald-300 font-bold">PROTEIN</p>
+        <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
+      </div>
+      <div class="bg-amber-500/20 rounded-xl p-1.5">
+        <p class="text-[8px] text-amber-300 font-bold">KARBO</p>
+        <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
+      </div>
+    </div>
+    <div class="space-y-3 text-[11px] leading-relaxed">
+      <div>
+        <p class="font-bold text-teal-300">💚 KESIMPULAN KESEHATAN:</p>
+        <p id="m-sehat" class="text-slate-300">Memuat data...</p>
+      </div>
+      <div>
+        <p class="font-bold text-sky-300">💡 TIPS NUTRISI:</p>
+        <p id="m-tips" class="text-slate-300">Memuat data...</p>
+      </div>
+      <div class="bg-black/20 p-2 rounded-xl italic text-center text-slate-300 border border-white/5">
+        <p id="m-bijak">"..."</p>
+      </div>
+    </div>
+    <button onclick="tutupModalHasil()" class="w-full bg-white text-slate-900 font-black text-xs py-2.5 rounded-xl mt-4 active:scale-95 transition">TUTUP</button>
+  </div>
+</div>
 
-        // INITIAL LOAD SYSTEM
-        window.onload = function() {
-            hitungKalenderHijriahAkurat();
-            loadDashboardData();
-            // Loop penyegaran data berkala
-            setInterval(hitungKalenderHijriahAkurat, 60000);
-        }
-    </script>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
+
+const KUMPULAN_TEMA = [
+  "linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%)",
+  "linear-gradient(135deg, #111827 0%, #374151 100%)",
+  "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+];
+
+let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
+
+window.onload = async function(){
+  tentukanKalenderDasar();
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  await loadDashboard();
+};
+
+function tentukanKalenderDasar() {
+  const sekarang = new Date();
+  
+  // 1. Tampilkan Tanggal Masehi Real-time Komputer
+  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
+  
+  // 2. Tampilkan Tanggal Hijriah Otomatis Online Akurat (Ummul Qura / Kemenag)
+  try {
+    const opsiHijriah = { day: 'numeric', month: 'long', year: 'numeric' };
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', opsiHijriah);
+    document.getElementById("date-hijriah").innerText = formatterHijriah.format(sekarang) + " H";
+  } catch (e) { 
+    document.getElementById("date-hijriah").innerText = "11 Dzulhijjah 1447 H";
+  }
+}
+
+function switchModeSiangMalam() {
+  modeMalamManual = !modeMalamManual;
+  localStorage.setItem("manual_dark_mode", modeMalamManual);
+  evaluasiVisualModeMalam();
+}
+
+function evaluasiVisualModeMalam() {
+  const app = document.getElementById("main-app");
+  const indicator = document.getElementById("time-indicator");
+  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat"];
+  
+  if(modeMalamManual) {
+    indicator.innerText = "🌙"; app.classList.add("dark-mode-bg");
+    listCard.forEach(id => document.getElementById(id)?.classList.add("dark-card"));
+  } else {
+    indicator.innerText = "☀️"; app.classList.remove("dark-mode-bg");
+    listCard.forEach(id => document.getElementById(id)?.classList.remove("dark-card"));
+  }
+}
+
+function terapkanSistemTema() {
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  const savedTheme = localStorage.getItem("user_theme");
+  if (isLocked && savedTheme) {
+    document.getElementById("header-gradient").style.background = savedTheme;
+    document.getElementById("lock-icon").innerText = "🔒";
+  } else {
+    const indeksAcak = Math.floor(Math.random() * KUMPULAN_TEMA.length);
+    const temaPilihan = KUMPULAN_TEMA[indeksAcak];
+    document.getElementById("header-gradient").style.background = temaPilihan;
+    localStorage.setItem("user_theme", temaPilihan);
+    document.getElementById("lock-icon").innerText = "🔓";
+  }
+}
+
+function toggleThemeLock() {
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  if(isLocked) {
+    localStorage.setItem("theme_locked", "false"); document.getElementById("lock-icon").innerText = "🔓";
+  } else {
+    localStorage.setItem("theme_locked", "true"); document.getElementById("lock-icon").innerText = "🔒";
+  }
+}
+
+function renderTugasDariDatabase(tugasList) {
+  const container = document.getElementById("tugas-container");
+  const emptyState = document.getElementById("tugas-empty");
+  container.querySelectorAll('.tugas-item').forEach(el => el.remove());
+
+  if(!tugasList || tugasList.length === 0) {
+    emptyState.innerText = "Tugas hari ini aman!"; emptyState.classList.remove("hidden"); return;
+  }
+  emptyState.classList.add("hidden");
+
+  tugasList.forEach((itemData) => {
+    const item = document.createElement("div");
+    item.className = "tugas-item flex items-center justify-between bg-slate-100/60 dark:bg-slate-800/60 px-2.5 py-1.5 rounded-lg";
+    item.id = `db-tugas-${itemData.rowId}`;
+    item.innerHTML = `
+      <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-[280px]">${itemData.tugas}</p>
+      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2 py-0.5 rounded font-bold text-[9px]">✓</button>
+    `;
+    container.appendChild(item);
+  });
+}
+
+async function simpanTugasKeSheet() {
+  const input = document.getElementById("tugas-input"); const teks = input.value.trim(); if(!teks) return;
+  document.getElementById("tugas-empty").innerText = "Menyimpan...";
+  document.getElementById("tugas-empty").classList.remove("hidden");
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahTugas", tugas: teks }) });
+    if((await res.json()).status === "success") { input.value = ""; await loadDashboard(); }
+  } catch(e) { alert("Error simpan"); }
+}
+
+async function selesaikanTugasDatabase(rowId) {
+  const elemen = document.getElementById(`db-tugas-${rowId}`); elemen.classList.add("fade-out");
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanTugas", rowId: rowId }) });
+    if((await res.json()).status === "success") { setTimeout(async () => { await loadDashboard(); }, 250); }
+  } catch(e) { alert("Error update"); elemen.classList.remove("fade-out"); }
+}
+
+function prosesKalkulasiMoodIFS(persen) {
+  const textMood = document.getElementById("user-mood");
+  const textMustDo = document.getElementById("user-must-do");
+  
+  if(persen < 20) {
+    textMood.innerText = "😞 BURUK, AYO BERBENAH?";
+    textMustDo.innerText = "HARUS: Evaluasi Diri & Istighfar";
+  } else if(persen < 40) {
+    textMood.innerText = "😴 LELAH, ISTIRAHAT YA!";
+    textMustDo.innerText = "HARUS: Tidur Cepat / Rehat Total";
+  } else if(persen < 60) {
+    textMood.innerText = "🙂 STABIL, AYO LEBIH KUAT!";
+    textMustDo.innerText = "HARUS: Jalan Kaki & Minum Air Putih";
+  } else if(persen < 80) {
+    textMood.innerText = "🔥 SEMANGAT, ISTIQOMAH KAK!";
+    textMustDo.innerText = "HARUS: Lanjutkan Kerja & Sedekah";
+  } else {
+    textMood.innerText = "🚀 OPTIMAL, SEMOGA BERKAH!";
+    textMustDo.innerText = "HARUS: Pertahankan Pola Maksimal";
+  }
+}
+
+async function loadDashboard(){
+  try {
+    const res = await fetch(API_URL + "?api=1"); const json = await res.json();
+    if (json.status === "success" || json.data) {
+      const data = json.data;
+      if(data["MOTIVASI"] && data["MOTIVASI"].value) document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+      
+      const scoreC9 = Number(data["MOOD_SCORE"]?.value || data["MOOD"]?.score || 0);
+      prosesKalkulasiMoodIFS(scoreC9);
+      renderTugasDariDatabase(data["LIST_TUGAS"]);
+
+      document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
+      document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
+      document.getElementById("val-air").innerText = data["MINUM AIR"]?.value || 0;
+      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + "M";
+      document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
+      document.getElementById("val-murojaah").innerText = data["MUROJAAH"]?.value || 0;
+      document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
+      document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
+
+      const persenBar = (Number(data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+      document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
+    }
+  } catch(err) { console.error(err); }
+}
+
+function tambahAir(){
+  let air = Number(document.getElementById("val-air").innerText); air++;
+  document.getElementById("val-air").innerText = air;
+}
+
+function handleFileSelect(input){
+  const file = input.files[0]; if(!file) return;
+
+  document.getElementById('icon-cam').classList.add('hidden');
+  document.getElementById('text-cam').innerText = "AI Menganalisa Makanan & Minuman...";
+  document.getElementById('loader-cam').classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64DataUnyil = e.target.result;
+
+    fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ 
+        aksi: "uploadFile", 
+        base64Data: base64DataUnyil, 
+        fileName: file.name 
+      }) 
+    })
+    .then(res => res.json())
+    .then(response => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
+      
+      if (response && response.status === "success") {
+        const ai = response.data || {};
+        
+        // Memasukkan data ke jendela Pop-up baru Mas
+        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
+        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
+        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
+        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
+        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
+        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
+        document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
+        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama executivetracker.'}"`;
+        
+        // Tampilkan jendela pop-up ke layar
+        document.getElementById("ai-result-modal").style.display = "flex";
+        
+        loadDashboard(); 
+      } else {
+        alert("Gagal membaca respons: " + (response.message || "Error"));
+      }
+    })
+    .catch((err) => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
+      alert("Proses pencatatan selesai dilaksanakan.");
+      loadDashboard();
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function tutupModalHasil() {
+  document.getElementById("ai-result-modal").style.display = "none";
+}
+</script>
 </body>
 </html>
