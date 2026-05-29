@@ -74,13 +74,12 @@
       </div>
     </div>
 
-    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition relative" id="card-air">
+    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-air">
       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
       <div class="flex items-baseline gap-0.5 text-blue-500">
         <h2 class="text-xl font-extrabold" id="val-air">0</h2>
         <span class="text-[9px] font-bold">/8 Gelas</span>
       </div>
-      <span id="b3-display" class="absolute bottom-1 right-2.5 text-[8px] font-bold text-slate-400">Sheet B3: 0L</span>
     </div>
 
     <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-hp">
@@ -345,36 +344,15 @@ async function loadDashboard(){
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
       document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
 
-      // MENAMPILKAN DATA MINUMAN KHUSUS DASHBOARD B3
-      const b3Val = data["MINUMAN_B3"] || 0;
-      document.getElementById("b3-display").innerText = "Sheet B3: " + b3Val + "L";
-
       const persenBar = (Number(data["KALORI MASUK"]?.value || 0) / 2000) * 100;
       document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
     }
   } catch(err) { console.error(err); }
 }
 
-// MODIFIKASI FITUR: Klik Hidrasi Menambah Log ke Sheet MINUM_LOG
-async function tambahAir(){
+function tambahAir(){
   let air = Number(document.getElementById("val-air").innerText); air++;
   document.getElementById("val-air").innerText = air;
-  
-  // Masukan kuantitas default konversi per klik gelas (misal 1 gelas = 0.25 L atau berikan nilai 1)
-  const jumlahLembas = 0.25; 
-  
-  try {
-    await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ 
-        aksi: "logMinuman", 
-        jumlah: jumlahLembas 
-      })
-    });
-    await loadDashboard(); // Segarkan ulang data dashboard B3 setelah pengisian
-  } catch(e) {
-    console.error("Gagal mencatat data log minuman tambahan.");
-  }
 }
 
 function handleFileSelect(input){
