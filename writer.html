@@ -11,7 +11,6 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:#0f172a; font-family:'Plus Jakarta Sans', sans-serif; color:white; min-height: 100vh; }
   
-  /* LAYAR SETUP AWAL (FILTER JUDUL & BAB) */
   #setup-screen {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 100vh; padding: 20px; background: radial-gradient(circle at top right, #1e293b, #0f172a);
@@ -22,14 +21,13 @@
     backdrop-filter: blur(12px); box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   }
   .form-group { margin-bottom: 18px; }
-  .form-group label { display: block; font-size: 11px; font-weight: 700; uppercase; tracking-wider; color: #94a3b8; margin-bottom: 6px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; }
   .form-control {
     width: 100%; padding: 14px; font-size: 14px; border-radius: 12px; background: #0f172a;
     border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; transition: 0.2s;
   }
   .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
   
-  /* WORKSPACE EDITOR (SEMBUNYI DI AWAL) */
   #workspace-screen { display: none; flex-direction: column; height: 100vh; }
   
   .topbar { 
@@ -37,7 +35,7 @@
     border-bottom:1px solid rgba(255,255,255,.08); z-index:9999; 
   }
   .logo { font-size:14px; font-weight:700; color:#ffd54f; cursor:pointer; display:flex; align-items:center; gap:6px; }
-  .info-badge { font-size: 11px; background: rgba(255,255,255,0.06); padding: 6px 12px; border-radius: 6px; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.05); }
+  .info-badge { font-size: 11px; background: rgba(255,255,255,0.06); padding: 6px 12px; border-radius: 6px; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
   
   .btn { 
     border:none; background:#2563eb; color:white; padding:10px 16px; font-size:13px;
@@ -46,7 +44,6 @@
   .btn:hover { background:#1d4ed8; }
   #status { margin-left:auto; color:#22c55e; font-size:12px; font-weight:700; }
 
-  /* POPUP ZOTERO */
   .popup { 
     position:fixed; inset:0; background:rgba(0,0,0,.75); 
     display:none; justify-content:center; align-items:center; z-index:999999; 
@@ -67,18 +64,20 @@
 <div id="setup-screen">
   <div class="setup-card">
     <div style="text-align: center; margin-bottom: 24px;">
-      <span style="font-size: 28px;">✍️</span>
-      <h2 style="font-size: 18px; font-weight: 800; color: white; margin-top: 6px;">Setup Sanctum Writer</h2>
-      <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Tentukan target penulisan dokumen Anda</p>
+      <span style="font-size: 28px;">📂</span>
+      <h2 style="font-size: 18px; font-weight: 800; color: white; margin-top: 6px;">Pilih Artikel Drive</h2>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Melanjutkan tulisan dokumen yang belum selesai</p>
     </div>
     
     <div class="form-group">
-      <label>Judul Artikel / Karya</label>
-      <input type="text" id="input-judul" placeholder="Masukkan judul utama..." class="form-control" value="Karya Ilmiah Fuqohak">
+      <label>Pilih Judul Dokumen (Google Doc)</label>
+      <select id="select-doc" class="form-control">
+        <option value="">-- Sedang memuat dokumen Anda... --</option>
+      </select>
     </div>
     
     <div class="form-group">
-      <label>Bab / Bagian</label>
+      <label>Bab Sekarang</label>
       <select id="input-bab" class="form-control">
         <option value="BAB I: PENDAHULUAN">BAB I: PENDAHULUAN</option>
         <option value="BAB II: LANDASAN TEORI">BAB II: LANDASAN TEORI</option>
@@ -88,7 +87,7 @@
       </select>
     </div>
     
-    <button onclick="mulaiWorkspace()" class="btn" style="width: 100%; padding: 14px; margin-top: 10px; font-size: 14px;">Mulai Menulis ➔</button>
+    <button onclick="mulaiWorkspace()" class="btn" style="width: 100%; padding: 14px; margin-top: 10px; font-size: 14px;">Buka Lembar Kerja ➔</button>
     <button onclick="location.href='index.html'" class="btn" style="width: 100%; background: transparent; color: #94a3b8; margin-top: 8px; font-size: 12px;">Kembali ke Dashboard</button>
   </div>
 </div>
@@ -96,11 +95,11 @@
 <div id="workspace-screen">
   <div class="topbar">
     <div class="logo" onclick="kembaliKeSetup()">⬅️ <span>Sanctum</span></div>
-    <div class="info-badge" id="badge-judul-display">Judul</div>
+    <div class="info-badge" id="badge-judul-display">Judul Dokumen</div>
     <div class="info-badge" id="badge-bab-display" style="color: #ffd54f;">Bab</div>
     
     <button class="btn" onclick="openCitationPopup()">+ Citation (Zotero)</button>
-    <button class="btn" style="background:#16a34a;" onclick="saveDoc()">🚀 Sync Doc</button>
+    <button class="btn" style="background:#16a34a;" onclick="saveDoc()">🚀 Sync Doc Baru</button>
     <div id="status">Ready</div>
   </div>
 
@@ -109,7 +108,7 @@
 
 <div class="popup" id="citationPopup" onclick="closePopup()">
   <div class="popup-content" onclick="event.stopPropagation()">
-    <input id="citationSearch" placeholder="Cari kitab, buku, atau nama penulis di Zotero..." class="form-control">
+    <input id="citationSearch" placeholder="Cari referensi Zotero..." class="form-control">
     <div id="citationResults" class="results"></div>
     <div style="display:flex; justify-content:flex-end; margin-top:12px;">
       <button class="btn" style="background:#475569;" onclick="closePopup()">Batal</button>
@@ -118,26 +117,57 @@
 </div>
 
 <script>
-// MASUKKAN URL SCRIPT WEB APP (GAS) ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
+// PASTIKAN URL WEB APP REPLOYMENT GAS ANDA BENAR DI SINI
+const API_URL = "https://script.google.com/macros/s/AKfycbwBpMs5amqJTgaxA48FRiZospxk-IhSpPUEttRplSQGJ7PqLRHwv8UKPq1x_5V9kir8/exec";
 
 let footnotes = [];
-let judulAktif = "";
+let docIdAktif = "";
+let namaDocAktif = "";
 let babAktif = "";
 
+// Otomatis tarik judul saat halaman terbuka
+window.addEventListener("DOMContentLoaded", loadDaftarDokumen);
+
+function loadDaftarDokumen() {
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ aksi: "getDaftarDoc" })
+  })
+  .then(res => res.json())
+  .then(response => {
+    const selector = document.getElementById("select-doc");
+    selector.innerHTML = "";
+    
+    if (response.status === "success" && response.data.length > 0) {
+      response.data.forEach(doc => {
+        let opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.innerText = doc.name;
+        selector.appendChild(opt);
+      });
+    } else {
+      selector.innerHTML = '<option value="">Gagal/Tidak ada Google Doc di folder</option>';
+    }
+  })
+  .catch(() => {
+    document.getElementById("select-doc").innerHTML = '<option value="">Gagal menyambung ke API Drive</option>';
+  });
+}
+
 function mulaiWorkspace() {
-  judulAktif = document.getElementById("input-judul").value.trim();
+  const selector = document.getElementById("select-doc");
+  docIdAktif = selector.value;
+  namaDocAktif = selector.options[selector.selectedIndex]?.text || "Dokumen";
   babAktif = document.getElementById("input-bab").value;
   
-  if(!judulAktif) { alert("Judul tidak boleh kosong!"); return; }
+  if(!docIdAktif) { alert("Silakan pilih dokumen terlebih dahulu!"); return; }
   
-  document.getElementById("badge-judul-display").innerText = judulAktif;
+  document.getElementById("badge-judul-display").innerText = namaDocAktif;
   document.getElementById("badge-bab-display").innerText = babAktif;
   
   document.getElementById("setup-screen").style.display = "none";
   document.getElementById("workspace-screen").style.display = "flex";
   
-  // Inisialisasi TinyMCE saat masuk workspace
   if (!tinymce.get("editor")) {
     tinymce.init({
       selector: '#editor',
@@ -168,9 +198,10 @@ function mulaiWorkspace() {
 }
 
 function kembaliKeSetup() {
-  if(confirm("Kembali ke pengaturan awal? Tulisan di editor tidak akan hilang sebelum di-refresh.")) {
+  if(confirm("Kembali ke pemilihan file?")) {
     document.getElementById("workspace-screen").style.display = "none";
     document.getElementById("setup-screen").style.display = "flex";
+    loadDaftarDokumen();
   }
 }
 
@@ -241,7 +272,7 @@ function saveDoc(){
     method: "POST",
     body: JSON.stringify({ 
       aksi: "saveToGoogleDocs", 
-      judul: judulAktif,
+      docId: docIdAktif,
       bab: babAktif,
       html: html, 
       footnotes: safeFootnotes 
