@@ -183,7 +183,7 @@
 
 </div>
 
-<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI (SELAYAR PENUH) -->
+<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI (SELAYAR PENUH & DETIL MAKANAN LENGKAP) -->
 <div id="ai-result-modal">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex-1 overflow-y-auto space-y-4">
@@ -193,22 +193,27 @@
         <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
       </div>
       
-      <div class="grid grid-cols-4 gap-2 text-center">
-        <div class="bg-white/5 rounded-xl p-2">
-          <p class="text-[9px] text-slate-400 font-bold">BERAT</p>
+      <!-- DETIL MAKANAN DIPERBARUI: Ditambahkan parameter Lemak -->
+      <div class="grid grid-cols-5 gap-1 text-center">
+        <div class="bg-white/5 rounded-xl p-1.5">
+          <p class="text-[8px] text-slate-400 font-bold">BERAT</p>
           <p id="m-gram" class="text-xs font-black text-slate-200">0g</p>
         </div>
-        <div class="bg-blue-500/20 rounded-xl p-2">
-          <p class="text-[9px] text-blue-300 font-bold">KALORI</p>
+        <div class="bg-blue-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-blue-300 font-bold">KALORI</p>
           <p id="m-kalori" class="text-xs font-black text-blue-300">0 kcal</p>
         </div>
-        <div class="bg-emerald-500/20 rounded-xl p-2">
-          <p class="text-[9px] text-emerald-300 font-bold">PROTEIN</p>
+        <div class="bg-emerald-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-emerald-300 font-bold">PROTEIN</p>
           <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
         </div>
-        <div class="bg-amber-500/20 rounded-xl p-2">
-          <p class="text-[9px] text-amber-300 font-bold">KARBO</p>
+        <div class="bg-amber-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-amber-300 font-bold">KARBO</p>
           <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
+        </div>
+        <div class="bg-red-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-red-300 font-bold">LEMAK</p>
+          <p id="m-lemak" class="text-xs font-black text-red-300">0g</p>
         </div>
       </div>
 
@@ -242,12 +247,10 @@
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
 
-    <!-- Konten Lihat Jadwal -->
     <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
     </div>
 
-    <!-- Konten Tambah Jadwal -->
     <div id="konten-tambah-ceramah" class="hidden space-y-4">
       <div>
         <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tema Ceramah</label>
@@ -282,12 +285,10 @@
       <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
     </div>
 
-    <!-- Konten Lihat Tugas -->
     <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>
     </div>
 
-    <!-- Konten Tambah Tugas -->
     <div id="konten-tambah-tugas" class="hidden space-y-4">
       <div>
         <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Deskripsi Tugas Baru</label>
@@ -496,6 +497,7 @@ function handleFileSelect(input){
         document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
         document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
         document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
+        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g"; // Parsing Lemak Aktif
         document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
         document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
