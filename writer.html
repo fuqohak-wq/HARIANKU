@@ -5,26 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Sanctum Writer</title>
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:#0f172a; font-family:'Plus Jakarta Sans', sans-serif; color:white; overflow:hidden; }
+  body { background:#0f172a; font-family:'Plus Jakarta Sans', sans-serif; color:white; min-height: 100vh; }
+  
+  /* LAYAR SETUP AWAL (FILTER JUDUL & BAB) */
+  #setup-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px; background: radial-gradient(circle at top right, #1e293b, #0f172a);
+  }
+  .setup-card {
+    width: 100%; max-width: 450px; background: rgba(30, 41, 59, 0.7); 
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 30px;
+    backdrop-filter: blur(12px); box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 700; uppercase; tracking-wider; color: #94a3b8; margin-bottom: 6px; }
+  .form-control {
+    width: 100%; padding: 14px; font-size: 14px; border-radius: 12px; background: #0f172a;
+    border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; transition: 0.2s;
+  }
+  .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+  
+  /* WORKSPACE EDITOR (SEMBUNYI DI AWAL) */
+  #workspace-screen { display: none; flex-direction: column; height: 100vh; }
   
   .topbar { 
-    position:sticky; top:0; background:#111827; padding:12px 20px; 
-    display:flex; align-items:center; gap:12px; 
+    background:#111827; padding:12px 20px; display:flex; align-items:center; gap:12px; 
     border-bottom:1px solid rgba(255,255,255,.08); z-index:9999; 
   }
   .logo { font-size:14px; font-weight:700; color:#ffd54f; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .info-badge { font-size: 11px; background: rgba(255,255,255,0.06); padding: 6px 12px; border-radius: 6px; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.05); }
+  
   .btn { 
-    border:none; background:#2563eb; color:white; padding:8px 14px; font-size:12px;
-    border-radius:8px; cursor:pointer; font-weight:700; transition:0.2s; 
+    border:none; background:#2563eb; color:white; padding:10px 16px; font-size:13px;
+    border-radius:10px; cursor:pointer; font-weight:700; transition:0.2s; 
   }
   .btn:hover { background:#1d4ed8; }
   #status { margin-left:auto; color:#22c55e; font-size:12px; font-weight:700; }
 
-  /* KUSTOMISASI MODAL POPUP */
+  /* POPUP ZOTERO */
   .popup { 
     position:fixed; inset:0; background:rgba(0,0,0,.75); 
     display:none; justify-content:center; align-items:center; z-index:999999; 
@@ -34,12 +56,7 @@
     width:90%; max-width:500px; background:#1e293b; color:white; 
     border-radius:16px; padding:20px; border: 1px solid rgba(255,255,255,0.1);
   }
-  .popup input { 
-    width:100%; padding:12px; font-size:14px; border-radius:8px; background: #0f172a;
-    border:1px solid rgba(255,255,255,0.1); margin-bottom:12px; outline:none; color: white;
-  }
-  .popup input:focus { border-color: #2563eb; }
-  .results { max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; background:#111827; }
+  .results { max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; background:#111827; margin-top: 10px;}
   .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; font-size:12px; }
   .result-item:hover { background:#1e293b; color: #ffd54f; }
   .loading { padding:12px; text-align:center; color:#94a3b8; font-size:12px; }
@@ -47,18 +64,52 @@
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo" onclick="location.href='index.html'">⬅️ <span>Sanctum Writer</span></div>
-  <button class="btn" onclick="openCitationPopup()">+ Citation (Zotero)</button>
-  <button class="btn" style="background:#16a34a;" onclick="saveDoc()">🚀 Sync Doc</button>
-  <div id="status">Ready</div>
+<div id="setup-screen">
+  <div class="setup-card">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <span style="font-size: 28px;">✍️</span>
+      <h2 style="font-size: 18px; font-weight: 800; color: white; margin-top: 6px;">Setup Sanctum Writer</h2>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Tentukan target penulisan dokumen Anda</p>
+    </div>
+    
+    <div class="form-group">
+      <label>Judul Artikel / Karya</label>
+      <input type="text" id="input-judul" placeholder="Masukkan judul utama..." class="form-control" value="Karya Ilmiah Fuqohak">
+    </div>
+    
+    <div class="form-group">
+      <label>Bab / Bagian</label>
+      <select id="input-bab" class="form-control">
+        <option value="BAB I: PENDAHULUAN">BAB I: PENDAHULUAN</option>
+        <option value="BAB II: LANDASAN TEORI">BAB II: LANDASAN TEORI</option>
+        <option value="BAB III: METODOLOGI">BAB III: METODOLOGI</option>
+        <option value="BAB IV: HASIL DAN PEMBAHASAN">BAB IV: HASIL DAN PEMBAHASAN</option>
+        <option value="BAB V: PENUTUP">BAB V: PENUTUP</option>
+      </select>
+    </div>
+    
+    <button onclick="mulaiWorkspace()" class="btn" style="width: 100%; padding: 14px; margin-top: 10px; font-size: 14px;">Mulai Menulis ➔</button>
+    <button onclick="location.href='index.html'" class="btn" style="width: 100%; background: transparent; color: #94a3b8; margin-top: 8px; font-size: 12px;">Kembali ke Dashboard</button>
+  </div>
 </div>
 
-<textarea id="editor"></textarea>
+<div id="workspace-screen">
+  <div class="topbar">
+    <div class="logo" onclick="kembaliKeSetup()">⬅️ <span>Sanctum</span></div>
+    <div class="info-badge" id="badge-judul-display">Judul</div>
+    <div class="info-badge" id="badge-bab-display" style="color: #ffd54f;">Bab</div>
+    
+    <button class="btn" onclick="openCitationPopup()">+ Citation (Zotero)</button>
+    <button class="btn" style="background:#16a34a;" onclick="saveDoc()">🚀 Sync Doc</button>
+    <div id="status">Ready</div>
+  </div>
+
+  <textarea id="editor"></textarea>
+</div>
 
 <div class="popup" id="citationPopup" onclick="closePopup()">
   <div class="popup-content" onclick="event.stopPropagation()">
-    <input id="citationSearch" placeholder="Cari kitab, buku, atau nama penulis di Zotero...">
+    <input id="citationSearch" placeholder="Cari kitab, buku, atau nama penulis di Zotero..." class="form-control">
     <div id="citationResults" class="results"></div>
     <div style="display:flex; justify-content:flex-end; margin-top:12px;">
       <button class="btn" style="background:#475569;" onclick="closePopup()">Batal</button>
@@ -67,36 +118,61 @@
 </div>
 
 <script>
-// PASTE URL SCRIPT WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-const API_URL = "https://script.google.com/macros/s/AKfycbwBpMs5amqJTgaxA48FRiZospxk-IhSpPUEttRplSQGJ7PqLRHwv8UKPq1x_5V9kir8/exec";
+// MASUKKAN URL SCRIPT WEB APP (GAS) ANDA DI SINI
+const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 let footnotes = [];
+let judulAktif = "";
+let babAktif = "";
 
-tinymce.init({
-  selector: '#editor',
-  height: 'calc(100vh - 50px)',
-  menubar: false,
-  branding: false,
-  plugins: 'lists link table code',
-  toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright justify | bullist numlist | table code',
-  content_style: `
-    body { 
-      font-family: "Times New Roman", Times, serif; 
-      font-size: 18px; 
-      line-height: 1.8; 
-      max-width: 750px; 
-      margin: 30px auto; 
-      padding: 50px 60px; 
-      color: #1e293b; 
-      background: #ffffff; 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      border-radius: 4px;
-      min-height: 100%;
-    }
-    p { margin-bottom: 1.2em; text-align: justify; text-indent: 40px; }
-    sup { color: #2563eb; font-weight: bold; }
-  `
-});
+function mulaiWorkspace() {
+  judulAktif = document.getElementById("input-judul").value.trim();
+  babAktif = document.getElementById("input-bab").value;
+  
+  if(!judulAktif) { alert("Judul tidak boleh kosong!"); return; }
+  
+  document.getElementById("badge-judul-display").innerText = judulAktif;
+  document.getElementById("badge-bab-display").innerText = babAktif;
+  
+  document.getElementById("setup-screen").style.display = "none";
+  document.getElementById("workspace-screen").style.display = "flex";
+  
+  // Inisialisasi TinyMCE saat masuk workspace
+  if (!tinymce.get("editor")) {
+    tinymce.init({
+      selector: '#editor',
+      height: 'calc(100vh - 55px)',
+      menubar: false,
+      branding: false,
+      plugins: 'lists link table code',
+      toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright justify | bullist numlist | table code',
+      content_style: `
+        body { 
+          font-family: "Times New Roman", Times, serif; 
+          font-size: 18px; 
+          line-height: 1.8; 
+          max-width: 750px; 
+          margin: 30px auto; 
+          padding: 50px 60px; 
+          color: #1e293b; 
+          background: #ffffff; 
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          border-radius: 4px;
+          min-height: 100%;
+        }
+        p { margin-bottom: 1.2em; text-align: justify; text-indent: 40px; }
+        sup { color: #2563eb; font-weight: bold; }
+      `
+    });
+  }
+}
+
+function kembaliKeSetup() {
+  if(confirm("Kembali ke pengaturan awal? Tulisan di editor tidak akan hilang sebelum di-refresh.")) {
+    document.getElementById("workspace-screen").style.display = "none";
+    document.getElementById("setup-screen").style.display = "flex";
+  }
+}
 
 function openCitationPopup(){
   document.getElementById("citationPopup").style.display = "flex";
@@ -115,22 +191,16 @@ document.getElementById("citationSearch").addEventListener("input", function(){
   }
   document.getElementById("citationResults").innerHTML = '<div class="loading">Searching Zotero...</div>';
   
-  // Ambil data Zotero via POST API Router GAS
   fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({ aksi: "searchZotero", query: q })
   })
   .then(res => res.json())
   .then(response => {
-    if(response.status === "success") {
-      renderResults(response.data);
-    } else {
-      document.getElementById("citationResults").innerHTML = '<div class="loading">Gagal mengambil data.</div>';
-    }
+    if(response.status === "success") { renderResults(response.data); } 
+    else { document.getElementById("citationResults").innerHTML = '<div class="loading">Gagal mengambil data.</div>'; }
   })
-  .catch(() => {
-    document.getElementById("citationResults").innerHTML = '<div class="loading">Error jaringan.</div>';
-  });
+  .catch(() => { document.getElementById("citationResults").innerHTML = '<div class="loading">Error jaringan.</div>'; });
 });
 
 function renderResults(results){
@@ -152,10 +222,8 @@ function renderResults(results){
 function insertCitation(data){
   const number = footnotes.length + 1;
   const note = `${data.author}, ${data.title} (${data.year})`;
-
   footnotes.push({ number: number, note: note });
   tinymce.get("editor").insertContent(`<sup>${number}</sup>`);
-  
   closePopup();
   document.getElementById("citationSearch").value = "";
   document.getElementById("citationResults").innerHTML = "";
@@ -169,10 +237,15 @@ function saveDoc(){
   const html = tinymce.get("editor").getContent();
   const safeFootnotes = JSON.stringify(footnotes);
 
-  // Simpan Tulisan Dokumen via POST API Router GAS
   fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({ aksi: "saveToGoogleDocs", html: html, footnotes: safeFootnotes })
+    body: JSON.stringify({ 
+      aksi: "saveToGoogleDocs", 
+      judul: judulAktif,
+      bab: babAktif,
+      html: html, 
+      footnotes: safeFootnotes 
+    })
   })
   .then(res => res.json())
   .then(response => {
@@ -182,12 +255,11 @@ function saveDoc(){
     } else {
       status.innerHTML = "Failed ❌";
       status.style.color = "#ef4444";
-      console.error(response.message);
     }
     setTimeout(function(){ status.innerHTML = "Ready"; status.style.color = "#22c55e"; }, 2500);
   })
-  .catch(err => {
-    status.innerHTML = "Error Link ❌";
+  .catch(() => {
+    status.innerHTML = "Error ❌";
     status.style.color = "#ef4444";
     setTimeout(function(){ status.innerHTML = "Ready"; status.style.color = "#22c55e"; }, 2500);
   });
