@@ -19,8 +19,7 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
-    /* Overlay Kustom Pop-up AI */
-    #ai-result-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.8); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(5px); }
+    #ai-result-modal, #ceramah-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.8); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(5px); }
   </style>
 </head>
 <body>
@@ -128,14 +127,26 @@
     </div>
   </div>
 
-  <div class="glass-card p-3 rounded-2xl shadow-md mt-1 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
-    <h3 class="text-xs font-extrabold text-slate-800 mb-1.5" id="title-tugas">📋 Tugas Hari Ini</h3>
-    <div id="tugas-container" class="space-y-1.5 overflow-y-auto flex-1 max-h-[120px] pr-1">
-      <p id="tugas-empty" class="text-[10px] text-slate-400 text-center py-2 italic">Sinkronisasi tugas...</p>
+  <!-- KARTU JADWAL CERAMAH -->
+  <div onclick="bukaModalCeramah()" class="glass-card p-3 rounded-2xl shadow-sm mt-1 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-ceramah">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm">🎤</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
+      </div>
+      <span id="badge-ceramah" class="text-[9px] font-black bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0 Belum Terlaksana</span>
     </div>
-    <div class="flex gap-1.5 mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700">
-      <input type="text" id="tugas-input" placeholder="Tugas baru..." class="w-full bg-slate-100/80 dark:bg-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-700 dark:text-white focus:outline-none">
-      <button onclick="simpanTugasKeSheet()" class="bg-slate-900 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg active:scale-95 transition">Tambah</button>
+  </div>
+
+  <!-- SEKSI TUGAS HARI INI (DILONGGARKAN) -->
+  <div class="glass-card p-4 rounded-2xl shadow-md mt-1 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
+    <h3 class="text-xs font-extrabold text-slate-800 mb-2" id="title-tugas">📋 Tugas Hari Ini</h3>
+    <div id="tugas-container" class="space-y-2 overflow-y-auto flex-1 max-h-[180px] min-h-[100px] pr-1">
+      <p id="tugas-empty" class="text-[10px] text-slate-400 text-center py-4 italic">Sinkronisasi tugas...</p>
+    </div>
+    <div class="flex gap-2 mt-3 pt-2 border-t border-slate-100 dark:border-slate-700">
+      <input type="text" id="tugas-input" placeholder="Tuliskan tugas baru Anda..." class="w-full bg-slate-100/80 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-white focus:outline-none">
+      <button onclick="simpanTugasKeSheet()" class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition">Tambah</button>
     </div>
   </div>
 
@@ -150,7 +161,8 @@
 
 </div>
 
-<div id="ai-result-modal" onclick="tutupModalHasil()">
+<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI -->
+<div id="ai-result-modal">
   <div class="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-[360px] p-5 text-white max-h-[80vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
     <div class="text-center border-b border-white/10 pb-2 mb-3">
       <span class="text-2xl">✨</span>
@@ -188,7 +200,50 @@
         <p id="m-bijak">"..."</p>
       </div>
     </div>
-    <button onclick="tutupModalHasil()" class="w-full bg-white text-slate-900 font-black text-xs py-2.5 rounded-xl mt-4 active:scale-95 transition">TUTUP</button>
+    <div class="flex gap-2 mt-4">
+      <button onclick="simpanHasilLogMakanan()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 rounded-xl active:scale-95 transition">SIMPAN KE JURNAL</button>
+      <button onclick="tutupModalHasil()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl active:scale-95 transition">BATAL</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL POPUP JADWAL CERAMAH -->
+<div id="ceramah-modal" onclick="tutupModalCeramah()">
+  <div class="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-[360px] p-5 text-white max-h-[85vh] overflow-hidden flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+    <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
+      <button onclick="pindahTabCeramah('lihat')" id="tab-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">LIHAT JADWAL</button>
+      <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
+    </div>
+
+    <!-- Konten Lihat Jadwal -->
+    <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
+      <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
+    </div>
+
+    <!-- Konten Tambah Jadwal -->
+    <div id="konten-tambah-ceramah" class="hidden space-y-3">
+      <div>
+        <label class="text-[10px] text-slate-400 font-bold uppercase">Tema Ceramah</label>
+        <input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[10px] text-slate-400 font-bold uppercase">Tanggal</label>
+          <input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+        </div>
+        <div>
+          <label class="text-[10px] text-slate-400 font-bold uppercase">Waktu/Jam</label>
+          <input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+        </div>
+      </div>
+      <div>
+        <label class="text-[10px] text-slate-400 font-bold uppercase">Lokasi / Tempat</label>
+        <input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+      </div>
+      <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 rounded-xl active:scale-95 transition">SIMPAN JADWAL</button>
+    </div>
+
+    <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black text-xs py-2 rounded-xl mt-4 active:scale-95 transition">TUTUP</button>
   </div>
 </div>
 
@@ -202,6 +257,7 @@ const KUMPULAN_TEMA = [
 ];
 
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
+let dataAnalisaMakanTerakhir = null;
 
 window.onload = async function(){
   tentukanKalenderDasar();
@@ -233,7 +289,7 @@ function switchModeSiangMalam() {
 function evaluasiVisualModeMalam() {
   const app = document.getElementById("main-app");
   const indicator = document.getElementById("time-indicator");
-  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat"];
+  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat", "card-ceramah"];
   
   if(modeMalamManual) {
     indicator.innerText = "🌙"; app.classList.add("dark-mode-bg");
@@ -280,11 +336,11 @@ function renderTugasDariDatabase(tugasList) {
 
   tugasList.forEach((itemData) => {
     const item = document.createElement("div");
-    item.className = "tugas-item flex items-center justify-between bg-slate-100/60 dark:bg-slate-800/60 px-2.5 py-1.5 rounded-lg";
+    item.className = "tugas-item flex items-center justify-between bg-slate-100/60 dark:bg-slate-800/60 px-3 py-2 rounded-xl shadow-sm";
     item.id = `db-tugas-${itemData.rowId}`;
     item.innerHTML = `
-      <p class="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate max-w-[280px]">${itemData.tugas}</p>
-      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2 py-0.5 rounded font-bold text-[9px]">✓</button>
+      <p class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[280px]">${itemData.tugas}</p>
+      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2.5 py-1 rounded-xl font-bold text-xs hover:bg-emerald-600 transition">✓</button>
     `;
     container.appendChild(item);
   });
@@ -337,16 +393,14 @@ async function loadDashboard(){
       const data = json.data;
       if(data["MOTIVASI"] && data["MOTIVASI"].value) document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
       
-      const scoreC9 = Number(data["MOOD_SCORE"]?.value || data["MOOD"]?.score || 0);
+      const scoreC9 = Number(data["MOOD_SCORE"]?.value || 0);
       prosesKalkulasiMoodIFS(scoreC9);
       renderTugasDariDatabase(data["LIST_TUGAS"]);
 
-      // Memuat nilai kalori masuk dan keluar
       const kaloriMasuk = Number(data["KALORI MASUK"]?.value || 0);
       document.getElementById("val-kalori").innerText = kaloriMasuk;
       document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
       
-      // Menghilangkan koma desimal hidrasi (Membulatkan angka gelas ke bawah)
       const totalGelasBaku = data["MINUM AIR"]?.value || 0;
       document.getElementById("val-air").innerText = Math.floor(totalGelasBaku);
       
@@ -357,7 +411,10 @@ async function loadDashboard(){
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
       document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
 
-      // PERBAIKAN UTAMA: Mengalihkan target acuan Progress Bar dari B1 ke D1 (Target Kalori In Dinamis)
+      // Badge Jadwal Ceramah
+      const countCeramah = Number(data["CERAMAH_COUNT"] || 0);
+      document.getElementById("badge-ceramah").innerText = `${countCeramah} Belum Terlaksana`;
+
       const targetKaloriD1 = Number(data["TARGET_KALORI_IN"]?.value || 2000); 
       const persenBar = (kaloriMasuk / targetKaloriD1) * 100;
       document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
@@ -414,6 +471,7 @@ function handleFileSelect(input){
       document.getElementById('loader-cam').classList.add('hidden');
       
       if (response && response.status === "success") {
+        dataAnalisaMakanTerakhir = response;
         const ai = response.data || {};
         
         document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
@@ -423,11 +481,9 @@ function handleFileSelect(input){
         document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
         document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
         document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
-        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama executivetracker.'}"`;
+        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
         
         document.getElementById("ai-result-modal").style.display = "flex";
-        
-        loadDashboard(); 
       } else {
         alert("Gagal membaca respons: " + (response.message || "Error"));
       }
@@ -436,15 +492,174 @@ function handleFileSelect(input){
       document.getElementById('icon-cam').classList.remove('hidden');
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
       document.getElementById('loader-cam').classList.add('hidden');
-      alert("Proses pencatatan selesai dilaksanakan.");
-      loadDashboard();
+      alert("Proses pencatatan dibatalkan.");
     });
   };
   reader.readAsDataURL(file);
 }
 
+// SIMPAN ANALISIS KE GOOGLE SHEET JIKA USER SETUJU
+async function simpanHasilLogMakanan() {
+  if (!dataAnalisaMakanTerakhir) return;
+  tutupModalHasil();
+  
+  document.getElementById('icon-cam').classList.add('hidden');
+  document.getElementById('text-cam').innerText = "Menyimpan ke Spreadsheet...";
+  document.getElementById('loader-cam').classList.remove('hidden');
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "catatMakanan",
+        data: dataAnalisaMakanTerakhir.data,
+        totalCal: dataAnalisaMakanTerakhir.totalCal
+      })
+    });
+    const response = await res.json();
+    if(response.status === "success") {
+      alert("Data berhasil dicatatkan!");
+      await loadDashboard();
+    } else {
+      alert("Gagal menyimpan: " + response.message);
+    }
+  } catch(e) {
+    alert("Koneksi gagal saat menyimpan.");
+  } finally {
+    document.getElementById('icon-cam').classList.remove('hidden');
+    document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+    document.getElementById('loader-cam').classList.add('hidden');
+    dataAnalisaMakanTerakhir = null;
+  }
+}
+
 function tutupModalHasil() {
   document.getElementById("ai-result-modal").style.display = "none";
+  dataAnalisaMakanTerakhir = null;
+}
+
+// KENDALI MODAL CERAMAH
+function bukaModalCeramah() {
+  document.getElementById("ceramah-modal").style.display = "flex";
+  pindahTabCeramah('lihat');
+}
+
+function tutupModalCeramah() {
+  document.getElementById("ceramah-modal").style.display = "none";
+}
+
+function pindahTabCeramah(tab) {
+  const tabLihat = document.getElementById("tab-lihat");
+  const tabTambah = document.getElementById("tab-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-ceramah");
+  const kontenTambah = document.getElementById("konten-tambah-ceramah");
+
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarCeramah();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarCeramah() {
+  const container = document.getElementById("konten-lihat-ceramah");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>`;
+
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
+    const resJson = await res.json();
+    
+    if (resJson.status === "success") {
+      container.innerHTML = "";
+      const list = resJson.data || [];
+      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
+      
+      if (belumSelesai.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah yang terdaftar.</p>`;
+        return;
+      }
+
+      belumSelesai.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center";
+        div.innerHTML = `
+          <div class="max-w-[180px]">
+            <p class="text-xs font-black text-white truncate">${item.tema}</p>
+            <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
+            <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
+          </div>
+          <button onclick="selesaikanJadwalCeramah(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition active:scale-95">✓ SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Gagal memuat jadwal.</p>`;
+    }
+  } catch(e) {
+    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Terjadi masalah koneksi.</p>`;
+  }
+}
+
+async function simpanJadwalCeramah() {
+  const tema = document.getElementById("c-tema").value.trim();
+  const tanggal = document.getElementById("c-tanggal").value;
+  const jam = document.getElementById("c-jam").value;
+  const tempat = document.getElementById("c-tempat").value.trim();
+
+  if (!tema || !tanggal || !jam || !tempat) {
+    alert("Mohon lengkapi semua data ceramah!");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "tambahCeramah",
+        tema: tema,
+        tanggal: tanggal,
+        jam: jam,
+        tempat: tempat
+      })
+    });
+    
+    if ((await res.json()).status === "success") {
+      document.getElementById("c-tema").value = "";
+      document.getElementById("c-tanggal").value = "";
+      document.getElementById("c-jam").value = "";
+      document.getElementById("c-tempat").value = "";
+      alert("Agenda ceramah berhasil ditambahkan!");
+      pindahTabCeramah('lihat');
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal menyimpan agenda ceramah.");
+  }
+}
+
+async function selesaikanJadwalCeramah(rowId) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "selesaikanCeramah",
+        rowId: rowId
+      })
+    });
+    if ((await res.json()).status === "success") {
+      await loadDaftarCeramah();
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal merubah status agenda.");
+  }
 }
 </script>
 </body>
