@@ -131,11 +131,12 @@ window.addEventListener("DOMContentLoaded", loadDaftarDokumen);
 function loadDaftarDokumen() {
   fetch(API_URL, {
     method: "POST",
+    redirect: "follow", // <--- TAMBAHKAN INI AGAR MENGIKUTI REDIRECT GOOGLE
     body: JSON.stringify({ aksi: "getDaftarDoc" })
   })
   .then(res => res.json())
   .then(response => {
-    const selector = document.getElementById("select-doc");
+     const selector = document.getElementById("select-doc");
     selector.innerHTML = "";
     
     if (response.status === "success" && response.data.length > 0) {
@@ -224,7 +225,14 @@ document.getElementById("citationSearch").addEventListener("input", function(){
   
   fetch(API_URL, {
     method: "POST",
-    body: JSON.stringify({ aksi: "searchZotero", query: q })
+    redirect: "follow", // <--- TAMBAHKAN INI JUGA
+    body: JSON.stringify({ 
+      aksi: "saveToGoogleDocs", 
+      docId: docIdAktif,
+      bab: babAktif,
+      html: html, 
+      footnotes: safeFootnotes 
+    })
   })
   .then(res => res.json())
   .then(response => {
