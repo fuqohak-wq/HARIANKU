@@ -1,549 +1,247 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Docs Writer Pro — Premium Studio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Google Docs Writer Pro</title>
   
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-
   <style>
-    :root {
-      --bg-midnight: #080c14;
-      --card-midnight: rgba(18, 26, 43, 0.65);
-      --accent-gold: #e5c158;
-      --accent-gold-hover: #f1d784;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-    }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%;
-      min-height: 100vh;
-      background-color: var(--bg-midnight);
-      background-image: radial-gradient(circle at 50% 120%, #152136 0%, var(--bg-midnight) 70%);
-      color: var(--text-main);
-      font-family: 'Inter', system-ui, sans-serif;
-      -webkit-text-size-adjust: 100%;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
-    }
-
-    /* CUSTOM SCROLLBAR PREMUM */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-    ::-webkit-scrollbar-thumb { background: rgba(229, 193, 88, 0.2); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(229, 193, 88, 0.5); }
-
-    .container {
-      width: 100%;
-      max-width: 750px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    /* HEADER / HERO */
-    .hero {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 0.8s ease;
-    }
-    .hero h1 {
-      font-family: 'Cinzel', serif;
-      font-size: 38px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      background: linear-gradient(135deg, #ffffff 30%, var(--accent-gold) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
-    }
-    .hero p {
-      color: var(--text-muted);
-      font-size: 15px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-
-    /* GLASS CARD HOME */
-    .card {
-      background: var(--card-midnight);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 35px;
-      box-shadow: var(--glass-shadow);
-      animation: slideUp 0.6s ease;
-    }
-
-    /* CONFIGURATION BAR (FOR VERCEL API BRIDGE) */
-    .api-config-section {
-      margin-bottom: 25px;
-      background: rgba(229, 193, 88, 0.05);
-      border: 1px dashed rgba(229, 193, 88, 0.2);
-      padding: 15px;
-      border-radius: 12px;
-      display: none; /* Otomatis muncul jika di-host di luar script.google */
-    }
-
-    label {
-      display: block;
-      margin: 20px 0 8px 0;
-      color: var(--accent-gold);
-      font-weight: 500;
-      font-size: 14px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 16px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      background: rgba(0, 0, 0, 0.3);
-      color: white;
-      font-size: 16px;
-      outline: none;
-      font-family: inherit;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    select:focus, input:focus {
-      border-color: var(--accent-gold);
-      box-shadow: 0 0 12px rgba(229, 193, 88, 0.25);
-      background: rgba(0, 0, 0, 0.5);
-    }
-
-    .btn-primary {
-      width: 100%;
-      margin-top: 35px;
-      padding: 18px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent-gold) 0%, #b89330 100%);
-      color: #05080f;
-      font-size: 16px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(229, 193, 88, 0.2);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(229, 193, 88, 0.4);
-      background: linear-gradient(135deg, var(--accent-gold-hover) 0%, var(--accent-gold) 100%);
-    }
-
-    /* WRITER WORKSPACE (STUDIO MENULIS) */
-    #writerPage {
-      display: none;
-      flex-direction: column;
-      background: #fdfdfb; /* Warna Alabaster Paper */
-      color: #1a1a1a;
-      min-height: 100vh;
-      position: absolute;
-      top: 0; left: 0; width: 100%;
-      z-index: 100;
-      overflow-x: hidden;
-    }
-
-    /* TOOLBAR NAVIGASI PREMIUM */
-    .toolbar {
-      position: fixed;
-      top: 0; left: 0; width: 100%;
-      background: #0b0f19;
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      border-bottom: 1px solid var(--glass-border);
-    }
-    .toolbar-left { display: flex; gap: 10px; align-items: center; }
-
-    .btn-tool {
-      background: #141d2f;
-      color: #e2e8f0;
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .btn-tool:hover {
-      background: #1e293b;
-      color: white;
-      border-color: rgba(255,255,255,0.15);
+    html, body { 
+      width: 100%; 
+      overflow-x: hidden; 
+      background: #071120; 
+      color: white; 
+      font-family: 'Segoe UI', system-ui, sans-serif; 
+      min-height: 100vh; 
+      -webkit-text-size-adjust: 100%; 
     }
     
-    .btn-italic { font-style: italic; font-family: 'Playfair Display', serif; font-size: 16px; }
-    .btn-bold { font-weight: bold; font-family: 'Playfair Display', serif; font-size: 16px; }
-    .btn-zotero { background: #0288d1; color: white; border: none; }
-    .btn-zotero:hover { background: #039be5; }
-    .btn-save { background: var(--accent-gold); color: #080c14; border: none; font-weight: 600; }
-    .btn-save:hover { background: var(--accent-gold-hover); }
-    .btn-back { background: #521919; color: #ffbcbc; border: none; }
-    .btn-back:hover { background: #6c2323; }
-    .btn-sound { background: #13251e; color: #72f2bc; border: none; }
-    .btn-sound:hover { background: #1a382b; }
+    .container { width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; }
+    .hero { background: linear-gradient(135deg, #10233d, #173b6d); padding: 25px; border-radius: 20px; margin-bottom: 25px; text-align: center; }
+    .hero h1 { font-size: 32px; color: #ffd54f; margin-bottom: 8px; }
+    .card { background: #0d1b2f; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    label { display: block; margin: 15px 0 8px 0; color: #ffd54f; font-weight: 500; font-size: 22px; }
+    
+    select, input { width: 100%; padding: 20px; border: none; border-radius: 12px; background: #122845; color: white; font-size: 22px; outline: none; font-family: inherit; }
+    
+    .btn-primary { width: 100%; margin-top: 30px; padding: 22px; border: none; border-radius: 12px; background: #ffd54f; color: #071120; font-size: 24px; font-weight: bold; cursor: pointer; }
 
-    .counter-badge {
-      color: var(--accent-gold);
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-      margin-left: 10px;
-      background: rgba(229, 193, 88, 0.1);
-      padding: 4px 10px;
-      border-radius: 6px;
-    }
-
-    /* CONTAINER UTAMA EDITING */
-    .workspace-split {
-      display: flex;
+    /* LAYOUT UTAMA EDITING */
+    #writerPage { 
+      display: none; 
       flex-direction: column;
-      margin-top: 75px;
-      padding: 20px;
-      gap: 30px;
-      width: 100%;
-      max-width: 1350px;
-      margin-left: auto;
-      margin-right: auto;
+      background: #fdfdfd; 
+      color: #111111; 
+      min-height: 100vh; 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      z-index: 999;
       overflow-x: hidden;
     }
-
-    /* KANVAS EDITOR (KERTAS PREMIUM) */
-    .editor-container {
-      width: 100%;
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 40px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-      border: 1px solid #e5e5e0;
-      transition: all 0.3s ease;
-    }
     
-    /* Area Pengetikan HP (Sangat nyaman dibaca) */
-    .rich-editor {
-      width: 100%;
-      min-height: 55vh;
-      border: none;
-      outline: none;
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 24px;
-      line-height: 1.8;
-      text-align: justify;
-      color: #1c1c1c;
-      word-break: break-word;
+    /* TOOLBAR ATAS JUMBO DI HP */
+    .toolbar { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      background: #0d1b2f; 
+      padding: 14px 10px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      z-index: 1000; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
-    .rich-editor div, .rich-editor p {
-      text-indent: 45px;
-      margin-bottom: 20px;
+    .toolbar-left { display: flex; gap: 8px; align-items: center; }
+    
+    .btn-tool { background: #122845; color: white; border: none; padding: 14px 18px; border-radius: 10px; font-size: 20px; cursor: pointer; font-weight: bold; }
+    .btn-italic { font-style: italic; font-family: "Times New Roman", serif; font-size: 22px; }
+    .btn-bold { font-weight: bold; font-family: "Times New Roman", serif; font-size: 22px; }
+    .btn-zotero { background: #0288d1; color: white; }
+    .btn-save { background: #ffd54f; color: #071120; }
+    .btn-back { background: #c62828; color: white; }
+    .counter-badge { color: #ffd54f; font-weight: bold; font-size: 18px; margin-left: 5px; }
+
+    /* ================= [1] TAMPILAN DEFAULT: KHUSUS HP (SUPER JUMBO) ================= */
+    .workspace-split { 
+      display: flex; 
+      flex-direction: column; 
+      margin-top: 85px; 
+      padding: 12px; 
+      gap: 20px; 
+      width: 100%;
+      overflow-x: hidden;
+    }
+    .editor-container { width: 100%; background: #ffffff; border-radius: 14px; padding: 16px; border: 2px solid #c8c8c8; }
+    
+    /* Teks Ketik HP (35px) */
+    .rich-editor { 
+      width: 100%; min-height: 50vh; border: none; outline: none; font-family: "Times New Roman", Times, serif; 
+      font-size: 35px; line-height: 1.5; text-align: justify; color: #111111; word-break: break-word;
+    }
+    .rich-editor div, .rich-editor p { text-indent: 45px; margin-bottom: 15px; }
+    
+    /* Teks Preview Bacaan HP (32px) */
+    .preview-section { 
+      width: 100%; padding: 20px; background: #f1f3f5; border-radius: 14px; border-top: 6px solid #173b6d; 
+      color: #222222; font-size: 32px; line-height: 1.5; word-break: break-word;
     }
 
-    /* BACAAN REFERENSI KIRI / BAWAH */
-    .preview-section {
-      width: 100%;
-      padding: 30px;
-      background: #f4f4ee;
-      border-radius: 16px;
-      border-left: 4px solid #b89330;
-      color: #3a3a35;
-      font-size: 17px;
-      line-height: 1.7;
-      word-break: break-word;
-      font-family: 'Inter', sans-serif;
-    }
-    .preview-title {
-      font-family: 'Cinzel', serif;
-      font-weight: 700;
-      color: #7a6322;
-      margin-bottom: 15px;
-      font-size: 15px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      border-bottom: 1px solid rgba(122, 99, 34, 0.15);
-      padding-bottom: 8px;
-    }
-    #headingContent {
-      white-space: pre-wrap;
-      text-align: justify;
-      max-height: 350px;
-      overflow-y: auto;
+    /* ================= [2] KHUSUS TABLET (UKURAN SEDANG / PROSEDURAL) ================= */
+    @media (min-width: 600px) and (max-width: 1023px) {
+      .hero h1 { font-size: 26px; }
+      label { font-size: 16px; }
+      select, input { padding: 14px; font-size: 16px; }
+      .btn-primary { padding: 16px; font-size: 18px; }
+
+      .btn-tool { padding: 10px 14px; font-size: 15px; border-radius: 8px; }
+      .btn-italic, .btn-bold { font-size: 16px; }
+      .counter-badge { font-size: 14px; }
+      
+      .workspace-split { margin-top: 65px; gap: 15px; padding: 15px; }
+      
+      /* Ruang Ketik Tablet (21px) */
+      .rich-editor { font-size: 21px; min-height: 40vh; line-height: 1.6; }
+      .rich-editor div, .rich-editor p { text-indent: 35px; margin-bottom: 10px; }
+      
+      /* Preview Bacaan Tablet (18px) */
+      .preview-section { font-size: 18px; padding: 15px; }
     }
 
-    /* LAYOUT TAMPILAN LAPTOP (ZEN MODE BELAHAN) */
+    /* ================= [3] KHUSUS LAPTOP / DESKTOP (NORMAL APA ADANYA) ================= */
     @media (min-width: 1024px) {
-      .workspace-split {
-        flex-direction: row;
-        padding: 40px;
-        gap: 40px;
-        margin-top: 75px;
+      .hero h1 { font-size: 26px; }
+      label { font-size: 16px; }
+      select, input { padding: 16px; font-size: 16px; }
+      .btn-primary { padding: 18px; font-size: 18px; }
+      
+      .workspace-split { 
+        flex-direction: row; 
+        padding: 30px; 
+        gap: 30px; 
+        max-width: 1400px; 
+        margin: 65px auto 0 auto; 
       }
-      .editor-container {
-        width: 60%;
-        padding: 60px;
-        min-height: 80vh;
+      .editor-container { width: 60%; border: none; border-radius: 0; padding: 0; }
+      
+      /* Teks laptop normal (20px) */
+      .rich-editor { font-size: 20px; min-height: 75vh; line-height: 1.8; } 
+      .rich-editor div, .rich-editor p { text-indent: 45px; margin-bottom: 12px; }
+      
+      /* Preview laptop normal (17px) di sebelah kanan */
+      .preview-section { 
+        width: 40%; border-top: none; border-left: 5px solid #173b6d; position: sticky; 
+        top: 95px; height: 75vh; overflow-y: auto; font-size: 17px; 
       }
-      .rich-editor {
-        font-size: 21px;
-      }
-      .preview-section {
-        width: 40%;
-        position: sticky;
-        top: 110px;
-        height: 75vh;
-        overflow-y: auto;
-        font-size: 16px;
-      }
-      #headingContent {
-        max-height: none;
-      }
+      .btn-tool { padding: 10px 12px; font-size: 14px; }
+      .btn-italic, .btn-bold { font-size: 16px; }
+      .counter-badge { font-size: 13px; }
     }
 
-    /* ZEN FOCUS MODE */
-    body.zen-active #writerPage {
-      background: #111115 !important;
-    }
-    body.zen-active .editor-container {
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      background: #111115;
-      border: none;
-      box-shadow: none;
-    }
-    body.zen-active .rich-editor {
-      color: #dedede;
-      font-size: 24px;
-    }
-    body.zen-active .preview-section {
-      display: none !important;
-    }
+    /* BADGE INDICATOR UTK FOOTNOTE */
+    .web-fn { display: inline !important; color: #0288d1; font-weight: bold; font-size: 100%; background: rgba(2, 136, 209, 0.1); padding: 0 4px; border-radius: 4px; margin: 0 2px; cursor: pointer; user-select: none; }
 
-    /* FOOTNOTE BADGE DI EDITOR */
-    .web-fn {
-      display: inline-block !important;
-      color: #0288d1;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      background: rgba(2, 136, 209, 0.08);
-      padding: 0px 6px;
-      border-radius: 4px;
-      margin: 0 4px;
-      cursor: pointer;
-      user-select: none;
-      border: 1px solid rgba(2, 136, 209, 0.2);
-    }
+    /* MODAL POPUP ZOTERO EDISI JUMBO */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+    .modal-content { background: #0d1b2f; width: 95%; max-width: 550px; padding: 25px; border-radius: 20px; border: 2px solid #0288d1; max-height: 90vh; overflow-y: auto; }
+    .modal-header { font-size: 24px; color: #ffd54f; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .zotero-search-box { display: flex; gap: 8px; margin-bottom: 15px; }
+    
+    .zotero-results { max-height: 220px; overflow-y: auto; background: #071120; border-radius: 8px; padding: 5px; margin-bottom: 15px; }
+    .zotero-item { padding: 16px; border-bottom: 1px solid #122845; cursor: pointer; border-radius: 6px; font-size: 18px; color: white; text-align: left; line-height: 1.4; }
+    .zotero-item:hover { background: #0288d1; }
+    .zotero-item.selected { background: #ffd54f !important; color: #071120 !important; font-weight: bold; }
 
-    /* MODAL POPUP PREMIUM */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(4, 6, 10, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .modal-content {
-      background: #0f172a;
-      border: 1px solid rgba(229, 193, 88, 0.2);
-      width: 100%;
-      max-width: 580px;
-      padding: 35px;
-      border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      max-height: 85vh;
-      overflow-y: auto;
-      animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .modal-header {
-      font-family: 'Cinzel', serif;
-      font-size: 20px;
-      color: var(--accent-gold);
-      margin-bottom: 20px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    #addKitabForm { display: none; background: #122845; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #ffd54f; }
+    #addKitabForm input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none; background: #071120; color: white; font-size: 18px; }
 
-    /* KOMPONEN CARI ZOTERO */
-    .zotero-search-box {
-      margin-bottom: 20px;
-    }
-    .zotero-results {
-      max-height: 250px;
-      overflow-y: auto;
-      background: rgba(0,0,0,0.25);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      margin-bottom: 20px;
-    }
-    .zotero-item {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      cursor: pointer;
-      font-size: 15px;
-      color: #e2e8f0;
-      transition: all 0.2s ease;
-    }
-    .zotero-item:hover {
-      background: rgba(229, 193, 88, 0.1);
-      color: var(--accent-gold);
-    }
-    .zotero-item.selected {
-      background: var(--accent-gold) !important;
-      color: #05080f !important;
-    }
-
-    #addKitabForm {
-      display: none;
-      background: rgba(255,255,255,0.03);
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(229, 193, 88, 0.3);
-    }
-    #addKitabForm input {
-      margin-bottom: 12px;
-      background: rgba(0,0,0,0.4);
-      border-color: rgba(255,255,255,0.08);
-    }
-
-    /* KEYFRAMES ANIMASI */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes modalFadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
+    .preview-title { font-weight: bold; color: #173b6d; margin-bottom: 12px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+    #headingContent { white-space: pre-wrap; text-align: justify; font-family: "Times New Roman", serif; }
   </style>
 </head>
 <body>
 
-  <!-- LAYER HALAMAN UTAMA -->
   <div id="homePage" class="container">
     <div class="hero">
-      <h1>Docs Writer Pro</h1>
-      <p>Premium Academic Workspace & Smart Reference Engine</p>
+      <h1>✦ Docs Writer Pro ✦</h1>
+      <p style="color: #8aa4c8; margin-top: 5px; font-size: 18px;">Workspace Ilmuwan & Penulis (Sistem Otomatis Footnote)</p>
     </div>
-    
     <div class="card">
-      <!-- PANEL KONFIGURASI VERCEL (Otomatis Aktif Bila Dijalankan Di Luar Domain Google Script) -->
-      <div id="apiConfigSection" class="api-config-section">
-        <span style="color: var(--accent-gold); font-size: 13px; font-weight: bold; letter-spacing: 1px; display: block; margin-bottom: 8px;">VERCEL CONFIGURATION ACTIVE</span>
-        <input type="text" id="gasEndpointUrl" placeholder="https://script.google.com/macros/s/AKfycbwBpMs5amqJTgaxA48FRiZospxk-IhSpPUEttRplSQGJ7PqLRHwv8UKPq1x_5V9kir8/exec">
-        <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Tempel URL Web App dari hasil deployment Google Apps Script Anda untuk menjembatani data.</p>
-      </div>
-
       <label>Pilih Dokumen Rumah</label>
-      <select id="docSelect" onchange="loadHeadings()"><option>Mencari dokumen aktif...</option></select>
-      
+      <select id="docSelect" onchange="loadHeadings()"><option>Memuat daftar dokumen...</option></select>
       <label>Pilih Sub-Heading Tujuan</label>
       <select id="headingSelect"><option>Pilih heading...</option></select>
-      
-      <button class="btn-primary" onclick="startWriting()">✍️ Masuk Ruang Ketik Premium</button>
+      <button class="btn-primary" onclick="startWriting()">✍️ Mulai Masuk Ruang Ketik</button>
     </div>
   </div>
 
-  <!-- LAYER RUANG TULIS (THE STUDIO) -->
   <div id="writerPage">
     <div class="toolbar">
       <div class="toolbar-left">
-        <button class="btn-tool btn-back" onclick="closeEditor()">← Keluar</button>
-        <button class="btn-tool" style="background:#201b35; color:#caadff;" onclick="toggleZenMode()">👁️ Zen Focus</button>
-        <button class="btn-tool btn-sound" id="soundBtn" onclick="toggleSoundFx()">🔊 Sound On</button>
+        <button class="btn-tool btn-back" onclick="closeEditor()">← Out</button>
         <button class="btn-tool btn-bold" onclick="formatDoc('bold')">B</button>
         <button class="btn-tool btn-italic" onclick="formatDoc('italic')">I</button>
-        <button class="btn-tool btn-zotero" onclick="openZoteroModal()">📑 Tambah Footnote</button>
-        <div class="counter-badge"><span id="wCount">0</span> Words</div>
+        <button class="btn-tool btn-zotero" onclick="openZoteroModal()">📑 + Footnote</button>
+        <div class="counter-badge"><span id="wCount">0</span> W</div>
       </div>
       <div>
-        <button id="syncBtn" class="btn-tool btn-save" onclick="syncToGoogleDocs()">🚀 Kirim Ke Cloud Docs</button>
+        <button id="syncBtn" class="btn-tool btn-save" onclick="syncToGoogleDocs()">🚀 Kirim Cloud</button>
       </div>
     </div>
 
     <div class="workspace-split">
       <div class="editor-container">
-        <!-- Ruang Ketik Elegan -->
-        <div id="editor" class="rich-editor" contenteditable="true" oninput="handleInput(event)" onclick="saveSavedRange()" onkeyup="saveSavedRange()">
-          <div><br></div>
-        </div>
+        <div id="editor" class="rich-editor" contenteditable="true" oninput="handleInput(event)" onclick="saveSavedRange()" onkeyup="saveSavedRange()"><div><br></div></div>
       </div>
 
       <div class="preview-section">
-        <div class="preview-title" id="headingTitle">Menghubungkan Dokumen...</div>
-        <div id="headingContent">Mengambil tulisan dari cloud...</div>
+        <div class="preview-title" id="headingTitle">Memuat Bab...</div>
+        <div id="headingContent">Mengambil data tulisan sebelumnya...</div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL FOOTNOTE ZOTERO -->
   <div id="zoteroModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <span>📚 Pustaka Akademik</span>
-        <button class="btn-tool" style="background:#1b4d3e; color:#7efcc7;" onclick="toggleAddKitabForm()">➕ Kitab Baru</button>
+        <span>📚 Pustaka Zotero (Footnote)</span>
+        <button class="btn-tool" style="background:#2e7d32; padding:6px 12px; font-size:16px;" onclick="toggleAddKitabForm()">➕ Tambah Kitab</button>
       </div>
       
-      <!-- Tambah Kitab Baru Form -->
       <div id="addKitabForm">
-        <span style="color:var(--accent-gold); font-size:13px; display:block; margin-bottom:12px; font-weight:bold; text-transform:uppercase;">Kitab Baru:</span>
-        <input type="text" id="newTitle" placeholder="Judul Buku / Kitab">
-        <input type="text" id="newAuthor" placeholder="Nama Belakang Pengarang">
+        <span style="color:#ffd54f; font-size:16px; display:block; margin-bottom:12px; font-weight:bold;">Formulir Kitab Standar Profesional:</span>
+        <input type="text" id="newTitle" placeholder="Judul Buku / Kitab Utama">
+        <input type="text" id="newAuthor" placeholder="Nama Belakang Pengarang / Mualif">
         <input type="text" id="newPlace" placeholder="Tempat / Kota Terbit (Contoh: Beirut)">
         <input type="text" id="newPublisher" placeholder="Nama Penerbit (Contoh: Dar al-Fikr)">
-        <input type="text" id="newYear" placeholder="Tahun Terbit (Contoh: 1989)">
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <button class="btn-tool" style="background:#521919; flex:1;" onclick="toggleAddKitabForm()">Batal</button>
-          <button class="btn-tool" style="background:var(--accent-gold); color:#080c14; flex:1;" id="saveKitabBtn" onclick="saveNewKitabToZotero()">💾 Simpan ke Cloud</button>
+        <input type="text" id="newYear" placeholder="Tahun Terbit (Contoh: 1981)">
+        <div style="display:flex; gap:10px; margin-top:5px;">
+          <button class="btn-tool" style="background:#c62828; flex:1;" onclick="toggleAddKitabForm()">Batal</button>
+          <button class="btn-tool" style="background:#ffd54f; color:#071120; flex:1;" id="saveKitabBtn" onclick="saveNewKitabToZotero()">💾 Simpan ke Cloud Zotero</button>
         </div>
       </div>
 
       <div class="zotero-search-box">
-        <input type="search" id="zoteroQuery" placeholder="Cari kitab lalu tekan Enter..." onkeydown="handleSearchKeyDown(event)">
+        <input type="search" id="zoteroQuery" placeholder="Ketik kata kunci lalu ketuk 'Masuk/Enter'..." onkeydown="handleSearchKeyDown(event)">
       </div>
       
       <div id="zoteroResultsList" class="zotero-results">
-        <div style="padding:15px; color:var(--text-muted); font-size:14px;">Masukan kata kunci...</div>
+        <div style="padding:10px; color:#8aa4c8; font-size:16px;">Memuat list...</div>
       </div>
       
-      <div style="margin-bottom: 25px;">
-        <label style="margin:0 0 8px 0; font-size:13px; color:var(--accent-gold);">Halaman Referensi:</label>
-        <input type="number" pattern="[0-9]*" id="zoteroPage" style="background: rgba(0,0,0,0.4);" placeholder="Contoh: 84" onkeydown="handlePageKeyDown(event)">
+      <div style="margin-bottom: 20px;">
+        <label style="margin:0 0 8px 0; font-size:18px; color:#ffd54f;">Nomor Halaman Kutipan:</label>
+        <input type="number" pattern="[0-9]*" id="zoteroPage" style="width:100%; padding:14px; border-radius:8px; border:none; background:#122845; color:white; font-size:20px;" placeholder="Contoh: 15" onkeydown="handlePageKeyDown(event)">
       </div>
       
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn-tool" style="background:#421212; color: #ffbcbc;" onclick="closeZoteroModal()">Batal</button>
-        <button class="btn-tool" style="background:var(--accent-gold); color:#080c14; padding:12px 24px; font-weight: 600;" onclick="insertSelectedCitation()">📑 Sisipkan Referensi</button>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn-tool" style="background:#c62828; padding:14px 22px;" onclick="closeZoteroModal()">Batal</button>
+        <button class="btn-tool" style="background:#ffd54f; color:#071120; padding:14px 28px;" onclick="insertSelectedCitation()">📑 Sisipkan</button>
       </div>
     </div>
   </div>
@@ -554,155 +252,44 @@
     let zoteroItemsCache = [];
     let selectedZoteroItem = null;
     let savedRange = null;
-    let soundEnabled = true;
 
-    // AUDIO SYNTHESIS ENGINE (Mekanika Click Suara Mesin Ketik Bawaan)
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let audioCtxInstance = null;
-    
-    function playKeySound() {
-      if (!soundEnabled) return;
-      try {
-        if (!audioCtxInstance) audioCtxInstance = new AudioCtx();
-        let bufferSize = audioCtxInstance.sampleRate * 0.015; // Suara klik super singkat (15ms)
-        let buffer = audioCtxInstance.createBuffer(1, bufferSize, audioCtxInstance.sampleRate);
-        let data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
-        let noise = audioCtxInstance.createBufferSource();
-        noise.buffer = buffer;
-        let filter = audioCtxInstance.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1200 + Math.random() * 300;
-        let gain = audioCtxInstance.createGain();
-        gain.gain.setValueAtTime(0.04, audioCtxInstance.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtxInstance.currentTime + 0.014);
-        
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(audioCtxInstance.destination);
-        noise.start();
-      } catch (e) { console.log(e); }
-    }
-
-    function toggleSoundFx() {
-      soundEnabled = !soundEnabled;
-      document.getElementById("soundBtn").innerText = soundEnabled ? "🔊 Sound On" : "🔇 Sound Off";
-      document.getElementById("soundBtn").style.background = soundEnabled ? "#13251e" : "#242424";
-      document.getElementById("soundBtn").style.color = soundEnabled ? "#72f2bc" : "#8a8a8a";
-    }
-
-    function toggleZenMode() {
-      document.body.classList.toggle("zen-active");
-    }
-
-    // BRIDGE DETECTOR (Mendeteksi Platform Host Vercel/GitHub Pages vs Standalone Google Script)
-    const isExternalHost = (window.location.hostname !== 'script.google.com' && !window.location.hostname.endsWith('googleusercontent.com'));
-    
-    window.onload = function() {
-      if (isExternalHost) {
-        document.getElementById("apiConfigSection").style.display = "block";
-        const savedUrl = localStorage.getItem("gas_api_url");
-        if (savedUrl) {
-          document.getElementById("gasEndpointUrl").value = savedUrl;
-        }
-      }
-      loadDocs();
-    };
-
-    // FUNGSI KOMUNIKASI AMAN YANG MENDUKUNG GAS & GITHUB/VERCEL
-    function callServer(actionName, payloadData, successCallback, failureCallback) {
-      if (!isExternalHost) {
-        // Mode Standar Google Apps Script
-        google.script.run
-          .withSuccessHandler(successCallback)
-          .withFailureHandler(failureCallback || function(err){ alert("Error: "+err); })
-          [actionName](...(payloadData ? Object.values(payloadData) : []));
-      } else {
-        // Mode Vercel API Bridge
-        const endpoint = document.getElementById("gasEndpointUrl").value.trim();
-        if (!endpoint) {
-          alert("Silakan masukkan URL API Google Apps Script Anda terlebih dahulu di kolom Vercel Config!");
-          return;
-        }
-        localStorage.setItem("gas_api_url", endpoint);
-
-        fetch(endpoint, {
-          method: "POST",
-          mode: "no-cors", // bypass CORS preflight
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: actionName, data: payloadData })
-        })
-        .then(() => {
-          // bypass CORS response reading if necessary (atau gunakan JSONP, namun fetch standar di Gas Web App via post data biasanya sudah langsung tereksekusi)
-          // Kita lakukan pancingan ulang data
-          setTimeout(() => {
-            if (successCallback) {
-              // Untuk optimasi Vercel: disarankan deploy Google Web App sebagai 'Anyone, even anonymous'
-              // Jika CORS menghalangi pembacaan hasil secara langsung, gunakan fetch sekunder atau berikan fallback info.
-            }
-          }, 800);
-        })
-        .catch(err => {
-          if (failureCallback) failureCallback(err);
-          else console.error(err);
-        });
-
-        // Alternatif fetch konvensional bila Web App mendukung CORS penuh (sudah di-setting di doPost Code.gs kita)
-        fetch(endpoint, {
-          method: "POST",
-          body: JSON.stringify({ action: actionName, data: payloadData })
-        })
-        .then(res => res.json())
-        .then(resJson => {
-          if (resJson.status === "success") {
-            if (successCallback) successCallback(resJson.data);
-          } else {
-            if (failureCallback) failureCallback(resJson.message);
-          }
-        })
-        .catch(err => console.log("Silent fallback on redirect mechanism."));
-      }
-    }
+    window.onload = function() { loadDocs(); };
 
     function loadDocs() {
-      callServer("getDocs", null, function(docs) {
+      google.script.run.withSuccessHandler(function(docs) {
         let select = document.getElementById("docSelect");
         select.innerHTML = "";
         docs.forEach(doc => { select.innerHTML += `<option value="${doc.id}">${doc.name}</option>`; });
         loadHeadings();
-      });
+      }).getDocs();
     }
 
     function loadHeadings() {
       const docId = document.getElementById("docSelect").value;
       let select = document.getElementById("headingSelect");
       select.innerHTML = "<option>Memuat bab...</option>";
-      
-      callServer("getHeadings", { docId: docId }, function(headings) {
+      google.script.run.withSuccessHandler(function(headings) {
         select.innerHTML = "";
         if(headings.length === 0) {
           select.innerHTML = "<option value='Root'>Normal (Tanpa Heading)</option>";
           return;
         }
         headings.forEach(h => { select.innerHTML += `<option value="${h.text}">${h.text}</option>`; });
-      });
+      }).getHeadings(docId);
     }
 
     function startWriting() {
       selectedDocId = document.getElementById("docSelect").value;
       selectedHeadingText = document.getElementById("headingSelect").value;
-      document.getElementById("headingTitle").innerText = "Tulisan Sebelumnya: " + selectedHeadingText;
+      document.getElementById("headingTitle").innerText = "Tulisan Terdahulu pada: " + selectedHeadingText;
       
-      callServer("getContentByHeading", { docId: selectedDocId, headingText: selectedHeadingText }, function(text) {
+      google.script.run.withSuccessHandler(function(text) {
         document.getElementById("headingContent").innerHTML = text;
-      });
+      }).getContentByHeading(selectedDocId, selectedHeadingText);
 
       const savedDraft = localStorage.getItem("draft_" + selectedDocId + "_" + selectedHeadingText);
       document.getElementById("editor").innerHTML = savedDraft ? savedDraft : "<div><br></div>";
       rebuildFootnoteNumbers();
-      
       document.getElementById("homePage").style.display = "none";
       document.getElementById("writerPage").style.display = "flex";
       savedRange = null;
@@ -721,7 +308,6 @@
     }
 
     function handleInput(e) { 
-      playKeySound();
       saveSavedRange();
       saveToLocal(); 
       updateWordCount(); 
@@ -761,6 +347,7 @@
 
     function closeZoteroModal() { document.getElementById("zoteroModal").style.display = "none"; }
     
+    // Toggle form tambah kitab
     function toggleAddKitabForm() {
       let form = document.getElementById("addKitabForm");
       form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
@@ -788,42 +375,40 @@
       const publisher = document.getElementById("newPublisher").value.trim();
       const year = document.getElementById("newYear").value.trim();
       
-      if (!title || !author) { alert("Judul dan Pengarang wajib diisi!"); return; }
+      if (!title || !author) { alert("Judul dan Nama Pengarang wajib diisi!"); return; }
       
       const btn = document.getElementById("saveKitabBtn");
-      btn.innerText = "⏳ Menyimpan...";
+      btn.innerText = "⏳ Menyimpan Ke Cloud...";
       btn.disabled = true;
       
-      callServer("addKitabToZotero", {
-        title: title, author: author, year: year, place: place, publisher: publisher
-      }, function(res) {
-        alert("Sukses! Kitab ditambahkan ke database Zotero.");
+      google.script.run.withSuccessHandler(function(res) {
+        alert("Sukses Penuh! Kitab baru masuk database akademik Zotero Anda.");
         document.getElementById("newTitle").value = "";
         document.getElementById("newAuthor").value = "";
         document.getElementById("newPlace").value = "";
         document.getElementById("newPublisher").value = "";
         document.getElementById("newYear").value = "";
         toggleAddKitabForm();
-        btn.innerText = "💾 Simpan ke Cloud";
+        btn.innerText = "💾 Simpan Cloud";
         btn.disabled = false;
         doZoteroSearch();
-      }, function(err) {
+      }).withFailureHandler(function(err) {
         alert(err);
-        btn.innerText = "💾 Simpan ke Cloud";
+        btn.innerText = "💾 Simpan Cloud";
         btn.disabled = false;
-      });
+      }).addKitabToZotero(title, author, year, place, publisher);
     }
 
     function doZoteroSearch() {
       const q = document.getElementById("zoteroQuery").value;
       let container = document.getElementById("zoteroResultsList");
-      container.innerHTML = '<div style="padding:15px; color:var(--accent-gold); font-size: 14px;">⏳ Menyinkronkan Database...</div>';
+      container.innerHTML = '<div style="padding:10px; color:#ffd54f; font-size: 18px;">⏳ Sinkronisasi Database Zotero...</div>';
       
-      callServer("searchZotero", { query: q }, function(items) {
+      google.script.run.withSuccessHandler(function(items) {
         zoteroItemsCache = items;
         container.innerHTML = "";
         if (!items || items.length === 0) {
-          container.innerHTML = '<div style="padding:15px; color:#f87171; font-size: 14px;">Kitab tidak ditemukan.</div>';
+          container.innerHTML = '<div style="padding:10px; color:#c62828; font-size: 18px;">Kitab tidak ditemukan.</div>';
           return;
         }
         items.forEach((item, index) => {
@@ -831,10 +416,10 @@
           container.innerHTML += `
             <div class="zotero-item" id="zItem_${index}" onclick="selectZoteroItem(${index})">
               <strong>${item.creator} (${item.year || 'n.d'})</strong><br>
-              <span style="font-size:13px; opacity:0.8;">${item.title} — <small>${meta}</small></span>
+              <span style="font-size:15px; color:#8aa4c8;">${item.title} — <small>${meta}</small></span>
             </div>`;
         });
-      });
+      }).searchZotero(q);
     }
 
     function selectZoteroItem(index) {
@@ -923,31 +508,28 @@
       btn.innerText = "⏳ Mengirim...";
       btn.disabled = true;
 
-      callServer("appendToDoc", {
-        docId: selectedDocId,
-        headingText: selectedHeadingText,
-        htmlContent: finalHtmlContent
-      }, function(res) {
+      google.script.run.withSuccessHandler(function(res) {
         if (res === "SUCCESS") {
-          alert("Sukses! Kutipan otomatis dikonversi menjadi Footnote bawaan Google Docs.");
+          alert("Sukses! Kutipan otomatis disisipkan sebagai Footnote bawaan Google Docs.");
           localStorage.removeItem("draft_" + selectedDocId + "_" + selectedHeadingText);
           document.getElementById("editor").innerHTML = "<div><br></div>";
           savedRange = null;
           updateWordCount();
           
-          callServer("getContentByHeading", { docId: selectedDocId, headingText: selectedHeadingText }, function(text) {
+          // Muat ulang konten terbaru dari Docs agar footnote yang baru masuk ikut ter-update di bawah
+          google.script.run.withSuccessHandler(function(text) {
             document.getElementById("headingContent").innerHTML = text;
-          });
+          }).getContentByHeading(selectedDocId, selectedHeadingText);
         } else {
           alert(res);
         }
-        btn.innerHTML = "🚀 Kirim Ke Cloud Docs";
+        btn.innerHTML = "🚀 Kirim Cloud";
         btn.disabled = false;
-      }, function(err) {
-        alert("Kesalahan Pengiriman: " + err);
-        btn.innerHTML = "🚀 Kirim Ke Cloud Docs";
+      }).withFailureHandler(function(err) {
+        alert("Kesalahan: " + err);
+        btn.innerHTML = "🚀 Kirim Cloud";
         btn.disabled = false;
-      });
+      }).appendToDoc(selectedDocId, selectedHeadingText, finalHtmlContent);
     }
   </script>
 </body>
