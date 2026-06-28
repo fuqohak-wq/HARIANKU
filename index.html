@@ -472,8 +472,7 @@ async function loadDashboard() {
       document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
       document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
       
-      const airGelas = Math.floor((Number(data["MINUM AIR"]?.value || 0)) / 0.25);
-      document.getElementById("val-air").innerText = airGelas;
+      document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
       document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
       document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
