@@ -442,53 +442,57 @@
     }
 
     function insertSelectedCitation() {
-      if (!selectedZoteroItem) { alert("Pilih salah satu kitab terlebih dahulu!"); return; }
-      const pageNum = document.getElementById("zoteroPage").value.trim();
-      
-      let itemPayload = {
-        key: selectedZoteroItem.key,
-        creator: selectedZoteroItem.creator,
-        title: selectedZoteroItem.title,
-        year: selectedZoteroItem.year,
-        place: selectedZoteroItem.place,
-        publisher: selectedZoteroItem.publisher,
-        page: pageNum
-      };
-      
-      let fnSpan = document.createElement("span");
-      fnSpan.className = "web-fn";
-      fnSpan.setAttribute("contenteditable", "false");
-      fnSpan.setAttribute("data-json", JSON.stringify(itemPayload));
-      fnSpan.innerHTML = `[Ref:0]`;
-      
-      let editor = document.getElementById("editor");
-      let selection = window.getSelection();
-      
-      if (savedRange) {
-        selection.removeAllRanges();
-        selection.addRange(savedRange);
-        savedRange.deleteContents();
-        savedRange.insertNode(fnSpan);
-        savedRange.setStartAfter(fnSpan);
-        savedRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(savedRange);
-      } else {
-        editor.appendChild(fnSpan);
-      }
-      
-      closeZoteroModal();
-      rebuildFootnoteNumbers();
-      saveToLocal();
-      updateWordCount();
-      saveSavedRange();
-      editor.focus();
-    }
+  if (!selectedZoteroItem) { alert("Pilih salah satu kitab terlebih dahulu!"); return; }
+  const pageNum = document.getElementById("zoteroPage").value.trim();
+  
+  let itemPayload = {
+    key: selectedZoteroItem.key,
+    creator: selectedZoteroItem.creator,
+    title: selectedZoteroItem.title,
+    year: selectedZoteroItem.year,
+    place: selectedZoteroItem.place,
+    publisher: selectedZoteroItem.publisher,
+    page: pageNum
+  };
+  
+  let fnSpan = document.createElement("span");
+  fnSpan.className = "web-fn";
+  fnSpan.setAttribute("contenteditable", "false");
+  fnSpan.setAttribute("data-json", JSON.stringify(itemPayload));
+  
+  // Susun tampilan preview langsung berupa format bodynote di lembar ketik aplikasi
+  let previewText = itemPayload.creator ? itemPayload.creator : "Anonim";
+  if (itemPayload.year) previewText += ", " + itemPayload.year;
+  if (pageNum) previewText += ", hlm. " + pageNum;
+  
+  fnSpan.innerHTML = ` (${previewText}) `;
+  
+  let editor = document.getElementById("editor");
+  let selection = window.getSelection();
+  
+  if (savedRange) {
+    selection.removeAllRanges();
+    selection.addRange(savedRange);
+    savedRange.deleteContents();
+    savedRange.insertNode(fnSpan);
+    savedRange.setStartAfter(fnSpan);
+    savedRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(savedRange);
+  } else {
+    editor.appendChild(fnSpan);
+  }
+  
+  closeZoteroModal();
+  saveToLocal();
+  updateWordCount();
+  saveSavedRange();
+  editor.focus();
+}
 
     function rebuildFootnoteNumbers() {
-      let badges = document.querySelectorAll('.web-fn');
-      badges.forEach((badge, idx) => { badge.innerText = `[Ref:${idx + 1}]`; });
-    }
+  // Fungsi dikosongkan karena bodynote menggunakan format nama & tahun dinamis langsung
+}
 
     function syncToGoogleDocs() {
       rebuildFootnoteNumbers();
