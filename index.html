@@ -405,43 +405,94 @@ function prosesKalkulasiMoodIFS(persen) {
   }
 }
 
-async function loadDashboard(){
+async function loadDashboard() {
   try {
-    const res = await fetch(API_URL + "?api=1"); const json = await res.json();
-    if (json.status === "success" || json.data) {
+    const res = await fetch(API_URL + "?api=1");
+    const json = await res.json();
+    
+    if (json.status === "success") {
       const data = json.data;
-      if(data["MOTIVASI"] && data["MOTIVASI"].value) document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
       
-      const scoreC9 = Number(data["MOOD_SCORE"]?.value || 0);
-      prosesKalkulasiMoodIFS(scoreC9);
+      // 1. PENYELARASAN BULAN HIJRIAH (Memotong Bug Kalender Lokal Browser HP Anda)
+      if (data["HIJRIAH_FIXED"]) {
+        document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
+      }
 
-      // Memuat nilai kalori masuk dan keluar
-      const kaloriMasuk = Number(data["KALORI MASUK"]?.value || 0);
-      document.getElementById("val-kalori").innerText = kaloriMasuk;
+      // 2. TAMPILAN TEXT MOOD DARI SPREADSHEET A11 + SISTEM MOTIVASI RELIGIUS
+      const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
+      let textMoodElement = document.getElementById("user-mood");
+      let textMustDoElement = document.getElementById("user-must-do");
+      
+      textMoodElement.innerText = teksMoodAsli;
+
+      // Logika Motivasi Tambahan Berdasarkan Teks Sel Mood A11
+      if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+        textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
+        textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
+        textMustDoElement.className = "text-[9px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
+      } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+        textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
+        textMustDoElement.className = "text-[9px] font-black text-emerald-200 uppercase tracking-tight";
+      } else {
+        textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
+        textMustDoElement.className = "text-[9px] font-black text-rose-200 uppercase tracking-tight";
+      }
+
+      // 3. KALKULASI ADAPTIF PERSENTASE SPIRITUAL (Jamaah Target 7 & Murojaah Target 3)
+      // Mengambil nilai aktual dari sheet
+      const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
+      const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
+      
+      // Update tampilan text angka di card
+      document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
+      document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
+      
+      // Rumus perhitungan persentase kumulatif spiritual
+      const totalPoinAktual = aktualJamaah + aktualMurojaah;
+      const targetPoinMaksimal = 7 + 3; // Total poin ideal adalah 10
+      let persentaseSpiritual = (totalPoinAktual / targetPoinMaksimal) * 100;
+      
+      // Batasi agar tidak melampaui 100% jika amalan melebihi target harian
+      if (persentaseSpiritual > 100) persentaseSpiritual = 100;
+      
+      // Tembakkan nilai hasil kalkulasi ke elemen persentase hijau di layar HTML Anda
+      const labelKonsistensi = document.getElementById("val-konsistensi");
+      labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
+
+      // Mengubah warna lencana berdasarkan tinggi persentase capaian spiritual
+      if (persentaseSpiritual >= 100) {
+        labelKonsistensi.className = "text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
+      } else if (persentaseSpiritual >= 50) {
+        labelKonsistensi.className = "text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
+      } else {
+        labelKonsistensi.className = "text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
+      }
+
+      // 4. MEMASUKKAN NILAI VARIABEL LAIN NYA YANG SUDAH BAGUS
+      document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
       document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
       
-      const totalGelasBaku = data["MINUM AIR"]?.value || 0;
-      document.getElementById("val-air").innerText = Math.floor(totalGelasBaku);
-      
-      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
-      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + "M";
-      document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
-      document.getElementById("val-murojaah").innerText = data["MUROJAAH"]?.value || 0;
+      const airGelas = Math.floor((Number(data["MINUM AIR"]?.value || 0)) / 0.25);
+      document.getElementById("val-air").innerText = airGelas;
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-      document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
-
-      // Badges Update
-      const countCeramah = Number(data["CERAMAH_COUNT"] || 0);
-      document.getElementById("badge-ceramah").innerText = `${countCeramah} Belum Terlaksana`;
-
-      const countTugas = Number(data["TUGAS_COUNT"] || 0);
-      document.getElementById("badge-tugas").innerText = `${countTugas} Tugas Tersisa`;
-
-      const targetKaloriD1 = Number(data["TARGET_KALORI_IN"]?.value || 2000); 
-      const persenBar = (kaloriMasuk / targetKaloriD1) * 100;
-      document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
+      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
+      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+      
+      document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tugas Tersisa";
+      document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum Terlaksana";
+      
+      if (data["MOTIVASI"]?.value) {
+        document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+      }
+      
+      // Update progress bar kalori masuk harian (Asumsi target batas 2000 kcal)
+      const targetIn = 2000;
+      const progressIn = ((data["KALORI MASUK"]?.value || 0) / targetIn) * 100;
+      document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
     }
-  } catch(err) { console.error(err); }
+  } catch (e) {
+    console.error("Gagal sinkronisasi data dashboard: ", e);
+  }
 }
 
 async function tambahAir(){
