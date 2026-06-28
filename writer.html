@@ -256,12 +256,22 @@
     window.onload = function() { loadDocs(); };
 
     function loadDocs() {
-      google.script.run.withSuccessHandler(function(docs) {
-        let select = document.getElementById("docSelect");
-        select.innerHTML = "";
-        docs.forEach(doc => { select.innerHTML += `<option value="${doc.id}">${doc.name}</option>`; });
-        loadHeadings();
-      }).getDocs();
+      google.script.run
+        .withSuccessHandler(function(docs) {
+          let select = document.getElementById("docSelect");
+          select.innerHTML = "";
+          if (!docs || docs.length === 0) {
+            select.innerHTML = "<option>Tidak ada dokumen ditemukan</option>";
+            return;
+          }
+          docs.forEach(doc => { select.innerHTML += `<option value="${doc.id}">${doc.name}</option>`; });
+          loadHeadings();
+        })
+        .withFailureHandler(function(err) {
+          // Menampilkan pesan error asli jika ada kendala sistem
+          alert("Gagal memuat dokumen: " + err.message);
+        })
+        .getDocs();
     }
 
     function loadHeadings() {
