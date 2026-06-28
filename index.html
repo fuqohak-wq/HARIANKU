@@ -50,30 +50,33 @@
 
 <div id="main-app" class="app-container p-4 shadow-2xl">
 
-  <div id="header-gradient" class="p-3 rounded-[1.5rem] shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-1">
-    <div class="flex justify-between items-center z-10">
-      <div>
-        <h1 class="text-xs font-extrabold tracking-tight">Mas Fuqohak</h1>
-        <div class="flex flex-col gap-0">
+  <div id="header-gradient" class="p-2.5 rounded-[1.25rem] shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-1">
+    <div class="flex justify-between items-center z-10 w-full">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-baseline gap-1.5 flex-wrap">
+          <h1 class="text-xs font-extrabold tracking-tight shrink-0">Mas Fuqohak</h1>
+          <div class="text-[8.5px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
+            <span id="date-masehi">Memuat Tanggal...</span>
+            <span>•</span>
+            <span id="date-hijriah" class="text-blue-200">13 Muharram 1448 H</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-0 mt-0.5">
           <div id="user-mood" class="text-[9px] font-bold text-yellow-300">🔄 Analisa Mood...</div>
           <div id="user-must-do" class="text-[8px] font-black text-rose-200 uppercase tracking-tight">HARUS: Sinkronisasi...</div>
         </div>
       </div>
       
-      <div class="flex items-center gap-1.5 text-right">
-        <div class="flex flex-col justify-center leading-none">
-          <span id="date-masehi" class="text-[9px] font-bold text-white tracking-tight">Memuat...</span>
-          <span id="date-hijriah" class="text-[8px] text-blue-100 font-medium mt-0.5 tracking-tight">13 Muharram 1448 H</span>
-        </div>
-        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1 rounded-full text-xs hover:scale-105 active:scale-95 transition">☀️</button>
+      <div class="flex items-center gap-1 shrink-0 ml-2">
+        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1 rounded-full text-[10px] hover:scale-105 active:scale-95 transition">☀️</button>
         <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1 rounded-lg text-[8px] font-bold flex items-center justify-center">
           <span id="lock-icon">🔓</span>
         </button>
       </div>
     </div>
 
-    <div class="bg-black/15 rounded-lg p-1 border border-white/5 shadow-inner">
-      <p id="display-quote" class="text-[9px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
+    <div class="bg-black/15 rounded-md p-1 border border-white/5 shadow-inner">
+      <p id="display-quote" class="text-[8.5px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
     </div>
   </div>
       
@@ -318,180 +321,139 @@ const KUMPULAN_TEMA = [
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let dataAnalisaMakanTerakhir = null;
 
+// =========================================================================
+// SISTEM INTEGRASI REAL-TIME & OFFLINE-FIRST LOCALSTORAGE
+// =========================================================================
+
 window.onload = async function(){
   tentukanKalenderDasar();
   terapkanSistemTema();
   evaluasiVisualModeMalam();
+  
+  // 1. Cek pertama kali: Jika offline/koneksi buruk, langsung isi layar pake data lama di HP
+  muatDataDariOffline(); 
+  
+  // 2. Jalankan pengambilan data ke Google Sheets
   await loadDashboard();
+  
+  // 3. FITUR OTOMATIS UPDATE: Jalankan background check setiap 10 detik tanpa reload HTML!
+  setInterval(async () => {
+    console.log("Sinkronisasi latar belakang berjalan otomatis...");
+    await loadDashboard();
+  }, 10000); // 10000 ms = 10 Detik
 };
+
+// Fungsi pembantu untuk mengamankan data jika internet mendadak mati
+function muatDataDariOffline() {
+  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+  if (cacheData) {
+    try {
+      const parsed = JSON.parse(cacheData);
+      renderDataKeLayar(parsed);
+      console.log("Sistem Offline: Berhasil memuat data cadangan dari LocalStorage.");
+    } catch(e) { console.error("Gagal membaca cache lokal", e); }
+  }
+}
 
 function tentukanKalenderDasar() {
   const sekarang = new Date();
-  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'short' };
+  // Menggunakan short month agar masehi pendek (misal: Minggu, 28 Jun) agar pas 1 baris
   document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
-  
-  try {
-    const opsiHijriah = { day: 'numeric', month: 'long', year: 'numeric' };
-    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', opsiHijriah);
-    document.getElementById("date-hijriah").innerText = formatterHijriah.format(sekarang) + " H";
-  } catch (e) { 
-    document.getElementById("date-hijriah").innerText = "12 Zulhijah 1447 H";
-  }
-}
-
-function switchModeSiangMalam() {
-  modeMalamManual = !modeMalamManual;
-  localStorage.setItem("manual_dark_mode", modeMalamManual);
-  evaluasiVisualModeMalam();
-}
-
-function evaluasiVisualModeMalam() {
-  const app = document.getElementById("main-app");
-  const indicator = document.getElementById("time-indicator");
-  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat", "card-ceramah"];
-  
-  if(modeMalamManual) {
-    indicator.innerText = "🌙"; app.classList.add("dark-mode-bg");
-    listCard.forEach(id => document.getElementById(id)?.classList.add("dark-card"));
-  } else {
-    indicator.innerText = "☀️"; app.classList.remove("dark-mode-bg");
-    listCard.forEach(id => document.getElementById(id)?.classList.remove("dark-card"));
-  }
-}
-
-function terapkanSistemTema() {
-  const isLocked = localStorage.getItem("theme_locked") === "true";
-  const savedTheme = localStorage.getItem("user_theme");
-  if (isLocked && savedTheme) {
-    document.getElementById("header-gradient").style.background = savedTheme;
-    document.getElementById("lock-icon").innerText = "🔒";
-  } else {
-    const indeksAcak = Math.floor(Math.random() * KUMPULAN_TEMA.length);
-    const temaPilihan = KUMPULAN_TEMA[indeksAcak];
-    document.getElementById("header-gradient").style.background = temaPilihan;
-    localStorage.setItem("user_theme", temaPilihan);
-    document.getElementById("lock-icon").innerText = "🔓";
-  }
-}
-
-function toggleThemeLock() {
-  const isLocked = localStorage.getItem("theme_locked") === "true";
-  if(isLocked) {
-    localStorage.setItem("theme_locked", "false"); document.getElementById("lock-icon").innerText = "🔓";
-  } else {
-    localStorage.setItem("theme_locked", "true"); document.getElementById("lock-icon").innerText = "🔒";
-  }
-}
-
-function prosesKalkulasiMoodIFS(persen) {
-  const textMood = document.getElementById("user-mood");
-  const textMustDo = document.getElementById("user-must-do");
-  
-  if(persen < 20) {
-    textMood.innerText = "😞 BURUK, AYO BERBENAH?";
-    textMustDo.innerText = "HARUS: Evaluasi Diri & Istighfar";
-  } else if(persen < 40) {
-    textMood.innerText = "😴 LELAH, ISTIRAHAT YA!";
-    textMustDo.innerText = "HARUS: Tidur Cepat / Rehat Total";
-  } else if(persen < 60) {
-    textMood.innerText = "🙂 STABIL, AYO LEBIH KUAT!";
-    textMustDo.innerText = "HARUS: Jalan Kaki & Minum Air Putih";
-  } else if(persen < 80) {
-    textMood.innerText = "🔥 SEMANGAT, ISTIQOMAH KAK!";
-    textMustDo.innerText = "HARUS: Lanjutkan Kerja & Sedekah";
-  } else {
-    textMood.innerText = "🚀 OPTIMAL, SEMOGA BERKAH!";
-    textMustDo.innerText = "HARUS: Pertahankan Pola Maksimal";
-  }
 }
 
 async function loadDashboard() {
   try {
-    const res = await fetch(API_URL + "?api=1");
+    // Beri timeout pendek agar jika sinyal hilang total tidak gantung kelamaan
+    const controller = new AbortController();
+    const idTimeout = setTimeout(() => controller.abort(), 5000); // batas 5 detik tembak API
+
+    const res = await fetch(API_URL + "?api=1", { signal: controller.signal });
+    clearTimeout(idTimeout);
+    
     const json = await res.json();
     
-    if (json.status === "success") {
-      const data = json.data;
+    if (json.status === "success" && json.data) {
+      // AMANKAN DATA KE LOCALSTORAGE JAGA-JAGA JIKA LISTRIK MATI / SINYAL HILANG
+      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
       
-      // 1. PENYELARASAN BULAN HIJRIAH (Memotong Bug Kalender Lokal Browser HP Anda)
-      if (data["HIJRIAH_FIXED"]) {
-        document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
-      }
-
-      // 2. TAMPILAN TEXT MOOD DARI SPREADSHEET A11 + SISTEM MOTIVASI RELIGIUS
-      const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
-      let textMoodElement = document.getElementById("user-mood");
-      let textMustDoElement = document.getElementById("user-must-do");
-      
-      textMoodElement.innerText = teksMoodAsli;
-
-      // Logika Motivasi Tambahan Berdasarkan Teks Sel Mood A11
-      if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
-        textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
-        textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
-        textMustDoElement.className = "text-[9px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
-      } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
-        textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
-        textMustDoElement.className = "text-[9px] font-black text-emerald-200 uppercase tracking-tight";
-      } else {
-        textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
-        textMustDoElement.className = "text-[9px] font-black text-rose-200 uppercase tracking-tight";
-      }
-
-      // 3. KALKULASI ADAPTIF PERSENTASE SPIRITUAL (Jamaah Target 7 & Murojaah Target 3)
-      // Mengambil nilai aktual dari sheet
-      const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
-      const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
-      
-      // Update tampilan text angka di card
-      document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
-      document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
-      
-      // Rumus perhitungan persentase kumulatif spiritual
-      const totalPoinAktual = aktualJamaah + aktualMurojaah;
-      const targetPoinMaksimal = 7 + 3; // Total poin ideal adalah 10
-      let persentaseSpiritual = (totalPoinAktual / targetPoinMaksimal) * 100;
-      
-      // Batasi agar tidak melampaui 100% jika amalan melebihi target harian
-      if (persentaseSpiritual > 100) persentaseSpiritual = 100;
-      
-      // Tembakkan nilai hasil kalkulasi ke elemen persentase hijau di layar HTML Anda
-      const labelKonsistensi = document.getElementById("val-konsistensi");
-      labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
-
-      // Mengubah warna lencana berdasarkan tinggi persentase capaian spiritual
-      if (persentaseSpiritual >= 100) {
-        labelKonsistensi.className = "text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
-      } else if (persentaseSpiritual >= 50) {
-        labelKonsistensi.className = "text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
-      } else {
-        labelKonsistensi.className = "text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
-      }
-
-      // 4. MEMASUKKAN NILAI VARIABEL LAIN NYA YANG SUDAH BAGUS
-      document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
-      document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-      
-      document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
-      document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
-      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
-      
-      document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tugas Tersisa";
-      document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum Terlaksana";
-      
-      if (data["MOTIVASI"]?.value) {
-        document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
-      }
-      
-      // Update progress bar kalori masuk harian (Asumsi target batas 2000 kcal)
-      const targetIn = 2000;
-      const progressIn = ((data["KALORI MASUK"]?.value || 0) / targetIn) * 100;
-      document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
+      // Tampilkan ke komponen aplikasi
+      renderDataKeLayar(json.data);
     }
   } catch (e) {
-    console.error("Gagal sinkronisasi data dashboard: ", e);
+    console.warn("Koneksi gagal/RTO. Aplikasi otomatis beralih menggunakan Mode Offline.");
+    muatDataDariOffline(); // Jika gagal tembak internet, pertahankan data terakhir
   }
+}
+
+// Fungsi pusat pengetikan visual data ke elemen HTML
+function renderDataKeLayar(data) {
+  // 1. SINKRONISASI BULAN HIJRIAH FIX DARI BACKEND SERVER
+  if (data["HIJRIAH_FIXED"]) {
+    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
+  }
+
+  // 2. TAMPILAN TEXT MOOD SPREADSHEET A11 + MOTIVASI EMERGENSI
+  const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
+  let textMoodElement = document.getElementById("user-mood");
+  let textMustDoElement = document.getElementById("user-must-do");
+  
+  textMoodElement.innerText = teksMoodAsli;
+
+  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+    textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
+    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
+    textMustDoElement.className = "text-[8px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
+  } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+    textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
+    textMustDoElement.className = "text-[8px] font-black text-emerald-200 uppercase tracking-tight";
+  } else {
+    textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
+    textMustDoElement.className = "text-[8px] font-black text-rose-200 uppercase tracking-tight";
+  }
+
+  // 3. INDIKATOR SPIRITUAL ADAPTIF (Target 7 Jamaah + 3 Murojaah)
+  const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
+  const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
+  
+  document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
+  document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
+  
+  const totalPoinAktual = aktualJamaah + aktualMurojaah;
+  let persentaseSpiritual = (totalPoinAktual / 10) * 100;
+  if (persentaseSpiritual > 100) persentaseSpiritual = 100;
+  
+  const labelKonsistensi = document.getElementById("val-konsistensi");
+  labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
+
+  if (persentaseSpiritual >= 100) {
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
+  } else if (persentaseSpiritual >= 50) {
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
+  } else {
+    labelKonsistensi.className = "text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
+  }
+
+  // 4. JUMLAH GELAS AIR AKURAT BULAT TANPA BAGI-BAGI (FIX)
+  document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
+
+  // 5. NILAI VARIABEL LAINNYA
+  document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
+  document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
+  document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
+  document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
+  document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+  
+  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tugas Tersisa";
+  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum Terlaksana";
+  
+  if (data["MOTIVASI"]?.value) {
+    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+  }
+  
+  // Progress bar kalori
+  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+  document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 }
 
 async function tambahAir(){
