@@ -19,7 +19,31 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
-    #ai-result-modal, #ceramah-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.8); align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(5px); }
+    /* Desain Modal Selayar Penuh (Full Screen) */
+    #ai-result-modal, #ceramah-modal, #tugas-modal { 
+      display: none; 
+      position: fixed; 
+      inset: 0; 
+      z-index: 100; 
+      background: rgba(0, 0, 0, 0.85); 
+      align-items: center; 
+      justify-content: center; 
+      backdrop-filter: blur(8px); 
+    }
+    
+    .full-modal-content {
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      background: #0b1329;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -138,15 +162,14 @@
     </div>
   </div>
 
-  <!-- SEKSI TUGAS HARI INI (DILONGGARKAN) -->
-  <div class="glass-card p-4 rounded-2xl shadow-md mt-1 flex-1 flex flex-col justify-between overflow-hidden" id="card-todolist">
-    <h3 class="text-xs font-extrabold text-slate-800 mb-2" id="title-tugas">📋 Tugas Hari Ini</h3>
-    <div id="tugas-container" class="space-y-2 overflow-y-auto flex-1 max-h-[180px] min-h-[100px] pr-1">
-      <p id="tugas-empty" class="text-[10px] text-slate-400 text-center py-4 italic">Sinkronisasi tugas...</p>
-    </div>
-    <div class="flex gap-2 mt-3 pt-2 border-t border-slate-100 dark:border-slate-700">
-      <input type="text" id="tugas-input" placeholder="Tuliskan tugas baru Anda..." class="w-full bg-slate-100/80 dark:bg-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 dark:text-white focus:outline-none">
-      <button onclick="simpanTugasKeSheet()" class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl active:scale-95 transition">Tambah</button>
+  <!-- KARTU TUGAS HARI INI (MODAL POP-UP STYLE) -->
+  <div onclick="bukaModalTugas()" class="glass-card p-3 rounded-2xl shadow-sm mt-1 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-todolist">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-1.5">
+        <span class="text-sm">📋</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Tugas Hari Ini</span>
+      </div>
+      <span id="badge-tugas" class="text-[9px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">0 Tugas Tersisa</span>
     </div>
   </div>
 
@@ -161,89 +184,120 @@
 
 </div>
 
-<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI -->
+<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI (SELAYAR PENUH) -->
 <div id="ai-result-modal">
-  <div class="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-[360px] p-5 text-white max-h-[80vh] overflow-y-auto shadow-2xl" onclick="event.stopPropagation()">
-    <div class="text-center border-b border-white/10 pb-2 mb-3">
-      <span class="text-2xl">✨</span>
-      <h3 class="text-base font-black tracking-tight text-white mt-1">Hasil Analisis Nutrisi AI</h3>
-      <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
+  <div class="full-modal-content" onclick="event.stopPropagation()">
+    <div class="flex-1 overflow-y-auto space-y-4">
+      <div class="text-center border-b border-white/10 pb-3">
+        <span class="text-3xl">✨</span>
+        <h3 class="text-base font-black tracking-tight text-white mt-1">Hasil Analisis Nutrisi AI</h3>
+        <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
+      </div>
+      
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div class="bg-white/5 rounded-xl p-2">
+          <p class="text-[9px] text-slate-400 font-bold">BERAT</p>
+          <p id="m-gram" class="text-xs font-black text-slate-200">0g</p>
+        </div>
+        <div class="bg-blue-500/20 rounded-xl p-2">
+          <p class="text-[9px] text-blue-300 font-bold">KALORI</p>
+          <p id="m-kalori" class="text-xs font-black text-blue-300">0 kcal</p>
+        </div>
+        <div class="bg-emerald-500/20 rounded-xl p-2">
+          <p class="text-[9px] text-emerald-300 font-bold">PROTEIN</p>
+          <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
+        </div>
+        <div class="bg-amber-500/20 rounded-xl p-2">
+          <p class="text-[9px] text-amber-300 font-bold">KARBO</p>
+          <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs leading-relaxed">
+        <div>
+          <p class="font-bold text-teal-300 uppercase tracking-wide">💚 Kesimpulan Gizi:</p>
+          <p id="m-sehat" class="text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5 mt-1">Memuat...</p>
+        </div>
+        <div>
+          <p class="font-bold text-sky-300 uppercase tracking-wide">💡 Rekomendasi Porsi Mas Fuqohak:</p>
+          <p id="m-tips" class="text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5 mt-1">Memuat...</p>
+        </div>
+        <div class="bg-black/40 p-3 rounded-xl italic text-center text-slate-300 border border-white/10">
+          <p id="m-bijak">"..."</p>
+        </div>
+      </div>
     </div>
-    <div class="grid grid-cols-4 gap-1.5 text-center mb-3">
-      <div class="bg-white/5 rounded-xl p-1.5">
-        <p class="text-[8px] text-slate-400 font-bold">BERAT</p>
-        <p id="m-gram" class="text-xs font-black">0g</p>
-      </div>
-      <div class="bg-blue-500/20 rounded-xl p-1.5">
-        <p class="text-[8px] text-blue-300 font-bold">KALORI</p>
-        <p id="m-kalori" class="text-xs font-black text-blue-300">0 kcal</p>
-      </div>
-      <div class="bg-emerald-500/20 rounded-xl p-1.5">
-        <p class="text-[8px] text-emerald-300 font-bold">PROTEIN</p>
-        <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
-      </div>
-      <div class="bg-amber-500/20 rounded-xl p-1.5">
-        <p class="text-[8px] text-amber-300 font-bold">KARBO</p>
-        <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
-      </div>
-    </div>
-    <div class="space-y-3 text-[11px] leading-relaxed">
-      <div>
-        <p class="font-bold text-teal-300">💚 KESIMPULAN KESEHATAN:</p>
-        <p id="m-sehat" class="text-slate-300">Memuat data...</p>
-      </div>
-      <div>
-        <p class="font-bold text-sky-300">💡 TIPS NUTRISI:</p>
-        <p id="m-tips" class="text-slate-300">Memuat data...</p>
-      </div>
-      <div class="bg-black/20 p-2 rounded-xl italic text-center text-slate-300 border border-white/5">
-        <p id="m-bijak">"..."</p>
-      </div>
-    </div>
-    <div class="flex gap-2 mt-4">
-      <button onclick="simpanHasilLogMakanan()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 rounded-xl active:scale-95 transition">SIMPAN KE JURNAL</button>
-      <button onclick="tutupModalHasil()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs px-4 py-2.5 rounded-xl active:scale-95 transition">BATAL</button>
+
+    <div class="space-y-2 mt-4 pt-4 border-t border-white/10">
+      <button onclick="simpanHasilLogMakanan()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition uppercase tracking-wider">SIMPAN KE JURNAL MASUK</button>
+      <button onclick="tutupModalHasil()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-3 rounded-xl active:scale-95 transition uppercase">BATAL / KELUAR</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL POPUP JADWAL CERAMAH -->
+<!-- MODAL POPUP JADWAL CERAMAH (SELAYAR PENUH) -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
-  <div class="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-[360px] p-5 text-white max-h-[85vh] overflow-hidden flex flex-col shadow-2xl" onclick="event.stopPropagation()">
-    <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
+  <div class="full-modal-content" onclick="event.stopPropagation()">
+    <div class="flex justify-around border-b border-white/10 pb-3 mb-4">
       <button onclick="pindahTabCeramah('lihat')" id="tab-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">LIHAT JADWAL</button>
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
 
     <!-- Konten Lihat Jadwal -->
-    <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[50vh]">
+    <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
     </div>
 
     <!-- Konten Tambah Jadwal -->
-    <div id="konten-tambah-ceramah" class="hidden space-y-3">
+    <div id="konten-tambah-ceramah" class="hidden space-y-4">
       <div>
-        <label class="text-[10px] text-slate-400 font-bold uppercase">Tema Ceramah</label>
-        <input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tema Ceramah</label>
+        <input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
       </div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Tanggal</label>
-          <input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+          <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tanggal</label>
+          <input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
         </div>
         <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Waktu/Jam</label>
-          <input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+          <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Waktu/Jam</label>
+          <input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
         </div>
       </div>
       <div>
-        <label class="text-[10px] text-slate-400 font-bold uppercase">Lokasi / Tempat</label>
-        <input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white focus:outline-none border border-white/10">
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Lokasi / Tempat</label>
+        <input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
       </div>
-      <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-2.5 rounded-xl active:scale-95 transition">SIMPAN JADWAL</button>
+      <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition">SIMPAN JADWAL</button>
     </div>
 
-    <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black text-xs py-2 rounded-xl mt-4 active:scale-95 transition">TUTUP</button>
+    <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-xs py-3 rounded-xl mt-4 active:scale-95 transition">TUTUP HALAMAN</button>
+  </div>
+</div>
+
+<!-- MODAL POPUP TUGAS HARI INI (SELAYAR PENUH) -->
+<div id="tugas-modal" onclick="tutupModalTugas()">
+  <div class="full-modal-content" onclick="event.stopPropagation()">
+    <div class="flex justify-around border-b border-white/10 pb-3 mb-4">
+      <button onclick="pindahTabTugas('lihat')" id="tab-tugas-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">DAFTAR TUGAS</button>
+      <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
+    </div>
+
+    <!-- Konten Lihat Tugas -->
+    <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-3 pr-1">
+      <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>
+    </div>
+
+    <!-- Konten Tambah Tugas -->
+    <div id="konten-tambah-tugas" class="hidden space-y-4">
+      <div>
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Deskripsi Tugas Baru</label>
+        <textarea id="t-deskripsi" rows="4" placeholder="Tuliskan detail tugas atau pekerjaan Mas Fuqohak di sini..." class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1 resize-none"></textarea>
+      </div>
+      <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition">SIMPAN TUGAS</button>
+    </div>
+
+    <button onclick="tutupModalTugas()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-xs py-3 rounded-xl mt-4 active:scale-95 transition">TUTUP HALAMAN</button>
   </div>
 </div>
 
@@ -324,46 +378,6 @@ function toggleThemeLock() {
   }
 }
 
-function renderTugasDariDatabase(tugasList) {
-  const container = document.getElementById("tugas-container");
-  const emptyState = document.getElementById("tugas-empty");
-  container.querySelectorAll('.tugas-item').forEach(el => el.remove());
-
-  if(!tugasList || tugasList.length === 0) {
-    emptyState.innerText = "Tugas hari ini aman!"; emptyState.classList.remove("hidden"); return;
-  }
-  emptyState.classList.add("hidden");
-
-  tugasList.forEach((itemData) => {
-    const item = document.createElement("div");
-    item.className = "tugas-item flex items-center justify-between bg-slate-100/60 dark:bg-slate-800/60 px-3 py-2 rounded-xl shadow-sm";
-    item.id = `db-tugas-${itemData.rowId}`;
-    item.innerHTML = `
-      <p class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[280px]">${itemData.tugas}</p>
-      <button onclick="selesaikanTugasDatabase(${itemData.rowId})" class="bg-emerald-500 text-white px-2.5 py-1 rounded-xl font-bold text-xs hover:bg-emerald-600 transition">✓</button>
-    `;
-    container.appendChild(item);
-  });
-}
-
-async function simpanTugasKeSheet() {
-  const input = document.getElementById("tugas-input"); const teks = input.value.trim(); if(!teks) return;
-  document.getElementById("tugas-empty").innerText = "Menyimpan...";
-  document.getElementById("tugas-empty").classList.remove("hidden");
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahTugas", tugas: teks }) });
-    if((await res.json()).status === "success") { input.value = ""; await loadDashboard(); }
-  } catch(e) { alert("Error simpan"); }
-}
-
-async function selesaikanTugasDatabase(rowId) {
-  const elemen = document.getElementById(`db-tugas-${rowId}`); elemen.classList.add("fade-out");
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanTugas", rowId: rowId }) });
-    if((await res.json()).status === "success") { setTimeout(async () => { await loadDashboard(); }, 250); }
-  } catch(e) { alert("Error update"); elemen.classList.remove("fade-out"); }
-}
-
 function prosesKalkulasiMoodIFS(persen) {
   const textMood = document.getElementById("user-mood");
   const textMustDo = document.getElementById("user-must-do");
@@ -395,7 +409,6 @@ async function loadDashboard(){
       
       const scoreC9 = Number(data["MOOD_SCORE"]?.value || 0);
       prosesKalkulasiMoodIFS(scoreC9);
-      renderTugasDariDatabase(data["LIST_TUGAS"]);
 
       const kaloriMasuk = Number(data["KALORI MASUK"]?.value || 0);
       document.getElementById("val-kalori").innerText = kaloriMasuk;
@@ -411,9 +424,12 @@ async function loadDashboard(){
       document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
       document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
 
-      // Badge Jadwal Ceramah
+      // Badges Update
       const countCeramah = Number(data["CERAMAH_COUNT"] || 0);
       document.getElementById("badge-ceramah").innerText = `${countCeramah} Belum Terlaksana`;
+
+      const countTugas = Number(data["TUGAS_COUNT"] || 0);
+      document.getElementById("badge-tugas").innerText = `${countTugas} Tugas Tersisa`;
 
       const targetKaloriD1 = Number(data["TARGET_KALORI_IN"]?.value || 2000); 
       const persenBar = (kaloriMasuk / targetKaloriD1) * 100;
@@ -492,13 +508,12 @@ function handleFileSelect(input){
       document.getElementById('icon-cam').classList.remove('hidden');
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
       document.getElementById('loader-cam').classList.add('hidden');
-      alert("Proses pencatatan dibatalkan.");
+      alert("Proses pencatatan selesai dilaksanakan.");
     });
   };
   reader.readAsDataURL(file);
 }
 
-// SIMPAN ANALISIS KE GOOGLE SHEET JIKA USER SETUJU
 async function simpanHasilLogMakanan() {
   if (!dataAnalisaMakanTerakhir) return;
   tutupModalHasil();
@@ -538,7 +553,7 @@ function tutupModalHasil() {
   dataAnalisaMakanTerakhir = null;
 }
 
-// KENDALI MODAL CERAMAH
+// JADWAL CERAMAH MODAL LOGIC
 function bukaModalCeramah() {
   document.getElementById("ceramah-modal").style.display = "flex";
   pindahTabCeramah('lihat');
@@ -659,6 +674,117 @@ async function selesaikanJadwalCeramah(rowId) {
     }
   } catch(e) {
     alert("Gagal merubah status agenda.");
+  }
+}
+
+// TUGAS HARI INI MODAL LOGIC (SELAYAR PENUH)
+function bukaModalTugas() {
+  document.getElementById("tugas-modal").style.display = "flex";
+  pindahTabTugas('lihat');
+}
+
+function tutupModalTugas() {
+  document.getElementById("tugas-modal").style.display = "none";
+}
+
+function pindahTabTugas(tab) {
+  const tabLihat = document.getElementById("tab-tugas-lihat");
+  const tabTambah = document.getElementById("tab-tugas-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-tugas");
+  const kontenTambah = document.getElementById("konten-tambah-tugas");
+
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarTugasModal();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarTugasModal() {
+  const container = document.getElementById("konten-lihat-tugas");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar tugas...</p>`;
+
+  try {
+    const res = await fetch(API_URL + "?api=1");
+    const json = await res.json();
+    
+    if (json.status === "success" || json.data) {
+      container.innerHTML = "";
+      const list = json.data.LIST_TUGAS || [];
+      
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas hari ini telah diselesaikan!</p>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center";
+        div.innerHTML = `
+          <div class="max-w-[200px]">
+            <p class="text-xs font-bold text-white">${item.tugas}</p>
+          </div>
+          <button onclick="selesaikanTugasModal(${item.rowId})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition active:scale-95">✓ SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Gagal memuat tugas.</p>`;
+    }
+  } catch(e) {
+    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Terjadi masalah koneksi.</p>`;
+  }
+}
+
+async function simpanTugasBaruDariModal() {
+  const tugasText = document.getElementById("t-deskripsi").value.trim();
+  if(!tugasText) {
+    alert("Mohon ketikkan deskripsi tugas terlebih dahulu.");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "tambahTugas",
+        tugas: tugasText
+      })
+    });
+    
+    if ((await res.json()).status === "success") {
+      document.getElementById("t-deskripsi").value = "";
+      alert("Tugas berhasil ditambahkan!");
+      pindahTabTugas('lihat');
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal menambahkan tugas.");
+  }
+}
+
+async function selesaikanTugasModal(rowId) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "selesaikanTugas",
+        rowId: rowId
+      })
+    });
+    if ((await res.json()).status === "success") {
+      await loadDaftarTugasModal();
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal merubah status tugas.");
   }
 }
 </script>
