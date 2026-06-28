@@ -19,7 +19,7 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
-    /* Desain Modal Selayar Penuh (Full Screen) */
+    /* Overlay Kustom Pop-up AI, Ceramah & Tugas Selayar Penuh */
     #ai-result-modal, #ceramah-modal, #tugas-modal { 
       display: none; 
       position: fixed; 
@@ -42,7 +42,6 @@
       justify-content: space-between;
       padding: 24px;
       overflow-y: auto;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     }
   </style>
 </head>
@@ -162,7 +161,7 @@
     </div>
   </div>
 
-  <!-- KARTU TUGAS HARI INI (MODAL POP-UP STYLE) -->
+  <!-- KARTU TUGAS HARI INI -->
   <div onclick="bukaModalTugas()" class="glass-card p-3 rounded-2xl shadow-sm mt-1 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-todolist">
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5">
@@ -243,12 +242,10 @@
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
 
-    <!-- Konten Lihat Jadwal -->
     <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
     </div>
 
-    <!-- Konten Tambah Jadwal -->
     <div id="konten-tambah-ceramah" class="hidden space-y-4">
       <div>
         <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tema Ceramah</label>
@@ -283,16 +280,14 @@
       <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
     </div>
 
-    <!-- Konten Lihat Tugas -->
     <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>
     </div>
 
-    <!-- Konten Tambah Tugas -->
     <div id="konten-tambah-tugas" class="hidden space-y-4">
       <div>
         <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Deskripsi Tugas Baru</label>
-        <textarea id="t-deskripsi" rows="4" placeholder="Tuliskan detail tugas atau pekerjaan Mas Fuqohak di sini..." class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1 resize-none"></textarea>
+        <textarea id="t-deskripsi" rows="4" placeholder="Tuliskan detail tugas Mas Fuqohak di sini..." class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1 resize-none"></textarea>
       </div>
       <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition">SIMPAN TUGAS</button>
     </div>
@@ -410,6 +405,7 @@ async function loadDashboard(){
       const scoreC9 = Number(data["MOOD_SCORE"]?.value || 0);
       prosesKalkulasiMoodIFS(scoreC9);
 
+      // Memuat nilai kalori masuk dan keluar
       const kaloriMasuk = Number(data["KALORI MASUK"]?.value || 0);
       document.getElementById("val-kalori").innerText = kaloriMasuk;
       document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
@@ -626,167 +622,4 @@ async function simpanJadwalCeramah() {
   const tema = document.getElementById("c-tema").value.trim();
   const tanggal = document.getElementById("c-tanggal").value;
   const jam = document.getElementById("c-jam").value;
-  const tempat = document.getElementById("c-tempat").value.trim();
-
-  if (!tema || !tanggal || !jam || !tempat) {
-    alert("Mohon lengkapi semua data ceramah!");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "tambahCeramah",
-        tema: tema,
-        tanggal: tanggal,
-        jam: jam,
-        tempat: tempat
-      })
-    });
-    
-    if ((await res.json()).status === "success") {
-      document.getElementById("c-tema").value = "";
-      document.getElementById("c-tanggal").value = "";
-      document.getElementById("c-jam").value = "";
-      document.getElementById("c-tempat").value = "";
-      alert("Agenda ceramah berhasil ditambahkan!");
-      pindahTabCeramah('lihat');
-      await loadDashboard();
-    }
-  } catch(e) {
-    alert("Gagal menyimpan agenda ceramah.");
-  }
-}
-
-async function selesaikanJadwalCeramah(rowId) {
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "selesaikanCeramah",
-        rowId: rowId
-      })
-    });
-    if ((await res.json()).status === "success") {
-      await loadDaftarCeramah();
-      await loadDashboard();
-    }
-  } catch(e) {
-    alert("Gagal merubah status agenda.");
-  }
-}
-
-// TUGAS HARI INI MODAL LOGIC (SELAYAR PENUH)
-function bukaModalTugas() {
-  document.getElementById("tugas-modal").style.display = "flex";
-  pindahTabTugas('lihat');
-}
-
-function tutupModalTugas() {
-  document.getElementById("tugas-modal").style.display = "none";
-}
-
-function pindahTabTugas(tab) {
-  const tabLihat = document.getElementById("tab-tugas-lihat");
-  const tabTambah = document.getElementById("tab-tugas-tambah");
-  const kontenLihat = document.getElementById("konten-lihat-tugas");
-  const kontenTambah = document.getElementById("konten-tambah-tugas");
-
-  if (tab === 'lihat') {
-    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenLihat.classList.remove("hidden");
-    kontenTambah.classList.add("hidden");
-    loadDaftarTugasModal();
-  } else {
-    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenTambah.classList.remove("hidden");
-    kontenLihat.classList.add("hidden");
-  }
-}
-
-async function loadDaftarTugasModal() {
-  const container = document.getElementById("konten-lihat-tugas");
-  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar tugas...</p>`;
-
-  try {
-    const res = await fetch(API_URL + "?api=1");
-    const json = await res.json();
-    
-    if (json.status === "success" || json.data) {
-      container.innerHTML = "";
-      const list = json.data.LIST_TUGAS || [];
-      
-      if (list.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas hari ini telah diselesaikan!</p>`;
-        return;
-      }
-
-      list.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center";
-        div.innerHTML = `
-          <div class="max-w-[200px]">
-            <p class="text-xs font-bold text-white">${item.tugas}</p>
-          </div>
-          <button onclick="selesaikanTugasModal(${item.rowId})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition active:scale-95">✓ SELESAI</button>
-        `;
-        container.appendChild(div);
-      });
-    } else {
-      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Gagal memuat tugas.</p>`;
-    }
-  } catch(e) {
-    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Terjadi masalah koneksi.</p>`;
-  }
-}
-
-async function simpanTugasBaruDariModal() {
-  const tugasText = document.getElementById("t-deskripsi").value.trim();
-  if(!tugasText) {
-    alert("Mohon ketikkan deskripsi tugas terlebih dahulu.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "tambahTugas",
-        tugas: tugasText
-      })
-    });
-    
-    if ((await res.json()).status === "success") {
-      document.getElementById("t-deskripsi").value = "";
-      alert("Tugas berhasil ditambahkan!");
-      pindahTabTugas('lihat');
-      await loadDashboard();
-    }
-  } catch(e) {
-    alert("Gagal menambahkan tugas.");
-  }
-}
-
-async function selesaikanTugasModal(rowId) {
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "selesaikanTugas",
-        rowId: rowId
-      })
-    });
-    if ((await res.json()).status === "success") {
-      await loadDaftarTugasModal();
-      await loadDashboard();
-    }
-  } catch(e) {
-    alert("Gagal merubah status tugas.");
-  }
-}
-</script>
-</body>
-</html>
+  const tempat = document.getElementById
