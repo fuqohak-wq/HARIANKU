@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Sanctum Writer</title>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#0f172a; font-family:'Plus Jakarta Sans', sans-serif; color:white; overflow:hidden; }
+  
+  .topbar { 
+    position:sticky; top:0; background:#111827; padding:12px 20px; 
+    display:flex; align-items:center; gap:12px; 
+    border-bottom:1px solid rgba(255,255,255,.08); z-index:9999; 
+  }
+  .logo { font-size:14px; font-weight:700; color:#ffd54f; cursor:pointer; display:flex; align-items:center; gap:6px; }
+  .btn { 
+    border:none; background:#2563eb; color:white; padding:8px 14px; font-size:12px;
+    border-radius:8px; cursor:pointer; font-weight:700; transition:0.2s; 
+  }
+  .btn:hover { background:#1d4ed8; }
+  #status { margin-left:auto; color:#22c55e; font-size:12px; font-weight:700; }
+
+  /* KUSTOMISASI MODAL POPUP */
+  .popup { 
+    position:fixed; inset:0; background:rgba(0,0,0,.75); 
+    display:none; justify-content:center; align-items:center; z-index:999999; 
+    backdrop-filter: blur(4px);
+  }
+  .popup-content { 
+    width:90%; max-width:500px; background:#1e293b; color:white; 
+    border-radius:16px; padding:20px; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .popup input { 
+    width:100%; padding:12px; font-size:14px; border-radius:8px; background: #0f172a;
+    border:1px solid rgba(255,255,255,0.1); margin-bottom:12px; outline:none; color: white;
+  }
+  .popup input:focus { border-color: #2563eb; }
+  .results { max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.05); border-radius:8px; background:#111827; }
+  .result-item { padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; font-size:12px; }
+  .result-item:hover { background:#1e293b; color: #ffd54f; }
+  .loading { padding:12px; text-align:center; color:#94a3b8; font-size:12px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo" onclick="location.href='index.html'">⬅️ <span>Sanctum Writer</span></div>
+  <button class="btn" onclick="openCitationPopup()">+ Citation (Zotero)</button>
+  <button class="btn" style="background:#16a34a;" onclick="saveDoc()">🚀 Sync Doc</button>
+  <div id="status">Ready</div>
+</div>
+
+<textarea id="editor"></textarea>
+
+<div class="popup" id="citationPopup" onclick="closePopup()">
+  <div class="popup-content" onclick="event.stopPropagation()">
+    <input id="citationSearch" placeholder="Cari kitab, buku, atau nama penulis di Zotero...">
+    <div id="citationResults" class="results"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+      <button class="btn" style="background:#475569;" onclick="closePopup()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// PASTE URL SCRIPT WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+const API_URL = "https://script.google.com/macros/s/AKfycbwBpMs5amqJTgaxA48FRiZospxk-IhSpPUEttRplSQGJ7PqLRHwv8UKPq1x_5V9kir8/exec";
+
+let footnotes = [];
+
+tinymce.init({
+  selector: '#editor',
+  height: 'calc(100vh - 50px)',
+  menubar: false,
+  branding: false,
+  plugins: 'lists link table code',
+  toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright justify | bullist numlist | table code',
+  content_style: `
+    body { 
+      font-family: "Times New Roman", Times, serif; 
+      font-size: 18px; 
+      line-height: 1.8; 
+      max-width: 750px; 
+      margin: 30px auto; 
+      padding: 50px 60px; 
+      color: #1e293b; 
+      background: #ffffff; 
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-radius: 4px;
+      min-height: 100%;
+    }
+    p { margin-bottom: 1.2em; text-align: justify; text-indent: 40px; }
+    sup { color: #2563eb; font-weight: bold; }
+  `
+});
+
+function openCitationPopup(){
+  document.getElementById("citationPopup").style.display = "flex";
+  document.getElementById("citationSearch").focus();
+}
+
+function closePopup(){
+  document.getElementById("citationPopup").style.display = "none";
+}
+
+document.getElementById("citationSearch").addEventListener("input", function(){
+  const q = this.value.trim();
+  if(q.length < 3) {
+    document.getElementById("citationResults").innerHTML = "";
+    return;
+  }
+  document.getElementById("citationResults").innerHTML = '<div class="loading">Searching Zotero...</div>';
+  
+  // Ambil data Zotero via POST API Router GAS
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ aksi: "searchZotero", query: q })
+  })
+  .then(res => res.json())
+  .then(response => {
+    if(response.status === "success") {
+      renderResults(response.data);
+    } else {
+      document.getElementById("citationResults").innerHTML = '<div class="loading">Gagal mengambil data.</div>';
+    }
+  })
+  .catch(() => {
+    document.getElementById("citationResults").innerHTML = '<div class="loading">Error jaringan.</div>';
+  });
+});
+
+function renderResults(results){
+  const container = document.getElementById("citationResults");
+  container.innerHTML = "";
+  if (!results || results.length === 0) {
+    container.innerHTML = '<div class="loading">Data tidak ditemukan.</div>';
+    return;
+  }
+  results.forEach(r => {
+    const div = document.createElement("div");
+    div.className = "result-item";
+    div.innerHTML = `<b>${r.title}</b><br><small style="color:#94a3b8">${r.author} (${r.year})</small>`;
+    div.onclick = function(){ insertCitation(r); };
+    container.appendChild(div);
+  });
+}
+
+function insertCitation(data){
+  const number = footnotes.length + 1;
+  const note = `${data.author}, ${data.title} (${data.year})`;
+
+  footnotes.push({ number: number, note: note });
+  tinymce.get("editor").insertContent(`<sup>${number}</sup>`);
+  
+  closePopup();
+  document.getElementById("citationSearch").value = "";
+  document.getElementById("citationResults").innerHTML = "";
+}
+
+function saveDoc(){
+  const status = document.getElementById("status");
+  status.innerHTML = "Syncing...";
+  status.style.color = "#3b82f6";
+
+  const html = tinymce.get("editor").getContent();
+  const safeFootnotes = JSON.stringify(footnotes);
+
+  // Simpan Tulisan Dokumen via POST API Router GAS
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ aksi: "saveToGoogleDocs", html: html, footnotes: safeFootnotes })
+  })
+  .then(res => res.json())
+  .then(response => {
+    if (response.status === "success") {
+      status.innerHTML = "Synced ✓";
+      status.style.color = "#22c55e";
+    } else {
+      status.innerHTML = "Failed ❌";
+      status.style.color = "#ef4444";
+      console.error(response.message);
+    }
+    setTimeout(function(){ status.innerHTML = "Ready"; status.style.color = "#22c55e"; }, 2500);
+  })
+  .catch(err => {
+    status.innerHTML = "Error Link ❌";
+    status.style.color = "#ef4444";
+    setTimeout(function(){ status.innerHTML = "Ready"; status.style.color = "#22c55e"; }, 2500);
+  });
+}
+</script>
+</body>
+</html>
