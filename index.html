@@ -467,6 +467,10 @@ async function tambahAir(){
   }
 }
 
+// =========================================================================
+// PERBAIKAN SINKRONISASI AI & PENYIMPANAN LOG MAKANAN (FIX FOR GITHUB/VERCEL)
+// =========================================================================
+
 function handleFileSelect(input){
   const file = input.files[0]; if(!file) return;
 
@@ -493,7 +497,9 @@ function handleFileSelect(input){
       document.getElementById('loader-cam').classList.add('hidden');
       
       if (response && response.status === "success") {
-        dataAnalisaMakanTerakhir = response;
+        // PERBAIKAN 1: Amankan seluruh objek response ke dalam variabel global
+        dataAnalisaMakanTerakhir = response; 
+        
         const ai = response.data || {};
         
         document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
@@ -501,28 +507,38 @@ function handleFileSelect(input){
         document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
         document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
         document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
-        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g"; // Parsing Lemak Aktif
+        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g";
         document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
         document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
         
         document.getElementById("ai-result-modal").style.display = "flex";
       } else {
-        alert("Gagal membaca respons: " + (response.message || "Error"));
+        alert("Gagal membaca respons AI: " + (response.message || "Struktur data tidak valid"));
       }
     })
     .catch((err) => {
       document.getElementById('icon-cam').classList.remove('hidden');
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
       document.getElementById('loader-cam').classList.add('hidden');
-      alert("Proses pencatatan selesai dilaksanakan.");
+      console.error(err);
+      alert("Gagal memproses gambar ke AI server.");
     });
   };
   reader.readAsDataURL(file);
 }
 
 async function simpanHasilLogMakanan() {
-  if (!dataAnalisaMakanTerakhir) return;
+  // PERBAIKAN 2: Validasi pencegahan jika dataAnalisaMakanTerakhir kosong
+  if (!dataAnalisaMakanTerakhir || !dataAnalisaMakanTerakhir.data) {
+    alert("Data analisis tidak ditemukan atau sudah kedaluwarsa. Silakan foto ulang.");
+    return;
+  }
+  
+  // Ambil data sebelum modal ditutup (agar tidak terkena reset dataAnalisaMakanTerakhir = null)
+  const dataPayload = dataAnalisaMakanTerakhir.data;
+  const kaloriPayload = dataAnalisaMakanTerakhir.totalCal || dataAnalisaMakanTerakhir.data.kalori || 0;
+
   tutupModalHasil();
   
   document.getElementById('icon-cam').classList.add('hidden');
@@ -530,34 +546,36 @@ async function simpanHasilLogMakanan() {
   document.getElementById('loader-cam').classList.remove('hidden');
 
   try {
+    // PERBAIKAN 3: Sinkronisasi payload POST sesuai kebutuhan catatMakananKeSheet di Code.gs
     const res = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify({
         aksi: "catatMakanan",
-        data: dataAnalisaMakanTerakhir.data,
-        totalCal: dataAnalisaMakanTerakhir.totalCal
+        data: dataPayload,
+        totalCal: Number(kaloriPayload)
       })
     });
+    
     const response = await res.json();
     if(response.status === "success") {
-      alert("Data berhasil dicatatkan!");
+      alert("Data Nutrisi Makanan Berhasil Disimpan ke Sheet!");
       await loadDashboard();
     } else {
-      alert("Gagal menyimpan: " + response.message);
+      alert("Gagal menyimpan ke Sheet: " + response.message);
     }
   } catch(e) {
-    alert("Koneksi gagal saat menyimpan.");
+    console.error("Error Simpan:", e);
+    alert("Koneksi gagal atau diblokir CORS saat menyimpan ke Spreadsheet.");
   } finally {
     document.getElementById('icon-cam').classList.remove('hidden');
     document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
     document.getElementById('loader-cam').classList.add('hidden');
-    dataAnalisaMakanTerakhir = null;
   }
 }
 
 function tutupModalHasil() {
   document.getElementById("ai-result-modal").style.display = "none";
-  dataAnalisaMakanTerakhir = null;
+  // JANGAN langsung set null di sini jika fungsi simpan masih membutuhkan datanya
 }
 
 // JADWAL CERAMAH MODAL LOGIC
