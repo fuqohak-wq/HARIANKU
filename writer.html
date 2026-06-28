@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Sanctum Writer</title>
 <script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -117,7 +117,6 @@
 </div>
 
 <script>
-// PASTIKAN URL WEB APP REPLOYMENT GAS ANDA BENAR DI SINI
 const API_URL = "https://script.google.com/macros/s/AKfycbwBpMs5amqJTgaxA48FRiZospxk-IhSpPUEttRplSQGJ7PqLRHwv8UKPq1x_5V9kir8/exec";
 
 let footnotes = [];
@@ -131,12 +130,12 @@ window.addEventListener("DOMContentLoaded", loadDaftarDokumen);
 function loadDaftarDokumen() {
   fetch(API_URL, {
     method: "POST",
-    redirect: "follow", // <--- TAMBAHKAN INI AGAR MENGIKUTI REDIRECT GOOGLE
+    redirect: "follow",
     body: JSON.stringify({ aksi: "getDaftarDoc" })
   })
   .then(res => res.json())
   .then(response => {
-     const selector = document.getElementById("select-doc");
+    const selector = document.getElementById("select-doc");
     selector.innerHTML = "";
     
     if (response.status === "success" && response.data.length > 0) {
@@ -225,13 +224,10 @@ document.getElementById("citationSearch").addEventListener("input", function(){
   
   fetch(API_URL, {
     method: "POST",
-    redirect: "follow", // <--- TAMBAHKAN INI JUGA
+    redirect: "follow",
     body: JSON.stringify({ 
-      aksi: "saveToGoogleDocs", 
-      docId: docIdAktif,
-      bab: babAktif,
-      html: html, 
-      footnotes: safeFootnotes 
+      aksi: "searchZotero", // <-- PERBAIKAN: Mengembalikan aksi mencari data Zotero
+      query: q 
     })
   })
   .then(res => res.json())
@@ -278,6 +274,7 @@ function saveDoc(){
 
   fetch(API_URL, {
     method: "POST",
+    redirect: "follow", // <-- PERBAIKAN: Menambahkan redirect pengaman CORS
     body: JSON.stringify({ 
       aksi: "saveToGoogleDocs", 
       docId: docIdAktif,
