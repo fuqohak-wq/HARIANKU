@@ -28,7 +28,6 @@
     
     .btn-primary { width: 100%; margin-top: 30px; padding: 22px; border: none; border-radius: 12px; background: #ffd54f; color: #071120; font-size: 24px; font-weight: bold; cursor: pointer; }
 
-    /* LAYOUT UTAMA EDITING */
     #writerPage { 
       display: none; 
       flex-direction: column;
@@ -43,7 +42,6 @@
       overflow-x: hidden;
     }
     
-    /* TOOLBAR ATAS JUMBO DI HP */
     .toolbar { 
       position: fixed; 
       top: 0; 
@@ -67,7 +65,6 @@
     .btn-back { background: #c62828; color: white; }
     .counter-badge { color: #ffd54f; font-weight: bold; font-size: 18px; margin-left: 5px; }
 
-    /* ================= [1] TAMPILAN DEFAULT: KHUSUS HP (SUPER JUMBO) ================= */
     .workspace-split { 
       display: flex; 
       flex-direction: column; 
@@ -79,47 +76,24 @@
     }
     .editor-container { width: 100%; background: #ffffff; border-radius: 14px; padding: 16px; border: 2px solid #c8c8c8; }
     
-    /* Teks Ketik HP (35px) */
     .rich-editor { 
       width: 100%; min-height: 50vh; border: none; outline: none; font-family: "Times New Roman", Times, serif; 
       font-size: 35px; line-height: 1.5; text-align: justify; color: #111111; word-break: break-word;
     }
     .rich-editor div, .rich-editor p { text-indent: 45px; margin-bottom: 15px; }
     
-    /* Teks Preview Bacaan HP (32px) */
     .preview-section { 
       width: 100%; padding: 20px; background: #f1f3f5; border-radius: 14px; border-top: 6px solid #173b6d; 
       color: #222222; font-size: 32px; line-height: 1.5; word-break: break-word;
     }
 
-    /* ================= [2] KHUSUS TABLET (UKURAN SEDANG / PROSEDURAL) ================= */
     @media (min-width: 600px) and (max-width: 1023px) {
-      .hero h1 { font-size: 26px; }
-      label { font-size: 16px; }
-      select, input { padding: 14px; font-size: 16px; }
-      .btn-primary { padding: 16px; font-size: 18px; }
-
-      .btn-tool { padding: 10px 14px; font-size: 15px; border-radius: 8px; }
-      .btn-italic, .btn-bold { font-size: 16px; }
-      .counter-badge { font-size: 14px; }
-      
       .workspace-split { margin-top: 65px; gap: 15px; padding: 15px; }
-      
-      /* Ruang Ketik Tablet (21px) */
-      .rich-editor { font-size: 21px; min-height: 40vh; line-height: 1.6; }
-      .rich-editor div, .rich-editor p { text-indent: 35px; margin-bottom: 10px; }
-      
-      /* Preview Bacaan Tablet (18px) */
-      .preview-section { font-size: 18px; padding: 15px; }
+      .rich-editor { font-size: 21px; min-height: 40vh; }
+      .preview-section { font-size: 18px; }
     }
 
-    /* ================= [3] KHUSUS LAPTOP / DESKTOP (NORMAL APA ADANYA) ================= */
     @media (min-width: 1024px) {
-      .hero h1 { font-size: 26px; }
-      label { font-size: 16px; }
-      select, input { padding: 16px; font-size: 16px; }
-      .btn-primary { padding: 18px; font-size: 18px; }
-      
       .workspace-split { 
         flex-direction: row; 
         padding: 30px; 
@@ -127,39 +101,22 @@
         max-width: 1400px; 
         margin: 65px auto 0 auto; 
       }
-      .editor-container { width: 60%; border: none; border-radius: 0; padding: 0; }
-      
-      /* Teks laptop normal (20px) */
-      .rich-editor { font-size: 20px; min-height: 75vh; line-height: 1.8; } 
-      .rich-editor div, .rich-editor p { text-indent: 45px; margin-bottom: 12px; }
-      
-      /* Preview laptop normal (17px) di sebelah kanan */
-      .preview-section { 
-        width: 40%; border-top: none; border-left: 5px solid #173b6d; position: sticky; 
-        top: 95px; height: 75vh; overflow-y: auto; font-size: 17px; 
-      }
-      .btn-tool { padding: 10px 12px; font-size: 14px; }
-      .btn-italic, .btn-bold { font-size: 16px; }
-      .counter-badge { font-size: 13px; }
+      .editor-container { width: 60%; }
+      .rich-editor { font-size: 20px; min-height: 75vh; } 
+      .preview-section { width: 40%; border-top: none; border-left: 5px solid #173b6d; position: sticky; top: 95px; height: 75vh; overflow-y: auto; font-size: 17px; }
     }
 
-    /* BADGE INDICATOR UTK FOOTNOTE */
     .web-fn { display: inline !important; color: #0288d1; font-weight: bold; font-size: 100%; background: rgba(2, 136, 209, 0.1); padding: 0 4px; border-radius: 4px; margin: 0 2px; cursor: pointer; user-select: none; }
-
-    /* MODAL POPUP ZOTERO EDISI JUMBO */
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
     .modal-content { background: #0d1b2f; width: 95%; max-width: 550px; padding: 25px; border-radius: 20px; border: 2px solid #0288d1; max-height: 90vh; overflow-y: auto; }
     .modal-header { font-size: 24px; color: #ffd54f; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     .zotero-search-box { display: flex; gap: 8px; margin-bottom: 15px; }
-    
     .zotero-results { max-height: 220px; overflow-y: auto; background: #071120; border-radius: 8px; padding: 5px; margin-bottom: 15px; }
     .zotero-item { padding: 16px; border-bottom: 1px solid #122845; cursor: pointer; border-radius: 6px; font-size: 18px; color: white; text-align: left; line-height: 1.4; }
     .zotero-item:hover { background: #0288d1; }
     .zotero-item.selected { background: #ffd54f !important; color: #071120 !important; font-weight: bold; }
-
     #addKitabForm { display: none; background: #122845; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #ffd54f; }
-    #addKitabForm input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; border: none; background: #071120; color: white; font-size: 18px; }
-
+    #addKitabForm input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 8px; background: #071120; color: white; font-size: 18px; }
     .preview-title { font-weight: bold; color: #173b6d; margin-bottom: 12px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
     #headingContent { white-space: pre-wrap; text-align: justify; font-family: "Times New Roman", serif; }
   </style>
@@ -169,13 +126,19 @@
   <div id="homePage" class="container">
     <div class="hero">
       <h1>✦ Docs Writer Pro ✦</h1>
-      <p style="color: #8aa4c8; margin-top: 5px; font-size: 18px;">Workspace Ilmuwan & Penulis (Sistem Otomatis Footnote)</p>
+      <p style="color: #8aa4c8; margin-top: 5px; font-size: 18px;">Workspace Ilmuwan (Koneksi Langsung Web App)</p>
     </div>
     <div class="card">
-      <label>Pilih Dokumen Rumah</label>
-      <select id="docSelect" onchange="loadHeadings()"><option>Memuat daftar dokumen...</option></select>
-      <label>Pilih Sub-Heading Tujuan</label>
+      <label>1. Masukkan URL Web App GAS Anda</label>
+      <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" onchange="saveGasUrl()">
+      <button class="btn-primary" style="margin-top:10px; padding:12px; font-size:18px; background:#0288d1; color:white;" onclick="connectToGas()">🔌 Hubungkan ke GAS</button>
+
+      <label>2. Pilih Dokumen Rumah</label>
+      <select id="docSelect" onchange="loadHeadings()"><option>Masukkan URL GAS lalu klik hubungkan...</option></select>
+      
+      <label>3. Pilih Sub-Heading Tujuan</label>
       <select id="headingSelect"><option>Pilih heading...</option></select>
+      
       <button class="btn-primary" onclick="startWriting()">✍️ Mulai Masuk Ruang Ketik</button>
     </div>
   </div>
@@ -214,12 +177,11 @@
       </div>
       
       <div id="addKitabForm">
-        <span style="color:#ffd54f; font-size:16px; display:block; margin-bottom:12px; font-weight:bold;">Formulir Kitab Standar Profesional:</span>
         <input type="text" id="newTitle" placeholder="Judul Buku / Kitab Utama">
-        <input type="text" id="newAuthor" placeholder="Nama Belakang Pengarang / Mualif">
-        <input type="text" id="newPlace" placeholder="Tempat / Kota Terbit (Contoh: Beirut)">
-        <input type="text" id="newPublisher" placeholder="Nama Penerbit (Contoh: Dar al-Fikr)">
-        <input type="text" id="newYear" placeholder="Tahun Terbit (Contoh: 1981)">
+        <input type="text" id="newAuthor" placeholder="Nama Belakang Pengarang">
+        <input type="text" id="newPlace" placeholder="Tempat / Kota Terbit">
+        <input type="text" id="newPublisher" placeholder="Nama Penerbit">
+        <input type="text" id="newYear" placeholder="Tahun Terbit">
         <div style="display:flex; gap:10px; margin-top:5px;">
           <button class="btn-tool" style="background:#c62828; flex:1;" onclick="toggleAddKitabForm()">Batal</button>
           <button class="btn-tool" style="background:#ffd54f; color:#071120; flex:1;" id="saveKitabBtn" onclick="saveNewKitabToZotero()">💾 Simpan ke Cloud Zotero</button>
@@ -227,7 +189,7 @@
       </div>
 
       <div class="zotero-search-box">
-        <input type="search" id="zoteroQuery" placeholder="Ketik kata kunci lalu ketuk 'Masuk/Enter'..." onkeydown="handleSearchKeyDown(event)">
+        <input type="search" id="zoteroQuery" placeholder="Ketik kata kunci lalu tekan Enter..." onkeydown="handleSearchKeyDown(event)">
       </div>
       
       <div id="zoteroResultsList" class="zotero-results">
@@ -236,7 +198,7 @@
       
       <div style="margin-bottom: 20px;">
         <label style="margin:0 0 8px 0; font-size:18px; color:#ffd54f;">Nomor Halaman Kutipan:</label>
-        <input type="number" pattern="[0-9]*" id="zoteroPage" style="width:100%; padding:14px; border-radius:8px; border:none; background:#122845; color:white; font-size:20px;" placeholder="Contoh: 15" onkeydown="handlePageKeyDown(event)">
+        <input type="number" pattern="[0-9]*" id="zoteroPage" style="width:100%; padding:14px; background:#122845; color:white; font-size:20px;" placeholder="Contoh: 15" onkeydown="handlePageKeyDown(event)">
       </div>
       
       <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
@@ -247,55 +209,93 @@
   </div>
 
   <script>
+    let GAS_URL = "";
     let selectedDocId = "";
     let selectedHeadingText = "";
     let zoteroItemsCache = [];
     let selectedZoteroItem = null;
     let savedRange = null;
 
-    window.onload = function() { loadDocs(); };
+    // Memuat otomatis URL GAS yang tersimpan di memori browser
+    window.onload = function() {
+      const savedUrl = localStorage.getItem("gas_webapp_url");
+      if (savedUrl) {
+        document.getElementById("gasUrlInput").value = savedUrl;
+        GAS_URL = savedUrl;
+        connectToGas();
+      }
+    };
 
-    function loadDocs() {
-      google.script.run
-        .withSuccessHandler(function(docs) {
-          let select = document.getElementById("docSelect");
+    function saveGasUrl() {
+      GAS_URL = document.getElementById("gasUrlInput").value.trim();
+      localStorage.setItem("gas_webapp_url", GAS_URL);
+    }
+
+    // FUNGSI JEMBATAN API UTAMA MENGGANTIKAN GOOGLE.SCRIPT.RUN
+    async function callGasAPI(actionPayload) {
+      if (!GAS_URL) {
+        alert("Silakan masukkan URL Web App GAS Anda terlebih dahulu!");
+        throw new Error("Missing GAS URL");
+      }
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain" }, // Harus text/plain untuk bypass CORS pra-flight GAS
+        body: JSON.stringify(actionPayload)
+      });
+      const json = await response.json();
+      if (json.status === "ERROR") throw new Error(json.message);
+      return json.data;
+    }
+
+    function connectToGas() {
+      saveGasUrl();
+      let select = document.getElementById("docSelect");
+      select.innerHTML = "<option>⏳ Menghubungkan dan mengambil dokumen...</option>";
+      
+      callGasAPI({ action: "getDocs" })
+        .then(docs => {
           select.innerHTML = "";
           if (!docs || docs.length === 0) {
-            select.innerHTML = "<option>Tidak ada dokumen ditemukan</option>";
+            select.innerHTML = "<option>Tidak ada dokumen ditemukan di Drive Anda</option>";
             return;
           }
           docs.forEach(doc => { select.innerHTML += `<option value="${doc.id}">${doc.name}</option>`; });
           loadHeadings();
         })
-        .withFailureHandler(function(err) {
-          // Menampilkan pesan error asli jika ada kendala sistem
-          alert("Gagal memuat dokumen: " + err.message);
-        })
-        .getDocs();
+        .catch(err => {
+          select.innerHTML = "<option>❌ Gagal Terhubung</option>";
+          alert("Koneksi Gagal! Periksa kembali URL Web App Anda atau pastikan status deployment sudah 'Anyone'.\nDetail: " + err.message);
+        });
     }
 
     function loadHeadings() {
       const docId = document.getElementById("docSelect").value;
       let select = document.getElementById("headingSelect");
       select.innerHTML = "<option>Memuat bab...</option>";
-      google.script.run.withSuccessHandler(function(headings) {
-        select.innerHTML = "";
-        if(headings.length === 0) {
-          select.innerHTML = "<option value='Root'>Normal (Tanpa Heading)</option>";
-          return;
-        }
-        headings.forEach(h => { select.innerHTML += `<option value="${h.text}">${h.text}</option>`; });
-      }).getHeadings(docId);
+      
+      callGasAPI({ action: "getHeadings", docId: docId })
+        .then(headings => {
+          select.innerHTML = "";
+          if(headings.length === 0) {
+            select.innerHTML = "<option value='Root'>Normal (Tanpa Heading)</option>";
+            return;
+          }
+          headings.forEach(h => { select.innerHTML += `<option value="${h.text}">${h.text}</option>`; });
+        })
+        .catch(err => alert("Gagal memuat heading: " + err.message));
     }
 
     function startWriting() {
       selectedDocId = document.getElementById("docSelect").value;
       selectedHeadingText = document.getElementById("headingSelect").value;
+      if(!selectedDocId) { alert("Pilih dokumen terlebih dahulu!"); return; }
+      
       document.getElementById("headingTitle").innerText = "Tulisan Terdahulu pada: " + selectedHeadingText;
       
-      google.script.run.withSuccessHandler(function(text) {
-        document.getElementById("headingContent").innerHTML = text;
-      }).getContentByHeading(selectedDocId, selectedHeadingText);
+      callGasAPI({ action: "getContent", docId: selectedDocId, headingText: selectedHeadingText })
+        .then(text => { document.getElementById("headingContent").innerHTML = text; })
+        .catch(err => alert("Gagal memuat teks bab: " + err.message));
 
       const savedDraft = localStorage.getItem("draft_" + selectedDocId + "_" + selectedHeadingText);
       document.getElementById("editor").innerHTML = savedDraft ? savedDraft : "<div><br></div>";
@@ -356,8 +356,6 @@
     }
 
     function closeZoteroModal() { document.getElementById("zoteroModal").style.display = "none"; }
-    
-    // Toggle form tambah kitab
     function toggleAddKitabForm() {
       let form = document.getElementById("addKitabForm");
       form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
@@ -391,22 +389,24 @@
       btn.innerText = "⏳ Menyimpan Ke Cloud...";
       btn.disabled = true;
       
-      google.script.run.withSuccessHandler(function(res) {
-        alert("Sukses Penuh! Kitab baru masuk database akademik Zotero Anda.");
-        document.getElementById("newTitle").value = "";
-        document.getElementById("newAuthor").value = "";
-        document.getElementById("newPlace").value = "";
-        document.getElementById("newPublisher").value = "";
-        document.getElementById("newYear").value = "";
-        toggleAddKitabForm();
-        btn.innerText = "💾 Simpan Cloud";
-        btn.disabled = false;
-        doZoteroSearch();
-      }).withFailureHandler(function(err) {
-        alert(err);
-        btn.innerText = "💾 Simpan Cloud";
-        btn.disabled = false;
-      }).addKitabToZotero(title, author, year, place, publisher);
+      callGasAPI({ action: "addKitab", title, author, year, place, publisher })
+        .then(res => {
+          alert("Sukses Penuh! Kitab baru masuk database akademik Zotero Anda.");
+          document.getElementById("newTitle").value = "";
+          document.getElementById("newAuthor").value = "";
+          document.getElementById("newPlace").value = "";
+          document.getElementById("newPublisher").value = "";
+          document.getElementById("newYear").value = "";
+          toggleAddKitabForm();
+          btn.innerText = "💾 Simpan Cloud";
+          btn.disabled = false;
+          doZoteroSearch();
+        })
+        .catch(err => {
+          alert(err.message);
+          btn.innerText = "💾 Simpan Cloud";
+          btn.disabled = false;
+        });
     }
 
     function doZoteroSearch() {
@@ -414,22 +414,24 @@
       let container = document.getElementById("zoteroResultsList");
       container.innerHTML = '<div style="padding:10px; color:#ffd54f; font-size: 18px;">⏳ Sinkronisasi Database Zotero...</div>';
       
-      google.script.run.withSuccessHandler(function(items) {
-        zoteroItemsCache = items;
-        container.innerHTML = "";
-        if (!items || items.length === 0) {
-          container.innerHTML = '<div style="padding:10px; color:#c62828; font-size: 18px;">Kitab tidak ditemukan.</div>';
-          return;
-        }
-        items.forEach((item, index) => {
-          let meta = [item.place, item.publisher, item.year].filter(Boolean).join(": ");
-          container.innerHTML += `
-            <div class="zotero-item" id="zItem_${index}" onclick="selectZoteroItem(${index})">
-              <strong>${item.creator} (${item.year || 'n.d'})</strong><br>
-              <span style="font-size:15px; color:#8aa4c8;">${item.title} — <small>${meta}</small></span>
-            </div>`;
-        });
-      }).searchZotero(q);
+      callGasAPI({ action: "searchZotero", query: q })
+        .then(items => {
+          zoteroItemsCache = items;
+          container.innerHTML = "";
+          if (!items || items.length === 0) {
+            container.innerHTML = '<div style="padding:10px; color:#c62828; font-size: 18px;">Kitab tidak ditemukan.</div>';
+            return;
+          }
+          items.forEach((item, index) => {
+            let meta = [item.place, item.publisher, item.year].filter(Boolean).join(": ");
+            container.innerHTML += `
+              <div class="zotero-item" id="zItem_${index}" onclick="selectZoteroItem(${index})">
+                <strong>${item.creator} (${item.year || 'n.d'})</strong><br>
+                <span style="font-size:15px; color:#8aa4c8;">${item.title} — <small>${meta}</small></span>
+              </div>`;
+          });
+        })
+        .catch(err => alert("Gagal mencari di Zotero: " + err.message));
     }
 
     function selectZoteroItem(index) {
@@ -465,10 +467,8 @@
       if (savedRange) {
         selection.removeAllRanges();
         selection.addRange(savedRange);
-        
         savedRange.deleteContents();
         savedRange.insertNode(fnSpan);
-        
         savedRange.setStartAfter(fnSpan);
         savedRange.collapse(true);
         selection.removeAllRanges();
@@ -481,21 +481,17 @@
       rebuildFootnoteNumbers();
       saveToLocal();
       updateWordCount();
-      
       saveSavedRange();
       editor.focus();
     }
 
     function rebuildFootnoteNumbers() {
       let badges = document.querySelectorAll('.web-fn');
-      badges.forEach((badge, idx) => {
-        badge.innerText = `[Ref:${idx + 1}]`;
-      });
+      badges.forEach((badge, idx) => { badge.innerText = `[Ref:${idx + 1}]`; });
     }
 
     function syncToGoogleDocs() {
       rebuildFootnoteNumbers();
-      
       let editorContent = document.getElementById("editor").innerHTML;
       let tempDiv = document.createElement('div');
       tempDiv.innerHTML = editorContent;
@@ -509,7 +505,6 @@
       });
       
       const finalHtmlContent = tempDiv.innerHTML;
-      
       if (document.getElementById("editor").innerText.trim() === "") {
         alert("Lembar ketik kosong!"); return;
       }
@@ -518,28 +513,28 @@
       btn.innerText = "⏳ Mengirim...";
       btn.disabled = true;
 
-      google.script.run.withSuccessHandler(function(res) {
-        if (res === "SUCCESS") {
-          alert("Sukses! Kutipan otomatis disisipkan sebagai Footnote bawaan Google Docs.");
-          localStorage.removeItem("draft_" + selectedDocId + "_" + selectedHeadingText);
-          document.getElementById("editor").innerHTML = "<div><br></div>";
-          savedRange = null;
-          updateWordCount();
-          
-          // Muat ulang konten terbaru dari Docs agar footnote yang baru masuk ikut ter-update di bawah
-          google.script.run.withSuccessHandler(function(text) {
-            document.getElementById("headingContent").innerHTML = text;
-          }).getContentByHeading(selectedDocId, selectedHeadingText);
-        } else {
-          alert(res);
-        }
-        btn.innerHTML = "🚀 Kirim Cloud";
-        btn.disabled = false;
-      }).withFailureHandler(function(err) {
-        alert("Kesalahan: " + err);
-        btn.innerHTML = "🚀 Kirim Cloud";
-        btn.disabled = false;
-      }).appendToDoc(selectedDocId, selectedHeadingText, finalHtmlContent);
+      callGasAPI({ action: "appendToDoc", docId: selectedDocId, headingText: selectedHeadingText, htmlContent: finalHtmlContent })
+        .then(res => {
+          if (res === "SUCCESS") {
+            alert("Sukses! Kutipan otomatis disisipkan sebagai Footnote bawaan Google Docs.");
+            localStorage.removeItem("draft_" + selectedDocId + "_" + selectedHeadingText);
+            document.getElementById("editor").innerHTML = "<div><br></div>";
+            savedRange = null;
+            updateWordCount();
+            
+            callGasAPI({ action: "getContent", docId: selectedDocId, headingText: selectedHeadingText })
+              .then(text => { document.getElementById("headingContent").innerHTML = text; });
+          } else {
+            alert(res);
+          }
+          btn.innerHTML = "🚀 Kirim Cloud";
+          btn.disabled = false;
+        })
+        .catch(err => {
+          alert("Kesalahan: " + err.message);
+          btn.innerHTML = "🚀 Kirim Cloud";
+          btn.disabled = false;
+        });
     }
   </script>
 </body>
