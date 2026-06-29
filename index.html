@@ -6,7 +6,7 @@
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; }
     .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; position: relative; }
@@ -146,7 +146,7 @@
     </div>
   </div>
 
-  <!-- INLINE WIDGET: TUGAS HARI INI (Menggantikan modal kosong untuk mengoptimalkan layar) -->
+  <!-- INLINE WIDGET: TUGAS HARI INI -->
   <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col gap-2" id="card-widget-tugas">
     <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
       <div class="flex items-center gap-1.5">
@@ -254,7 +254,7 @@
   </div>
 </div>
 
-<!-- CERAMAH MODAL (MANUAL INPUT & LIST) -->
+<!-- CERAMAH MODAL -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -309,7 +309,6 @@ window.onload = async function(){
   muatDataDariOffline(); 
   await loadDashboard();
   
-  // Detektor koneksi internet
   window.addEventListener('online', prosesAntreanOffline);
   window.addEventListener('offline', () => {
     document.getElementById("offline-banner").classList.remove("hidden");
@@ -327,7 +326,6 @@ window.onload = async function(){
   }, 15000);
 };
 
-// --- LOGIKA AKSI DAN ANTREAN OFFLINE ---
 function simpanKeAntreanOffline(aksi, payload) {
   let antrean = JSON.parse(localStorage.getItem("offline_action_queue") || "[]");
   antrean.push({ aksi, payload, timestamp: new Date().getTime() });
@@ -343,7 +341,6 @@ async function prosesAntreanOffline() {
     return;
   }
 
-  console.log(`Mengirimkan ${antrean.length} aksi tertunda ke server...`);
   let antreanSisa = [];
 
   for (let item of antrean) {
@@ -397,7 +394,6 @@ async function loadDashboard() {
       renderDataKeLayar(json.data);
     }
   } catch (e) {
-    console.warn("Sedang offline atau server lambat, beralih ke data offline.");
     muatDataDariOffline();
   }
 }
@@ -463,18 +459,16 @@ function renderDataKeLayar(data) {
   const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
-  // Memperbarui widget tugas dan ceramah di layar utama secara dinamis
   renderWidgetTugas(data["LIST_TUGAS"] || []);
   loadWidgetCeramahLokal();
 }
 
-// --- RENDER WIDGET TUGAS (DI LAYAR UTAMA) ---
 function renderWidgetTugas(listTugas) {
   const container = document.getElementById("widget-list-tugas");
   const badge = document.getElementById("badge-tugas");
   
   if (listTugas.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Semua tugas selesai.</p>`;
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Semua tugas telah diselesaikan.</p>`;
     badge.innerText = "0 Tersisa";
     return;
   }
@@ -502,7 +496,7 @@ async function tambahTugasQuick() {
   
   if (!navigator.onLine) {
     simpanKeAntreanOffline("tambahTugas", { tugas: tugasText });
-    alert("Offline: Tugas dimasukkan ke dalam antrean simpan.");
+    alert("Offline: Tugas dimasukkan ke dalam antrean.");
     return;
   }
 
@@ -522,7 +516,7 @@ async function tambahTugasQuick() {
 async function selesaikanTugasWidget(rowId) {
   if (!navigator.onLine) {
     simpanKeAntreanOffline("selesaikanTugas", { rowId });
-    alert("Offline: Permintaan penyelesaian disimpan di antrean.");
+    alert("Offline: Penyelesaian tugas disimpan di antrean.");
     return;
   }
 
@@ -539,13 +533,12 @@ async function selesaikanTugasWidget(rowId) {
   }
 }
 
-// --- RENDER WIDGET CERAMAH (DI LAYAR UTAMA) ---
 async function loadWidgetCeramahLokal() {
   const container = document.getElementById("widget-list-ceramah");
   const badge = document.getElementById("badge-ceramah");
   
   if (!navigator.onLine) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Mode offline aktif (tidak dapat memuat ceramah baru).</p>`;
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Mode offline aktif (tidak memuat data baru).</p>`;
     return;
   }
 
@@ -560,11 +553,11 @@ async function loadWidgetCeramahLokal() {
       badge.innerText = belumSelesai.length + " Agenda";
       
       if (belumSelesai.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Belum ada agenda ceramah terdekat.</p>`;
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Belum ada agenda ceramah.</p>`;
         return;
       }
 
-      belumSelesai.slice(0, 3).forEach(item => { // Menampilkan 3 ceramah teratas agar tidak memakan ruang berlebih
+      belumSelesai.slice(0, 3).forEach(item => {
         const div = document.createElement("div");
         div.className = "bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl p-2 flex justify-between items-center";
         div.innerHTML = `
@@ -586,7 +579,7 @@ async function loadWidgetCeramahLokal() {
 async function selesaikanJadwalCeramahWidget(rowId) {
   if (!navigator.onLine) {
     simpanKeAntreanOffline("selesaikanCeramah", { rowId });
-    alert("Offline: Permintaan penyelesaian jadwal disimpan.");
+    alert("Offline: Penyelesaian jadwal ceramah disimpan.");
     return;
   }
   try {
@@ -599,11 +592,10 @@ async function selesaikanJadwalCeramahWidget(rowId) {
   }
 }
 
-// --- FUNGSI TAMBAHAN HIDRASI ---
 async function tambahAir(){
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
-  airElement.innerText = airSekarang + 1; // Respon visual instan di UI
+  airElement.innerText = airSekarang + 1;
 
   if (!navigator.onLine) {
     simpanKeAntreanOffline("catatMinum", { jumlahL: 1 });
@@ -623,7 +615,6 @@ async function tambahAir(){
   }
 }
 
-// --- PROSES CAMERA & AI ---
 function handleFileSelect(input){
   const file = input.files[0]; if(!file) return;
   document.getElementById('icon-cam').classList.add('hidden');
@@ -642,6 +633,7 @@ function handleFileSelect(input){
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (AI Scan)";
       document.getElementById('loader-cam').classList.add('hidden');
       
+      // VERSI PERBAIKAN: Menampilkan pesan error asli dari server Google Apps Script jika terjadi kegagalan
       if (response && response.status === "success") {
         dataAnalisaMakanTerakhir = response; 
         const ai = response.data || {};
@@ -655,13 +647,15 @@ function handleFileSelect(input){
         document.getElementById("m-tips").innerText = ai.tips || "Siap.";
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Sehat selalu.'}"`;
         document.getElementById("ai-result-modal").style.display = "flex";
-      } else { alert("AI gagal merespons. Sinyal mungkin tidak stabil."); }
+      } else { 
+        alert("Gagal Memproses Gambar: " + (response.message || "Respon server tidak valid.")); 
+      }
     })
-    .catch(() => {
+    .catch((err) => {
       document.getElementById('icon-cam').classList.remove('hidden');
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (AI Scan)";
       document.getElementById('loader-cam').classList.add('hidden');
-      alert("Gagal terhubung dengan Server AI.");
+      alert("Gagal menghubungkan ke Apps Script: " + err.toString());
     });
   };
   reader.readAsDataURL(file);
@@ -675,7 +669,7 @@ async function simpanHasilLogMakanan() {
   
   if (!navigator.onLine) {
     simpanKeAntreanOffline("catatMakanan", { data: dataPayload, totalCal: Number(kaloriPayload) });
-    alert("Offline: Hasil scan disimpan dalam antrean log makan.");
+    alert("Offline: Log gizi disimpan dalam antrean.");
     return;
   }
 
@@ -685,7 +679,7 @@ async function simpanHasilLogMakanan() {
       body: JSON.stringify({ aksi: "catatMakanan", data: dataPayload, totalCal: Number(kaloriPayload) })
     });
     if((await res.json()).status === "success") { 
-      alert("Nutrisi tercatat di database!"); 
+      alert("Log nutrisi sukses dicatat!"); 
       await loadDashboard(); 
     }
   } catch(e) { 
@@ -756,7 +750,7 @@ async function simpanJadwalCeramah() {
   
   if (!navigator.onLine) {
     simpanKeAntreanOffline("tambahCeramah", { tema, tanggal, jam, tempat });
-    alert("Offline: Jadwal ceramah masuk dalam antrean.");
+    alert("Offline: Jadwal ceramah disimpan dalam antrean.");
     tutupModalCeramah();
     return;
   }
@@ -772,7 +766,6 @@ async function simpanJadwalCeramah() {
   }
 }
 
-// --- KUSTOMISASI TEMA & DESIGN ---
 function terapkanSistemTema() {
   const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
   document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
