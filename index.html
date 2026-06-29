@@ -159,7 +159,23 @@
     </div>
   </div>
 
-  <!-- BAGIAN TOMBOL KAMERA YANG DIUBAH MENJADI REDIRECT KE makanan.html -->
+  <!-- BAGIAN GRAFIK RIWAYAT BARU (DI ANTARA TUGAS DAN KAMERA) -->
+  <div class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 flex flex-col justify-between" id="card-grafik-riwayat">
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">📈 Riwayat Tren Mood & Produktivitas</span>
+      <span id="label-tren" class="text-[7.5px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">MEMUAT</span>
+    </div>
+    <div id="container-grafik" class="h-16 w-full relative flex items-end justify-between px-1">
+      <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
+        <!-- SVG Line chart digambar dinamis di sini -->
+      </svg>
+    </div>
+    <div id="label-grafik-tanggal" class="flex justify-between text-[7.5px] text-slate-400 font-bold mt-1 px-1">
+      <span>-</span><span>-</span><span>-</span><span>-</span>
+    </div>
+  </div>
+
+  <!-- BAGIAN TOMBOL KAMERA -->
   <div class="mt-2 shrink-0">
     <a href="makanan.html" id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
       <span class="text-sm">📸</span>
@@ -169,6 +185,7 @@
 
 </div>
 
+<!-- MODAL AI RESULT -->
 <div id="ai-result-modal">
   <div class="full-modal-content">
     <div class="flex-1 overflow-y-auto space-y-4">
@@ -222,6 +239,7 @@
   </div>
 </div>
 
+<!-- MODAL CERAMAH -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -256,6 +274,7 @@
   </div>
 </div>
 
+<!-- MODAL TUGAS -->
 <div id="tugas-modal" onclick="tutupModalTugas()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -341,20 +360,23 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
-  const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
+  // MENAMPILKAN MOOD DARI SEL A11 SPREADSHEET SECARA DINAMIS
+  const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
   let textMoodElement = document.getElementById("user-mood");
   let textMustDoElement = document.getElementById("user-must-do");
   
   textMoodElement.innerText = teksMoodAsli;
 
   if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
-    textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
+    textMoodElement.innerText = "😞 " + teksMoodAsli;
     textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
     textMustDoElement.className = "text-[8px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
   } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+    textMoodElement.innerText = "😊 " + teksMoodAsli;
     textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
     textMustDoElement.className = "text-[8px] font-black text-emerald-200 uppercase tracking-tight";
   } else {
+    textMoodElement.innerText = "🔥 " + teksMoodAsli;
     textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
     textMustDoElement.className = "text-[8px] font-black text-rose-200 uppercase tracking-tight";
   }
@@ -396,6 +418,92 @@ function renderDataKeLayar(data) {
   
   const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
+
+  // GAMBAR GRAFIK GARIS (SPARKLINE RIWAYAT) SECARA DINAMIS
+  if (data["RIWAYAT"]) {
+    buildLineChart(data["RIWAYAT"]);
+  }
+}
+
+// PROGRAM PEMBUAT GRAFIK GARIS SVG MINIMALIS & MODERN
+function buildLineChart(riwayat) {
+  if (!riwayat || riwayat.length === 0) return;
+
+  const svg = document.getElementById("grafik-svg");
+  const labelContainer = document.getElementById("label-grafik-tanggal");
+  
+  // Ambil angka mentah nilai riwayat
+  const values = riwayat.map(item => item.jumlah);
+  const minVal = Math.min(...values, 0);
+  const maxVal = Math.max(...values, 50); // Set baseline tinggi minimal skala 50
+  const valRange = maxVal - minVal || 1;
+
+  const w = 100; // Lebar koordinat SVG
+  const h = 35;  // Tinggi koordinat SVG
+  const paddingY = 6;
+  const graphH = h - (paddingY * 2);
+
+  // Kalkulasi koordinat X dan Y untuk setiap titik
+  const points = riwayat.map((item, index) => {
+    const x = (index / (riwayat.length - 1)) * w;
+    const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
+    return { x, y, val: item.jumlah, date: item.tanggal };
+  });
+
+  // Gambar jalur garis lurus penghubung
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    pathD += ` L ${points[i].x} ${points[i].y}`;
+  }
+
+  // Path bayangan di bawah garis utama (Area Chart Effect)
+  let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
+
+  // Ubah warna garis secara cerdas berdasarkan kondisi tren terakhir
+  const lastVal = values[values.length - 1] || 0;
+  const prevVal = values[values.length - 2] || 0;
+  let strokeColor = "#3b82f6"; // biru default stabil
+  let badgeTren = document.getElementById("label-tren");
+  
+  if (lastVal > prevVal) {
+    strokeColor = "#10b981"; // Hijau bila naik
+    badgeTren.innerText = "📈 NAIK";
+    badgeTren.className = "text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full animate-pulse";
+  } else if (lastVal < prevVal) {
+    strokeColor = "#ef4444"; // Merah bila turun
+    badgeTren.innerText = "📉 TURUN";
+    badgeTren.className = "text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full";
+  } else {
+    badgeTren.innerText = "↔️ STABIL";
+    badgeTren.className = "text-[7.5px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full";
+  }
+
+  // Suntik HTML komponen grafis ke dalam SVG
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0"/>
+      </linearGradient>
+    </defs>
+    <!-- Area gradient di bawah garis -->
+    <path d="${areaD}" fill="url(#gradien-grafik)" />
+    <!-- Garis tren utama -->
+    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Titik lingkaran kecil pembatas data beserta teks nilainya -->
+    ${points.map(p => `
+      <circle cx="${p.x}" cy="${p.y}" r="1.5" fill="#ffffff" stroke="${strokeColor}" stroke-width="1" />
+      <text x="${p.x}" y="${p.y - 4}" font-size="3" font-weight="900" fill="${modeMalamManual ? '#e2e8f0' : '#1e293b'}" text-anchor="middle">${p.val}</text>
+    `).join('')}
+  `;
+
+  // Tulis label tanggal horizontal di bawah grafik
+  labelContainer.innerHTML = "";
+  riwayat.forEach(item => {
+    const el = document.createElement("span");
+    el.innerText = item.tanggal;
+    labelContainer.appendChild(el);
+  });
 }
 
 async function tambahAir(){
@@ -488,7 +596,7 @@ async function simpanJadwalCeramah() {
   const tempat = document.getElementById("c-tempat").value.trim();
   if(!tema || !tanggal || !jam || !tempat) return;
   try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahJadwalCeramah", tema, tanggal, jam, tempat }) });
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) });
     if ((await res.json()).status === "success") {
       alert("Berhasil!"); pindahTabCeramah('lihat'); await loadDashboard();
     }
@@ -497,7 +605,7 @@ async function simpanJadwalCeramah() {
 
 async function selesaikanJadwalCeramah(rowId) {
   try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiCeramah", rowId }) });
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) });
     if ((await res.json()).status === "success") { loadDaftarCeramah(); await loadDashboard(); }
   } catch(e) { alert("Gagal."); }
 }
@@ -528,6 +636,7 @@ async function loadDaftarTugas() {
   const container = document.getElementById("konten-lihat-tugas");
   container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>`;
   try {
+    // MEMPERBAIKI AKSI AKSES: disesuaikan dari getTugas ke API_URL
     const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getTugas" }) });
     const resJson = await res.json();
     if (resJson.status === "success") {
@@ -547,8 +656,10 @@ async function loadDaftarTugas() {
         `;
         container.appendChild(div);
       });
+    } else {
+      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Gagal memuat: ${resJson.message}</p>`;
     }
-  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Error.</p>`; }
+  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Error Koneksi.</p>`; }
 }
 
 async function simpanTugasBaruDariModal() {
@@ -564,7 +675,8 @@ async function simpanTugasBaruDariModal() {
 
 async function selesaikanTugasModal(rowId) {
   try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiTugas", rowId }) });
+    // MEMASANG AKSI YANG TEPAT: selesaikanTugas agar terbaca di code.gs
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanTugas", rowId }) });
     if ((await res.json()).status === "success") { alert("Selesai!"); loadDaftarTugas(); await loadDashboard(); }
   } catch(e) { alert("Gagal."); }
 }
