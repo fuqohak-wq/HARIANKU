@@ -1,243 +1,343 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Fuqohak Executive Tracker</title>
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-  <link href="[https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap)" rel="stylesheet">
-  <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; min-height: 100vh; display: flex; justify-content: center; }
-    .app-container { width: 100%; max-width: 480px; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; gap: 8px; }
-    .dark-mode-bg { background: #0b1329 !important; color: #f1f5f9 !important; }
-    .dark-card { background: rgba(30, 41, 59, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; color: white !important; }
-    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
-    #ai-result-modal, #ceramah-modal, #tugas-modal { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.85); align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .full-modal-content { width: 100%; max-width: 480px; height: 100vh; background: #0b1329; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; overflow-y: auto; }
-    .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-
-<div id="main-app" class="app-container p-4 shadow-2xl">
-  <!-- HEADER -->
-  <div id="header-gradient" class="p-4 rounded-2xl text-white flex flex-col gap-2" style="background: linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%);">
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-sm font-extrabold">Mas Fuqohak Tracker</h1>
-        <p id="date-masehi" class="text-[10px] text-slate-200">Memuat tanggal...</p>
-      </div>
-      <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-2 rounded-full text-xs">☀️</button>
-    </div>
-    <p id="display-quote" class="text-[9px] italic text-slate-100 text-center bg-black/10 p-1.5 rounded-lg">"Sinkronisasi energi motivasimu..."</p>
-  </div>
-
-  <!-- GRID UTAMA -->
-  <div class="grid grid-cols-2 gap-2">
-    <div class="glass-card p-3 rounded-xl shadow-sm">
-      <p class="text-[9px] font-bold text-slate-400 uppercase">🔥 Kalori In</p>
-      <h2 class="text-xl font-extrabold text-slate-800" id="val-kalori">0</h2>
-    </div>
-    <div class="glass-card p-3 rounded-xl shadow-sm">
-      <p class="text-[9px] font-bold text-slate-400 uppercase">🏃‍♂️ Kalori Out</p>
-      <h2 class="text-xl font-extrabold text-amber-600" id="val-kalori-keluar">0</h2>
-    </div>
-    <div onclick="tambahAir()" class="glass-card p-3 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 transition">
-      <p class="text-[9px] font-bold text-slate-400 uppercase">💧 Hidrasi (Klik +)</p>
-      <h2 class="text-xl font-extrabold text-blue-500" id="val-air">0 L</h2>
-    </div>
-    <div class="glass-card p-3 rounded-xl shadow-sm">
-      <p class="text-[9px] font-bold text-slate-400 uppercase">📱 Screen Time</p>
-      <h2 class="text-xl font-extrabold text-rose-500" id="val-hp">0 Jam</h2>
-    </div>
-  </div>
-
-  <!-- SPURITUAL -->
-  <div class="glass-card p-3 rounded-xl shadow-sm">
-    <div class="flex justify-between border-b pb-1 mb-2">
-      <h3 class="text-xs font-black">🕌 Spiritual</h3>
-      <span id="val-konsistensi" class="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 rounded-full">0%</span>
-    </div>
-    <div class="grid grid-cols-2 text-xs">
-      <div>Jamaah: <span id="val-shalat" class="font-bold text-emerald-600">0/7</span></div>
-      <div>Murojaah: <span id="val-murojaah" class="font-bold text-emerald-600">0/3</span></div>
-    </div>
-  </div>
-
-  <!-- AKSI MODAL BUTTONS -->
-  <button onclick="bukaModalCeramah()" class="glass-card p-3 rounded-xl shadow-sm text-left flex justify-between items-center">
-    <span class="text-xs font-bold">🎤 Jadwal Ceramah</span>
-    <span id="badge-ceramah" class="text-[9px] bg-rose-100 text-rose-700 font-bold px-2 rounded-full">0 Belum</span>
-  </button>
-
-  <button onclick="bukaModalTugas()" class="glass-card p-3 rounded-xl shadow-sm text-left flex justify-between items-center">
-    <span class="text-xs font-bold">📋 Tugas Hari Ini</span>
-    <span id="badge-tugas" class="text-[9px] bg-indigo-100 text-indigo-700 font-bold px-2 rounded-full">0 Sisa</span>
-  </button>
-
-  <!-- CAMERA BUTTON -->
-  <div class="relative mt-auto pt-4">
-    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(this)" accept="image/*" capture="environment">
-    <div id="btn-upload" class="bg-slate-900 text-white rounded-xl p-3 text-center flex justify-center items-center gap-2 font-bold text-xs">
-      <span id="icon-cam">📸</span>
-      <span id="text-cam">Ambil Foto Makanan (Kamera HP)</span>
-      <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-4 w-4 hidden"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL AI -->
-<div id="ai-result-modal">
-  <div class="full-modal-content">
-    <div class="space-y-4">
-      <h3 class="text-center font-black text-sm text-yellow-400 uppercase tracking-wider" id="modal-title-makanan">Nama Makanan</h3>
-      <div class="grid grid-cols-4 gap-1 text-center text-xs">
-        <div class="bg-white/5 p-2 rounded">Kalori<br><span id="m-kalori" class="font-bold text-blue-400">0</span></div>
-        <div class="bg-white/5 p-2 rounded">Protein<br><span id="m-protein" class="font-bold text-emerald-400">0</span></div>
-        <div class="bg-white/5 p-2 rounded">Karbo<br><span id="m-karbo" class="font-bold text-amber-400">0</span></div>
-        <div class="bg-white/5 p-2 rounded">Lemak<br><span id="m-lemak" class="font-bold text-rose-400">0</span></div>
-      </div>
-      <div class="text-xs space-y-2">
-        <p class="text-teal-300 font-bold">Kesimpulan Gizi:</p>
-        <p id="m-sehat" class="bg-white/5 p-2 rounded text-slate-300">Memuat...</p>
-        <p class="text-sky-300 font-bold">Saran Porsi:</p>
-        <p id="m-tips" class="bg-white/5 p-2 rounded text-slate-300">Memuat...</p>
-      </div>
-    </div>
-    <div class="space-y-2">
-      <button onclick="simpanHasilLogMakanan()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs">SIMPAN KE JURNAL MASUK</button>
-      <button onclick="tutupModalHasil()" class="w-full bg-slate-800 text-slate-300 py-2 rounded text-xs">BATAL</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL CERAMAH & TUGAS (DISEDERHANAKAN AGAR AKURAT) -->
-<div id="ceramah-modal" onclick="tutupModalCeramah()"><div class="full-modal-content" onclick="event.stopPropagation()"><div id="konten-lihat-ceramah" class="space-y-2 text-xs"></div><button onclick="tutupModalCeramah()" class="w-full bg-slate-800 py-2 rounded mt-4">TUTUP</button></div></div>
-<div id="tugas-modal" onclick="tutupModalTugas()"><div class="full-modal-content" onclick="event.stopPropagation()"><div id="konten-lihat-tugas" class="space-y-2 text-xs"></div><button onclick="tutupModalTugas()" class="w-full bg-slate-800 py-2 rounded mt-4">TUTUP</button></div></div>
-
-<script>
-// PASTE URL SCRIPT WEB APP ANDA DI SINI SETELAH DEPLOY BARU
-const API_URL = "https://script.google.com/macros/s/AKfycbxoM6gpl-NscYAnOvRZ_ZeOV9SU8QeGPFKdqq2xBo6fmgtUho6l0Faol5Fqb3-t92sz/exec";
-
-let modeMalamManual = false;
-let dataAnalisaMakanTerakhir = null;
-
-window.onload = function() {
-  document.getElementById("date-masehi").innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
-  loadDashboard();
-};
-
-async function loadDashboard() {
-  try {
-    const res = await fetch(API_URL);
-    const json = await res.json();
-    if(json.status === "success") {
-      localStorage.setItem("cache_tracker", JSON.stringify(json.data));
-      renderData(json.data);
-    }
-  } catch(e) {
-    const cache = localStorage.getItem("cache_tracker");
-    if(cache) renderData(JSON.parse(cache));
+function muatDataDariOffline() {
+  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+  if (cacheData) {
+    try {
+      renderDataKeLayar(JSON.parse(cacheData));
+    } catch(e) { console.error("Cache offline rusak:", e); }
   }
 }
 
-function renderData(data) {
-  document.getElementById("val-kalori").innerText = (data["KALORI MASUK"]?.value || 0) + " kcal";
-  document.getElementById("val-kalori-keluar").innerText = (data["KALORI KELUAR"]?.value || 0) + " kcal";
-  document.getElementById("val-air").innerText = (Number(data["MINUM AIR"]?.value || 0)).toFixed(2) + " L";
-  document.getElementById("val-hp").innerText = (data["MENGURANGI HP"]?.value || 0) + " Jam";
-  document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/7";
-  document.getElementById("val-murojaah").innerText = (data["MUROJAAH"]?.value || 0) + "/3";
-  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Sisa";
-  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum";
-  if(data["MOTIVASI"]?.value) document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+function tentukanKalenderDasar() {
+  const sekarang = new Date();
+  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'short' };
+  document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
 }
 
-async function tambahAir() {
+async function loadDashboard() {
   try {
-    await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "catatMinum", jumlahL: 0.25 }) });
-    loadDashboard();
-  } catch(e) {}
+    const controller = new AbortController();
+    const idTimeout = setTimeout(() => controller.abort(), 6000);
+
+    const res = await fetch(API_URL + "?api=1", { signal: controller.signal });
+    clearTimeout(idTimeout);
+    const json = await res.json();
+    
+    if (json.status === "success" && json.data) {
+      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
+      renderDataKeLayar(json.data);
+    }
+  } catch (e) {
+    console.warn("Mode Offline Aktif.");
+    muatDataDariOffline();
+  }
 }
 
-function handleFileSelect(input) {
-  const file = input.files[0]; if (!file) return;
+function renderDataKeLayar(data) {
+  if (data["HIJRIAH_FIXED"]) {
+    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
+  }
+
+  const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
+  let textMoodElement = document.getElementById("user-mood");
+  let textMustDoElement = document.getElementById("user-must-do");
   
+  textMoodElement.innerText = teksMoodAsli;
+
+  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+    textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
+    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
+    textMustDoElement.className = "text-[8px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
+  } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+    textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
+    textMustDoElement.className = "text-[8px] font-black text-emerald-200 uppercase tracking-tight";
+  } else {
+    textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
+    textMustDoElement.className = "text-[8px] font-black text-rose-200 uppercase tracking-tight";
+  }
+
+  const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
+  const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
+  
+  document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
+  document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
+  
+  const totalPoinAktual = aktualJamaah + aktualMurojaah;
+  let persentaseSpiritual = (totalPoinAktual / 10) * 100;
+  if (persentaseSpiritual > 100) persentaseSpiritual = 100;
+  
+  const labelKonsistensi = document.getElementById("val-konsistensi");
+  labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
+
+  if (persentaseSpiritual >= 100) {
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
+  } else if (persentaseSpiritual >= 50) {
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
+  } else {
+    labelKonsistensi.className = "text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
+  }
+
+  document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
+  document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
+  document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
+  document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
+  document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
+  document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+  
+  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tugas Tersisa";
+  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum Terlaksana";
+  
+  if (data["MOTIVASI"]?.value) {
+    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+  }
+  
+  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+  document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
+}
+
+async function tambahAir(){
+  let airElement = document.getElementById("val-air");
+  let airSekarang = Number(airElement.innerText);
+  airElement.innerText = airSekarang + 1;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
+    });
+    if((await res.json()).status === "success") { await loadDashboard(); }
+  } catch(e) { console.error("Gagal tambah air:", e); }
+}
+
+function handleFileSelect(input){
+  const file = input.files[0]; if(!file) return;
+  document.getElementById('icon-cam').classList.add('hidden');
   document.getElementById('text-cam').innerText = "AI Menganalisa Porsi Makanan...";
   document.getElementById('loader-cam').classList.remove('hidden');
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    // ENGINE KOMPRESI GAMBAR OTOMATIS SEBELUM TEMBAK KE API GAS
-    const img = new Image();
-    img.src = e.target.result;
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const maxW = 600; // Perkecil resolusi agar hemat memori & anti-gagal
-      const scale = maxW / img.width;
-      canvas.width = maxW;
-      canvas.height = img.height * scale;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "uploadFile", base64Data: e.target.result, fileName: file.name }) 
+    })
+    .then(res => res.json())
+    .then(response => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
       
-      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-      
-      fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ aksi: "uploadFile", base64Data: compressedBase64, fileName: file.name })
-      })
-      .then(res => res.json())
-      .then(response => {
-        document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-        document.getElementById('loader-cam').classList.add('hidden');
-        
-        if(response.status === "success") {
-          dataAnalisaMakanTerakhir = response;
-          document.getElementById("modal-title-makanan").innerText = response.data.makanan;
-          document.getElementById("m-kalori").innerText = response.totalCal;
-          document.getElementById("m-protein").innerText = response.data.protein + "g";
-          document.getElementById("m-karbo").innerText = response.data.karbo + "g";
-          document.getElementById("m-lemak").innerText = response.data.lemak + "g";
-          document.getElementById("m-sehat").innerText = response.data.sehat_gak;
-          document.getElementById("m-tips").innerText = response.data.tips;
-          document.getElementById("ai-result-modal").style.display = "flex";
-        } else {
-          alert("AI Error:\n" + (response.message || "Gagal respons") + "\n\nDetail:\n" + JSON.stringify(response.log_debug));
-        }
-      })
-      .catch(err => {
-        document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-        document.getElementById('loader-cam').classList.add('hidden');
-        alert("Gagal menghubungi server backend GAS.");
-      });
-    };
+      if (response && response.status === "success") {
+        dataAnalisaMakanTerakhir = response; 
+        const ai = response.data || {};
+        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan") + " (" + (ai.minuman || "Air") + ")";
+        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
+        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
+        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
+        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
+        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g";
+        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi OK.";
+        document.getElementById("m-tips").innerText = ai.tips || "Siap.";
+        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Sehat selalu.'}"`;
+        document.getElementById("ai-result-modal").style.display = "flex";
+      } else { alert("AI gagal merespons."); }
+    })
+    .catch(() => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
+      alert("Error Server AI.");
+    });
   };
   reader.readAsDataURL(file);
 }
 
 async function simpanHasilLogMakanan() {
-  if(!dataAnalisaMakanTerakhir) return;
+  if (!dataAnalisaMakanTerakhir || !dataAnalisaMakanTerakhir.data) { alert("Data kosong."); return; }
+  const dataPayload = dataAnalisaMakanTerakhir.data;
+  const kaloriPayload = dataAnalisaMakanTerakhir.totalCal || dataAnalisaMakanTerakhir.data.kalori || 0;
   tutupModalHasil();
+  
   try {
-    await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({ aksi: "catatMakanan", data: dataAnalisaMakanTerakhir.data, totalCal: dataAnalisaMakanTerakhir.totalCal })
+      body: JSON.stringify({ aksi: "catatMakanan", data: dataPayload, totalCal: Number(kaloriPayload) })
     });
-    loadDashboard();
-  } catch(e) {}
+    if((await res.json()).status === "success") { alert("Berhasil disimpan!"); await loadDashboard(); }
+  } catch(e) { alert("Gagal koneksi simpan."); }
 }
 
 function tutupModalHasil() { document.getElementById("ai-result-modal").style.display = "none"; }
-function bukaModalCeramah() { document.getElementById("ceramah-modal").style.display = "flex"; }
+function bukaModalCeramah() { document.getElementById("ceramah-modal").style.display = "flex"; pindahTabCeramah('lihat'); }
 function tutupModalCeramah() { document.getElementById("ceramah-modal").style.display = "none"; }
-function bukaModalTugas() { document.getElementById("tugas-modal").style.display = "flex"; }
+
+function pindahTabCeramah(tab) {
+  const tabLihat = document.getElementById("tab-lihat");
+  const tabTambah = document.getElementById("tab-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-ceramah");
+  const kontenTambah = document.getElementById("konten-tambah-ceramah");
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarCeramah();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarCeramah() {
+  const container = document.getElementById("konten-lihat-ceramah");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>`;
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
+    const resJson = await res.json();
+    if (resJson.status === "success") {
+      container.innerHTML = "";
+      const list = resJson.data || [];
+      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
+      if (belumSelesai.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah.</p>`;
+        return;
+      }
+      belumSelesai.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+        div.innerHTML = `
+          <div class="max-w-[200px]">
+            <p class="text-xs font-black text-white truncate">${item.tema}</p>
+            <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
+            <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
+          </div>
+          <button onclick="selesaikanJadwalCeramah(${item.rowId})" class="bg-blue-600 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Koneksi Error.</p>`; }
+}
+
+async function simpanJadwalCeramah() {
+  const tema = document.getElementById("c-tema").value.trim();
+  const tanggal = document.getElementById("c-tanggal").value;
+  const jam = document.getElementById("c-jam").value;
+  const tempat = document.getElementById("c-tempat").value.trim();
+  if(!tema || !tanggal || !jam || !tempat) return;
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahJadwalCeramah", tema, tanggal, jam, tempat }) });
+    if ((await res.json()).status === "success") {
+      alert("Berhasil!"); pindahTabCeramah('lihat'); await loadDashboard();
+    }
+  } catch(e) { alert("Gagal."); }
+}
+
+async function selesaikanJadwalCeramah(rowId) {
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiCeramah", rowId }) });
+    if ((await res.json()).status === "success") { loadDaftarCeramah(); await loadDashboard(); }
+  } catch(e) { alert("Gagal."); }
+}
+
+function bukaModalTugas() { document.getElementById("tugas-modal").style.display = "flex"; pindahTabTugas('lihat'); }
 function tutupModalTugas() { document.getElementById("tugas-modal").style.display = "none"; }
+
+function pindahTabTugas(tab) {
+  const tabLihat = document.getElementById("tab-tugas-lihat");
+  const tabTambah = document.getElementById("tab-tugas-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-tugas");
+  const kontenTambah = document.getElementById("konten-tambah-tugas");
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarTugas();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarTugas() {
+  const container = document.getElementById("konten-lihat-tugas");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>`;
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getTugas" }) });
+    const resJson = await res.json();
+    if (resJson.status === "success") {
+      container.innerHTML = "";
+      const list = resJson.data || [];
+      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
+      if (belumSelesai.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas selesai.</p>`;
+        return;
+      }
+      belumSelesai.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+        div.innerHTML = `
+          <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
+          <button onclick="selesaikanTugasModal(${item.rowId})" class="bg-indigo-600 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Error.</p>`; }
+}
+
+async function simpanTugasBaruDariModal() {
+  const tugasText = document.getElementById("t-deskripsi").value.trim();
+  if(!tugasText) return;
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) });
+    if ((await res.json()).status === "success") {
+      document.getElementById("t-deskripsi").value = ""; alert("Tugas Ditambahkan!"); pindahTabTugas('lihat'); await loadDashboard();
+    }
+  } catch(e) { alert("Gagal."); }
+}
+
+async function selesaikanTugasModal(rowId) {
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiTugas", rowId }) });
+    if ((await res.json()).status === "success") { alert("Selesai!"); loadDaftarTugas(); await loadDashboard(); }
+  } catch(e) { alert("Gagal."); }
+}
+
+function terapkanSistemTema() {
+  const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
+  document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
+}
+
 function switchModeSiangMalam() {
   modeMalamManual = !modeMalamManual;
+  localStorage.setItem("manual_dark_mode", modeMalamManual);
+  evaluasiVisualModeMalam();
+}
+
+function evaluasiVisualModeMalam() {
   const app = document.getElementById("main-app");
-  if(modeMalamManual) { app.classList.add("dark-mode-bg"); document.getElementById("time-indicator").innerText = "🌙"; }
-  else { app.classList.remove("dark-mode-bg"); document.getElementById("time-indicator").innerText = "☀️"; }
+  const listKartu = document.querySelectorAll(".glass-card");
+  if (modeMalamManual) {
+    app.classList.add("dark-mode-bg");
+    document.getElementById("time-indicator").innerText = "🌙";
+    listKartu.forEach(k => k.classList.add("dark-card"));
+  } else {
+    app.classList.remove("dark-mode-bg");
+    document.getElementById("time-indicator").innerText = "☀️";
+    listKartu.forEach(k => k.classList.remove("dark-card"));
+  }
+}
+
+function toggleThemeLock() {
+  let saatIni = Number(localStorage.getItem("pilihan_index_tema") || "0");
+  saatIni = (saatIni + 1) % KUMPULAN_TEMA.length;
+  localStorage.setItem("pilihan_index_tema", saatIni);
+  terapkanSistemTema();
 }
 </script>
 </body>
