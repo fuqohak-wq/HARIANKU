@@ -78,7 +78,7 @@
     </div>
 
     <div class="glass-card p-2.5 rounded-2xl shadow-sm flex flex-col justify-between" id="card-out">
-      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🏃♂️ Kalori Out</p>
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
       <div class="flex items-baseline gap-0.5 text-amber-600">
         <h2 class="text-lg font-extrabold" id="val-kalori-keluar">0</h2>
         <span class="text-[8px] font-bold">kcal</span>
@@ -170,6 +170,7 @@
 
 </div>
 
+<!-- Modal Hasil Analisis AI -->
 <div id="ai-result-modal">
   <div class="full-modal-content">
     <div class="flex-1 overflow-y-auto space-y-4">
@@ -177,6 +178,7 @@
         <span class="text-2xl">✨</span>
         <h3 class="text-sm font-black text-white mt-1">Hasil Analisis Nutrisi AI</h3>
         <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
+        <p id="fallback-warning" class="text-[9px] text-red-400 font-bold hidden mt-1">⚠️ MODE FALLBACK: Periksa API Key Gemini Anda di code.gs</p>
       </div>
       
       <div class="grid grid-cols-5 gap-1 text-center">
@@ -223,6 +225,7 @@
   </div>
 </div>
 
+<!-- Modal Ceramah -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -257,6 +260,7 @@
   </div>
 </div>
 
+<!-- Modal Tugas -->
 <div id="tugas-modal" onclick="tutupModalTugas()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -278,6 +282,7 @@
 </div>
 
 <script>
+// Menghubungkan langsung ke URL Web App Google Apps Script milik Anda
 const API_URL = "https://script.google.com/macros/s/AKfycbxoM6gpl-NscYAnOvRZ_ZeOV9SU8QeGPFKdqq2xBo6fmgtUho6l0Faol5Fqb3-t92sz/exec";
 
 const KUMPULAN_TEMA = [
@@ -300,7 +305,7 @@ window.onload = async function(){
   setInterval(async () => {
     console.log("Sinkronisasi otomatis latar belakang aktif...");
     await loadDashboard();
-  }, 10000);
+  }, 15000);
 };
 
 function muatDataDariOffline() {
@@ -321,7 +326,7 @@ function tentukanKalenderDasar() {
 async function loadDashboard() {
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 6000);
+    const idTimeout = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(API_URL + "?api=1", { signal: controller.signal });
     clearTimeout(idTimeout);
@@ -332,14 +337,14 @@ async function loadDashboard() {
       renderDataKeLayar(json.data);
     }
   } catch (e) {
-    console.warn("Mode Offline Aktif.");
+    console.warn("Koneksi terhambat, menggunakan data offline.");
     muatDataDariOffline();
   }
 }
 
 function renderDataKeLayar(data) {
   if (data["HIJRIAH_FIXED"]) {
-    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
+    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"].value || data["HIJRIAH_FIXED"];
   }
 
   const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
@@ -410,7 +415,7 @@ async function tambahAir(){
       body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
     });
     if((await res.json()).status === "success") { await loadDashboard(); }
-  } catch(e) { console.error("Gagal tambah air:", e); }
+  } catch(e) { console.error("Gagal sinkronisasi data air:", e); }
 }
 
 function handleFileSelect(input){
@@ -434,6 +439,15 @@ function handleFileSelect(input){
       if (response && response.status === "success") {
         dataAnalisaMakanTerakhir = response; 
         const ai = response.data || {};
+        
+        // Menampilkan tanda peringatan jika sistem menggunakan fallback simulation
+        const fallbackWarning = document.getElementById("fallback-warning");
+        if (response.fallback) {
+          fallbackWarning.classList.remove("hidden");
+        } else {
+          fallbackWarning.classList.add("hidden");
+        }
+
         document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan") + " (" + (ai.minuman || "Air") + ")";
         document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
         document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
@@ -444,13 +458,15 @@ function handleFileSelect(input){
         document.getElementById("m-tips").innerText = ai.tips || "Siap.";
         document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Sehat selalu.'}"`;
         document.getElementById("ai-result-modal").style.display = "flex";
-      } else { alert("AI gagal merespons."); }
+      } else { 
+        alert("Gagal menganalisis gambar: " + (response.message || "Kesalahan Server")); 
+      }
     })
-    .catch(() => {
+    .catch((err) => {
       document.getElementById('icon-cam').classList.remove('hidden');
       document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
       document.getElementById('loader-cam').classList.add('hidden');
-      alert("Error Server AI.");
+      alert("Gagal menghubungi server. Silakan pastikan Web App sudah dideploy dengan benar.");
     });
   };
   reader.readAsDataURL(file);
@@ -467,8 +483,11 @@ async function simpanHasilLogMakanan() {
       method: "POST",
       body: JSON.stringify({ aksi: "catatMakanan", data: dataPayload, totalCal: Number(kaloriPayload) })
     });
-    if((await res.json()).status === "success") { alert("Berhasil disimpan!"); await loadDashboard(); }
-  } catch(e) { alert("Gagal koneksi simpan."); }
+    if((await res.json()).status === "success") { 
+      alert("Berhasil disimpan ke jurnal!"); 
+      await loadDashboard(); 
+    }
+  } catch(e) { alert("Gagal menyimpan data makanan."); }
 }
 
 function tutupModalHasil() { document.getElementById("ai-result-modal").style.display = "none"; }
@@ -534,16 +553,16 @@ async function simpanJadwalCeramah() {
   try {
     const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahJadwalCeramah", tema, tanggal, jam, tempat }) });
     if ((await res.json()).status === "success") {
-      alert("Berhasil!"); pindahTabCeramah('lihat'); await loadDashboard();
+      alert("Berhasil menambahkan jadwal!"); pindahTabCeramah('lihat'); await loadDashboard();
     }
-  } catch(e) { alert("Gagal."); }
+  } catch(e) { alert("Gagal menyimpan jadwal."); }
 }
 
 async function selesaikanJadwalCeramah(rowId) {
   try {
     const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiCeramah", rowId }) });
     if ((await res.json()).status === "success") { loadDaftarCeramah(); await loadDashboard(); }
-  } catch(e) { alert("Gagal."); }
+  } catch(e) { alert("Gagal menyelesaikan jadwal."); }
 }
 
 function bukaModalTugas() { document.getElementById("tugas-modal").style.display = "flex"; pindahTabTugas('lihat'); }
@@ -603,14 +622,14 @@ async function simpanTugasBaruDariModal() {
     if ((await res.json()).status === "success") {
       document.getElementById("t-deskripsi").value = ""; alert("Tugas Ditambahkan!"); pindahTabTugas('lihat'); await loadDashboard();
     }
-  } catch(e) { alert("Gagal."); }
+  } catch(e) { alert("Gagal menyimpan tugas."); }
 }
 
 async function selesaikanTugasModal(rowId) {
   try {
     const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaiTugas", rowId }) });
-    if ((await res.json()).status === "success") { alert("Selesai!"); loadDaftarTugas(); await loadDashboard(); }
-  } catch(e) { alert("Gagal."); }
+    if ((await res.json()).status === "success") { alert("Tugas diselesaikan!"); loadDaftarTugas(); await loadDashboard(); }
+  } catch(e) { alert("Gagal memperbarui status tugas."); }
 }
 
 function terapkanSistemTema() {
