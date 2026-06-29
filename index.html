@@ -6,16 +6,21 @@
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
+  <!-- PERBAIKAN UTAMA: Menggunakan sintaksis Google Fonts API v2 yang benar (@wght) untuk mencegah error 400 Bad Request -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; }
-    .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; position: relative; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; overflow: hidden; }
+    .app-container { width: 100%; max-width: 480px; height: 100vh; background: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; }
     .dark-mode-bg { background: #0b1329 !important; color: #f1f5f9 !important; }
     .dark-card { background: rgba(30, 41, 59, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; color: white !important; }
     .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
     .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .fade-out { opacity: 0; transform: scale(0.9); transition: all 0.25s ease; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
+    /* Overlay Kustom Pop-up AI, Ceramah & Tugas Selayar Penuh */
     #ai-result-modal, #ceramah-modal, #tugas-modal { 
       display: none; 
       position: fixed; 
@@ -26,270 +31,282 @@
       justify-content: center; 
       backdrop-filter: blur(8px); 
     }
-    .full-modal-content { width: 100%; max-width: 480px; height: 100vh; background: #0b1329; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; overflow-y: auto; }
+    
+    .full-modal-content {
+      width: 100%;
+      max-width: 480px;
+      height: 100vh;
+      background: #0b1329;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
 
 <div id="main-app" class="app-container p-4 shadow-2xl">
 
-  <!-- HEADER PANEL -->
-  <div id="header-gradient" class="p-4 rounded-[1.25rem] shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-2 shrink-0 animate-fade-in" style="background: linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%);">
-    <div class="flex justify-between items-center z-10 w-full">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-baseline gap-1.5 flex-wrap">
-          <h1 class="text-sm font-extrabold tracking-tight shrink-0">Mas Fuqohak</h1>
-          <div class="text-[9px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
-            <span id="date-masehi">Memuat Tanggal...</span>
-            <span>•</span>
-            <span id="date-hijriah" class="text-blue-200">13 Muharram 1448 H</span>
-          </div>
-        </div>
-        <div class="flex flex-col gap-0.5 mt-1">
-          <div id="user-mood" class="text-[10px] font-bold text-yellow-300">🔄 Mengambil Status...</div>
-          <div id="user-must-do" class="text-[9px] font-black text-rose-200 uppercase tracking-tight">KONEKSI: Memeriksa Data...</div>
+  <div id="header-gradient" class="p-4 rounded-[2rem] shadow-lg relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-2">
+    <div class="flex justify-between items-center z-10">
+      <div>
+        <h1 class="text-base font-extrabold tracking-tight">Mas Fuqohak</h1>
+        <div class="flex flex-col gap-0.5 mt-0.5">
+          <div id="user-mood" class="text-[10px] font-bold text-yellow-300">🔄 Analisa Mood...</div>
+          <div id="user-must-do" class="text-[9px] font-black text-rose-200 uppercase tracking-tight">HARUS: Sinkronisasi...</div>
         </div>
       </div>
       
-      <div class="flex items-center gap-1.5 shrink-0 ml-2">
-        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-2 rounded-full text-xs hover:scale-105 active:scale-95 transition">☀️</button>
-        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-2 rounded-lg text-[10px] font-bold flex items-center justify-center">
-          <span id="lock-icon">🔓 Tema</span>
+      <div class="flex items-center gap-2 text-right">
+        <div class="flex flex-col justify-center">
+          <span id="date-masehi" class="text-[10px] font-bold leading-tight">Memuat Tanggal...</span>
+          <span id="date-hijriah" class="text-[9px] text-blue-100 font-medium mt-0.5 leading-none">Memuat Hijriah...</span>
+        </div>
+        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1.5 rounded-full text-sm hover:scale-110 active:scale-90 transition">☀️</button>
+        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1.5 rounded-xl text-[10px] font-bold flex items-center gap-0.5">
+          <span id="lock-icon">🔓</span>
         </button>
       </div>
     </div>
 
-    <div class="bg-black/15 rounded-md p-1.5 border border-white/5 shadow-inner mt-1">
-      <p id="display-quote" class="text-[9px] font-medium italic text-slate-100 text-center">"Sinkronisasi energi motivasimu..."</p>
+    <div class="bg-black/15 rounded-xl p-2 border border-white/5 shadow-inner">
+      <p id="display-quote" class="text-[10px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
     </div>
   </div>
 
-  <!-- OFFLINE STATUS BANNER -->
-  <div id="offline-banner" class="hidden bg-amber-500 text-white text-[10px] font-bold py-1 px-3 rounded-xl text-center shadow-inner">
-    ⚠️ Koneksi terputus. Data sementara disimpan secara lokal (Offline Mode) & akan disinkronkan otomatis saat online.
-  </div>
-
-  <!-- STATS GRID -->
   <div class="grid grid-cols-2 gap-3 mt-1">
-    <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col justify-between" id="card-kalori">
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-kalori">
       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
-      <div class="flex items-baseline gap-0.5 my-1">
+      <div class="flex items-baseline gap-0.5">
         <h2 class="text-xl font-extrabold text-slate-800" id="val-kalori">0</h2>
         <span class="text-[9px] text-slate-400 font-bold">kcal</span>
       </div>
-      <div class="w-full bg-slate-200/60 h-1 rounded-full overflow-hidden">
+      <div class="w-full bg-slate-200/60 h-1 mt-1 rounded-full overflow-hidden">
         <div id="bar-kalori" class="bg-blue-600 h-full transition-all duration-500" style="width:0%"></div>
       </div>
     </div>
 
-    <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col justify-between" id="card-out">
-      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
-      <div class="flex items-baseline gap-0.5 text-amber-600 my-1">
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-out">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">🏃♂️ Kalori Out</p>
+      <div class="flex items-baseline gap-0.5 text-amber-600">
         <h2 class="text-xl font-extrabold" id="val-kalori-keluar">0</h2>
         <span class="text-[9px] font-bold">kcal</span>
       </div>
     </div>
 
-    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-air">
-      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi (Tambah 1L)</p>
-      <div class="flex items-baseline gap-0.5 text-blue-500 my-1">
+    <div onclick="tambahAir()" class="glass-card p-3 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-air">
+      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
+      <div class="flex items-baseline gap-0.5 text-blue-500">
         <h2 class="text-xl font-extrabold" id="val-air">0</h2>
-        <span class="text-[9px] font-bold"> Liter</span>
+        <span class="text-[9px] font-bold"> Gelas</span>
       </div>
     </div>
 
-    <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col justify-between" id="card-hp">
+    <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-hp">
       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">📱 Screen Time</p>
-      <div class="flex items-baseline gap-0.5 text-rose-500 my-1">
+      <div class="flex items-baseline gap-0.5 text-rose-500">
         <h2 class="text-xl font-extrabold" id="val-hp">0</h2>
         <span class="text-[9px] font-bold">Jam</span>
       </div>
     </div>
   </div>
 
-  <!-- TARGET GRID -->
-  <div class="grid grid-cols-2 gap-3">
-    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-3 shadow-md hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
+  <div class="grid grid-cols-2 gap-3 mt-1">
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-3 shadow-md hover:scale-[1.01] active:scale-95 transition text-white relative overflow-hidden">
       <p class="text-[9px] font-bold text-indigo-200 uppercase tracking-wider">🇬🇧 English Hub</p>
-      <div class="flex justify-between items-baseline mt-2">
-        <span class="text-[10px] font-bold text-white">Belajar AI ➔</span>
-        <span class="text-sm font-black text-white" id="val-english">0 M</span>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[11px] font-bold text-white truncate max-w-[70px]">Belajar AI ➔</span>
+        <span class="text-base font-black text-white" id="val-english">0 M</span>
       </div>
     </a>
 
-    <a href="writer.html" class="block glass-card p-3 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-menulis">
+    <a href="https://script.google.com/macros/s/AKfycbyYcuh6lXfOAM9ZhThgWUT3TZ96x9aiHEIB7qJPw6DAWyWLq710s6lAcdFwVcObSp7Z/exec" target="_blank" class="block glass-card p-3 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition" id="card-menulis">
       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">✍️ Menulis</p>
-      <div class="flex justify-between items-baseline mt-2">
-        <span class="text-[10px] text-slate-500 font-bold">Progres ➔</span>
-        <span class="text-sm font-black text-indigo-600" id="val-menulis">0</span>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[11px] text-slate-500 dark:text-slate-300 font-bold">Progres ➔</span>
+        <span class="text-base font-black text-indigo-600" id="val-menulis">0</span>
       </div>
     </a>
   </div>
 
-  <!-- SPIRITUAL / IBADAH -->
-  <div class="glass-card p-3 rounded-2xl shadow-sm" id="card-shalat">
-    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2 mb-2">
-      <h3 class="text-[10px] font-extrabold text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
+  <div class="glass-card p-3 rounded-2xl shadow-sm mt-1" id="card-shalat">
+    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-1.5 mb-1.5">
+      <h3 class="text-xs font-extrabold text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
       <span id="val-konsistensi" class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">0%</span>
     </div>
     <div class="flex justify-between text-center">
-      <div class="flex items-center gap-1.5">
-        <span class="text-sm">🕌</span>
-        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Jamaah:</span>
-        <span class="text-sm font-black text-emerald-600" id="val-shalat">0/7</span>
+      <div class="flex items-center gap-1">
+        <span class="text-xs">🕌</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Jamaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-shalat">0/5</span>
       </div>
-      <div id="card-murojaah" class="flex items-center gap-1.5">
-        <span class="text-sm">📖</span>
-        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Murojaah:</span>
-        <span class="text-sm font-black text-emerald-600" id="val-murojaah">0/3</span>
+      <div id="card-murojaah" class="flex items-center gap-1">
+        <span class="text-xs">📖</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Murojaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-murojaah">0</span>
       </div>
     </div>
   </div>
 
-  <!-- INLINE WIDGET: TUGAS HARI INI -->
-  <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col gap-2" id="card-widget-tugas">
-    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+  <!-- KARTU JADWAL CERAMAH -->
+  <div onclick="bukaModalCeramah()" class="glass-card p-3 rounded-2xl shadow-sm mt-1 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-ceramah">
+    <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5">
-        <span class="text-xs">📋</span>
-        <span class="text-[10px] font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Tugas Hari Ini</span>
+        <span class="text-sm">🎤</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
       </div>
-      <span id="badge-tugas" class="text-[8px] font-black bg-indigo-100 text-indigo-700 px-2 rounded-full">0 Tersisa</span>
-    </div>
-    
-    <div id="widget-list-tugas" class="space-y-2 max-h-[150px] overflow-y-auto">
-      <p class="text-[10px] text-slate-400 text-center py-2 italic">Semua tugas telah diselesaikan.</p>
-    </div>
-
-    <!-- Quick Add Task -->
-    <div class="flex gap-2 mt-1">
-      <input type="text" id="quick-tugas-input" placeholder="Tambah tugas baru..." class="flex-1 bg-white/5 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-[10px] dark:text-white focus:outline-none">
-      <button onclick="tambahTugasQuick()" class="bg-indigo-600 text-white font-black text-[9px] px-3 py-1.5 rounded-xl uppercase tracking-wider hover:bg-indigo-700 active:scale-95 transition">Tambah</button>
+      <span id="badge-ceramah" class="text-[9px] font-black bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0 Belum Terlaksana</span>
     </div>
   </div>
 
-  <!-- INLINE WIDGET: JADWAL CERAMAH -->
-  <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col gap-2" id="card-widget-ceramah">
-    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2">
+  <!-- KARTU TUGAS HARI INI (MODAL POP-UP STYLE) -->
+  <div onclick="bukaModalTugas()" class="glass-card p-3 rounded-2xl shadow-sm mt-1 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-todolist">
+    <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5">
-        <span class="text-xs">🎤</span>
-        <span class="text-[10px] font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Jadwal Ceramah</span>
+        <span class="text-sm">📋</span>
+        <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">Tugas Hari Ini</span>
       </div>
-      <span id="badge-ceramah" class="text-[8px] font-black bg-rose-100 text-rose-700 px-2 rounded-full">0 Agenda</span>
+      <span id="badge-tugas" class="text-[9px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">0 Tugas Tersisa</span>
     </div>
-    
-    <div id="widget-list-ceramah" class="space-y-2 max-h-[150px] overflow-y-auto">
-      <p class="text-[10px] text-slate-400 text-center py-2 italic">Belum ada agenda terdekat.</p>
-    </div>
-
-    <button onclick="bukaModalCeramah()" class="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold text-[9px] py-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 active:scale-95 transition uppercase tracking-wider">
-      + Kelola Jadwal Ceramah
-    </button>
   </div>
 
-  <!-- FILE UPLOAD (KAMERA) BUTTON -->
-  <div class="fixed bottom-0 left-0 right-0 p-4 bg-slate-900/90 backdrop-blur-md z-40 flex justify-center border-t border-white/5">
-    <div class="relative w-full max-w-[448px]">
-      <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*" capture="environment">
-      <div id="btn-upload" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 shadow-lg flex items-center justify-center gap-2 active:scale-95 transition duration-300">
-        <span id="icon-cam" class="text-sm">📸</span>
-        <span id="text-cam" class="font-black text-[11px] tracking-wider uppercase">Ambil Foto Makanan (AI Scan)</span>
-        <div id="loader-cam" class="loader rounded-full border-2 border-slate-300 h-3 w-3 hidden"></div>
-      </div>
+  <div class="relative mt-3 pt-1">
+    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*" capture="environment">
+    <div id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
+      <span id="icon-cam" class="text-base">📸</span>
+      <span id="text-cam" class="font-black text-xs tracking-wide">Ambil Foto Makanan (Kamera HP)</span>
+      <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-4 w-4 hidden"></div>
     </div>
   </div>
 
 </div>
 
-<!-- AI RESULT MODAL -->
+<!-- MODAL POPUP HASIL ANALISIS MAKANAN AI (SELAYAR PENUH & DETIL MAKANAN LENGKAP) -->
 <div id="ai-result-modal">
-  <div class="full-modal-content">
+  <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex-1 overflow-y-auto space-y-4">
       <div class="text-center border-b border-white/10 pb-3">
-        <span class="text-2xl">✨</span>
-        <h3 class="text-xs font-black text-white mt-1">Hasil Analisis Nutrisi AI</h3>
+        <span class="text-3xl">✨</span>
+        <h3 class="text-base font-black tracking-tight text-white mt-1">Hasil Analisis Nutrisi AI</h3>
         <p id="modal-title-makanan" class="text-xs font-bold text-yellow-300 mt-1 uppercase">Nama Makanan</p>
       </div>
       
       <div class="grid grid-cols-5 gap-1 text-center">
-        <div class="bg-white/5 rounded-xl p-1">
-          <p class="text-[7px] text-slate-400 font-bold">BERAT</p>
+        <div class="bg-white/5 rounded-xl p-1.5">
+          <p class="text-[8px] text-slate-400 font-bold">BERAT</p>
           <p id="m-gram" class="text-xs font-black text-slate-200">0g</p>
         </div>
-        <div class="bg-blue-500/20 rounded-xl p-1">
-          <p class="text-[7px] text-blue-300 font-bold">KALORI</p>
+        <div class="bg-blue-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-blue-300 font-bold">KALORI</p>
           <p id="m-kalori" class="text-xs font-black text-blue-300">0 kcal</p>
         </div>
-        <div class="bg-emerald-500/20 rounded-xl p-1">
-          <p class="text-[7px] text-emerald-300 font-bold">PROTEIN</p>
+        <div class="bg-emerald-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-emerald-300 font-bold">PROTEIN</p>
           <p id="m-protein" class="text-xs font-black text-emerald-300">0g</p>
         </div>
-        <div class="bg-amber-500/20 rounded-xl p-1">
-          <p class="text-[7px] text-amber-300 font-bold">KARBO</p>
+        <div class="bg-amber-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-amber-300 font-bold">KARBO</p>
           <p id="m-karbo" class="text-xs font-black text-amber-300">0g</p>
         </div>
-        <div class="bg-red-500/20 rounded-xl p-1">
-          <p class="text-[7px] text-red-300 font-bold">LEMAK</p>
+        <div class="bg-red-500/20 rounded-xl p-1.5">
+          <p class="text-[8px] text-red-300 font-bold">LEMAK</p>
           <p id="m-lemak" class="text-xs font-black text-red-300">0g</p>
         </div>
       </div>
 
-      <div class="space-y-3 text-xs">
+      <div class="space-y-4 text-xs leading-relaxed">
         <div>
-          <p class="font-bold text-teal-300 uppercase text-[10px]">💚 Kesimpulan Gizi:</p>
-          <p id="m-sehat" class="text-slate-300 bg-white/5 p-2 rounded-xl mt-1">Memuat...</p>
+          <p class="font-bold text-teal-300 uppercase tracking-wide">💚 Kesimpulan Gizi:</p>
+          <p id="m-sehat" class="text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5 mt-1">Memuat...</p>
         </div>
         <div>
-          <p class="font-bold text-sky-300 uppercase text-[10px]">💡 Rekomendasi Porsi Mas Fuqohak:</p>
-          <p id="m-tips" class="text-slate-300 bg-white/5 p-2 rounded-xl mt-1">Memuat...</p>
+          <p class="font-bold text-sky-300 uppercase tracking-wide">💡 Rekomendasi Porsi Mas Fuqohak:</p>
+          <p id="m-tips" class="text-slate-300 bg-white/5 p-3 rounded-xl border border-white/5 mt-1">Memuat...</p>
         </div>
-        <div class="bg-black/40 p-2 rounded-xl italic text-center text-slate-300 text-[11px]">
+        <div class="bg-black/40 p-3 rounded-xl italic text-center text-slate-300 border border-white/10">
           <p id="m-bijak">"..."</p>
         </div>
       </div>
     </div>
-    <div class="space-y-2 mt-2 pt-2 border-t border-white/10">
-      <button onclick="simpanHasilLogMakanan()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl uppercase tracking-wider">SIMPAN KE JURNAL MASUK</button>
-      <button onclick="tutupModalHasil()" class="w-full bg-slate-800 text-slate-300 font-bold text-xs py-2.5 rounded-xl uppercase">BATAL</button>
+
+    <div class="space-y-2 mt-4 pt-4 border-t border-white/10">
+      <button onclick="simpanHasilLogMakanan()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition uppercase tracking-wider">SIMPAN KE JURNAL MASUK</button>
+      <button onclick="tutupModalHasil()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-3 rounded-xl active:scale-95 transition uppercase">BATAL / KELUAR</button>
     </div>
   </div>
 </div>
 
-<!-- CERAMAH MODAL -->
+<!-- MODAL POPUP JADWAL CERAMAH (SELAYAR PENUH) -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
-    <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
+    <div class="flex justify-around border-b border-white/10 pb-3 mb-4">
       <button onclick="pindahTabCeramah('lihat')" id="tab-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">LIHAT JADWAL</button>
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
-    <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
+
+    <!-- Konten Lihat Jadwal -->
+    <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-3 pr-1">
       <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
     </div>
-    <div id="konten-tambah-ceramah" class="hidden space-y-3">
+
+    <!-- Konten Tambah Jadwal -->
+    <div id="konten-tambah-ceramah" class="hidden space-y-4">
       <div>
-        <label class="text-[10px] text-slate-400 font-bold uppercase">Tema Ceramah</label>
-        <input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tema Ceramah</label>
+        <input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
       </div>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Tanggal</label>
-          <input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
+          <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Tanggal</label>
+          <input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
         </div>
         <div>
-          <label class="text-[10px] text-slate-400 font-bold uppercase">Waktu</label>
-          <input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
+          <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Waktu/Jam</label>
+          <input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
         </div>
       </div>
       <div>
-        <label class="text-[10px] text-slate-400 font-bold uppercase">Lokasi / Tempat</label>
-        <input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Lokasi / Tempat</label>
+        <input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1">
       </div>
-      <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN JADWAL</button>
+      <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition">SIMPAN JADWAL</button>
     </div>
-    <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl mt-3">TUTUP</button>
+
+    <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-xs py-3 rounded-xl mt-4 active:scale-95 transition">TUTUP HALAMAN</button>
+  </div>
+</div>
+
+<!-- MODAL POPUP TUGAS HARI INI (SELAYAR PENUH) -->
+<div id="tugas-modal" onclick="tutupModalTugas()">
+  <div class="full-modal-content" onclick="event.stopPropagation()">
+    <div class="flex justify-around border-b border-white/10 pb-3 mb-4">
+      <button onclick="pindahTabTugas('lihat')" id="tab-tugas-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">DAFTAR TUGAS</button>
+      <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
+    </div>
+
+    <!-- Konten Lihat Tugas -->
+    <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-3 pr-1">
+      <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>
+    </div>
+
+    <!-- Konten Tambah Tugas -->
+    <div id="konten-tambah-tugas" class="hidden space-y-4">
+      <div>
+        <label class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Deskripsi Tugas Baru</label>
+        <textarea id="t-deskripsi" rows="4" placeholder="Tuliskan detail tugas Mas Fuqohak di sini..." class="w-full bg-white/5 rounded-xl p-3 text-xs text-white focus:outline-none border border-white/10 mt-1 resize-none"></textarea>
+      </div>
+      <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl active:scale-95 transition">SIMPAN TUGAS</button>
+    </div>
+
+    <button onclick="tutupModalTugas()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-xs py-3 rounded-xl mt-4 active:scale-95 transition">TUTUP HALAMAN</button>
   </div>
 </div>
 
 <script>
+// PASTIKAN URL DI BAWAH INI ADALAH URL WEB APP AKUN UIN ANDA SETELAH DI-DEPLOY ULANG:
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 const KUMPULAN_TEMA = [
@@ -305,470 +322,21 @@ window.onload = async function(){
   tentukanKalenderDasar();
   terapkanSistemTema();
   evaluasiVisualModeMalam();
-  
-  muatDataDariOffline(); 
   await loadDashboard();
-  
-  window.addEventListener('online', prosesAntreanOffline);
-  window.addEventListener('offline', () => {
-    document.getElementById("offline-banner").classList.remove("hidden");
-  });
-  
-  if (navigator.onLine) {
-    await prosesAntreanOffline();
-  }
-
-  setInterval(async () => {
-    if (navigator.onLine) {
-      await loadDashboard();
-      await prosesAntreanOffline();
-    }
-  }, 15000);
 };
-
-function simpanKeAntreanOffline(aksi, payload) {
-  let antrean = JSON.parse(localStorage.getItem("offline_action_queue") || "[]");
-  antrean.push({ aksi, payload, timestamp: new Date().getTime() });
-  localStorage.setItem("offline_action_queue", JSON.stringify(antrean));
-  document.getElementById("offline-banner").classList.remove("hidden");
-}
-
-async function prosesAntreanOffline() {
-  if (!navigator.onLine) return;
-  let antrean = JSON.parse(localStorage.getItem("offline_action_queue") || "[]");
-  if (antrean.length === 0) {
-    document.getElementById("offline-banner").classList.add("hidden");
-    return;
-  }
-
-  let antreanSisa = [];
-
-  for (let item of antrean) {
-    try {
-      let res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ aksi: item.aksi, ...item.payload })
-      });
-      let json = await res.json();
-      if (json.status !== "success") {
-        antreanSisa.push(item);
-      }
-    } catch(err) {
-      antreanSisa.push(item);
-    }
-  }
-
-  localStorage.setItem("offline_action_queue", JSON.stringify(antreanSisa));
-  if (antreanSisa.length === 0) {
-    document.getElementById("offline-banner").classList.add("hidden");
-    await loadDashboard();
-  }
-}
-
-function muatDataDariOffline() {
-  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
-  if (cacheData) {
-    try {
-      renderDataKeLayar(JSON.parse(cacheData));
-    } catch(e) { console.error("Gagal membaca cache lokal:", e); }
-  }
-}
 
 function tentukanKalenderDasar() {
   const sekarang = new Date();
-  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'short' };
+  const opsiMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
   document.getElementById("date-masehi").innerText = sekarang.toLocaleDateString('id-ID', opsiMasehi);
-}
-
-async function loadDashboard() {
+  
   try {
-    const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 8000);
-
-    const res = await fetch(API_URL + "?api=1", { signal: controller.signal });
-    clearTimeout(idTimeout);
-    const json = await res.json();
-    
-    if (json.status === "success" && json.data) {
-      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
-      renderDataKeLayar(json.data);
-    }
-  } catch (e) {
-    muatDataDariOffline();
+    const opsiHijriah = { day: 'numeric', month: 'long', year: 'numeric' };
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', opsiHijriah);
+    document.getElementById("date-hijriah").innerText = formatterHijriah.format(sekarang) + " H";
+  } catch (e) { 
+    document.getElementById("date-hijriah").innerText = "12 Zulhijah 1447 H";
   }
-}
-
-function renderDataKeLayar(data) {
-  if (data["HIJRIAH_FIXED"]) {
-    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
-  }
-
-  const teksMoodAsli = data["MOOD_SCORE"]?.value || "🙂 STABIL";
-  let textMoodElement = document.getElementById("user-mood");
-  let textMustDoElement = document.getElementById("user-must-do");
-  
-  textMoodElement.innerText = teksMoodAsli;
-
-  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
-    textMoodElement.innerText = "😞 BURUK, PERLU PEMBENAHAN";
-    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
-    textMustDoElement.className = "text-[9px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
-  } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
-    textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
-    textMustDoElement.className = "text-[9px] font-black text-emerald-200 uppercase tracking-tight";
-  } else {
-    textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
-    textMustDoElement.className = "text-[9px] font-black text-rose-200 uppercase tracking-tight";
-  }
-
-  const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
-  const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
-  
-  document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
-  document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
-  
-  const totalPoinAktual = aktualJamaah + aktualMurojaah;
-  let persentaseSpiritual = (totalPoinAktual / 10) * 100;
-  if (persentaseSpiritual > 100) persentaseSpiritual = 100;
-  
-  const labelKonsistensi = document.getElementById("val-konsistensi");
-  labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
-
-  if (persentaseSpiritual >= 100) {
-    labelKonsistensi.className = "text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
-  } else if (persentaseSpiritual >= 50) {
-    labelKonsistensi.className = "text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
-  } else {
-    labelKonsistensi.className = "text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
-  }
-
-  document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
-  document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
-  document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-  document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-  document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
-  document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
-  
-  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tersisa";
-  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Agenda";
-  
-  if (data["MOTIVASI"]?.value) {
-    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
-  }
-  
-  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
-  document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
-
-  renderWidgetTugas(data["LIST_TUGAS"] || []);
-  loadWidgetCeramahLokal();
-}
-
-function renderWidgetTugas(listTugas) {
-  const container = document.getElementById("widget-list-tugas");
-  const badge = document.getElementById("badge-tugas");
-  
-  if (listTugas.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Semua tugas telah diselesaikan.</p>`;
-    badge.innerText = "0 Tersisa";
-    return;
-  }
-
-  badge.innerText = listTugas.length + " Tersisa";
-  container.innerHTML = "";
-  
-  listTugas.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl p-2 flex justify-between items-center transition";
-    div.innerHTML = `
-      <p class="text-[10px] text-slate-700 dark:text-white max-w-[280px] break-words font-semibold">${item.tugas}</p>
-      <button onclick="selesaikanTugasWidget(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[8px] px-2.5 py-1 rounded-lg uppercase tracking-wider">Selesai</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-async function tambahTugasQuick() {
-  const inputEl = document.getElementById("quick-tugas-input");
-  const tugasText = inputEl.value.trim();
-  if (!tugasText) return;
-
-  inputEl.value = "";
-  
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("tambahTugas", { tugas: tugasText });
-    alert("Offline: Tugas dimasukkan ke dalam antrean.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText })
-    });
-    if ((await res.json()).status === "success") {
-      await loadDashboard();
-    }
-  } catch(e) {
-    simpanKeAntreanOffline("tambahTugas", { tugas: tugasText });
-  }
-}
-
-async function selesaikanTugasWidget(rowId) {
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("selesaikanTugas", { rowId });
-    alert("Offline: Penyelesaian tugas disimpan di antrean.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ aksi: "selesaikanTugas", rowId })
-    });
-    if ((await res.json()).status === "success") {
-      await loadDashboard();
-    }
-  } catch(e) {
-    simpanKeAntreanOffline("selesaikanTugas", { rowId });
-  }
-}
-
-async function loadWidgetCeramahLokal() {
-  const container = document.getElementById("widget-list-ceramah");
-  const badge = document.getElementById("badge-ceramah");
-  
-  if (!navigator.onLine) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Mode offline aktif (tidak memuat data baru).</p>`;
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
-    const resJson = await res.json();
-    if (resJson.status === "success") {
-      container.innerHTML = "";
-      const list = resJson.data || [];
-      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
-      
-      badge.innerText = belumSelesai.length + " Agenda";
-      
-      if (belumSelesai.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2 italic">Belum ada agenda ceramah.</p>`;
-        return;
-      }
-
-      belumSelesai.slice(0, 3).forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-slate-100 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-xl p-2 flex justify-between items-center";
-        div.innerHTML = `
-          <div class="max-w-[280px]">
-            <p class="text-[10px] font-black text-slate-800 dark:text-white truncate">${item.tema}</p>
-            <p class="text-[8px] text-slate-400 font-bold">${item.tanggal} - Pkl ${item.jam}</p>
-            <p class="text-[8px] text-slate-500 dark:text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
-          </div>
-          <button onclick="selesaikanJadwalCeramahWidget(${item.rowId})" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[8px] px-2.5 py-1 rounded-lg uppercase tracking-wider">Selesai</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-  } catch(e) {
-    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-2">Koneksi terhambat.</p>`;
-  }
-}
-
-async function selesaikanJadwalCeramahWidget(rowId) {
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("selesaikanCeramah", { rowId });
-    alert("Offline: Penyelesaian jadwal ceramah disimpan.");
-    return;
-  }
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) });
-    if ((await res.json()).status === "success") { 
-      await loadDashboard(); 
-    }
-  } catch(e) {
-    simpanKeAntreanOffline("selesaikanCeramah", { rowId });
-  }
-}
-
-async function tambahAir(){
-  let airElement = document.getElementById("val-air");
-  let airSekarang = Number(airElement.innerText);
-  airElement.innerText = airSekarang + 1;
-
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("catatMinum", { jumlahL: 1 });
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
-    });
-    if((await res.json()).status === "success") { 
-      await loadDashboard(); 
-    }
-  } catch(e) { 
-    simpanKeAntreanOffline("catatMinum", { jumlahL: 1 });
-  }
-}
-
-function handleFileSelect(input){
-  const file = input.files[0]; if(!file) return;
-  document.getElementById('icon-cam').classList.add('hidden');
-  document.getElementById('text-cam').innerText = "AI Menganalisa Porsi Makanan...";
-  document.getElementById('loader-cam').classList.remove('hidden');
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    fetch(API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ aksi: "uploadFile", base64Data: e.target.result, fileName: file.name }) 
-    })
-    .then(res => res.json())
-    .then(response => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (AI Scan)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      
-      // VERSI PERBAIKAN: Menampilkan pesan error asli dari server Google Apps Script jika terjadi kegagalan
-      if (response && response.status === "success") {
-        dataAnalisaMakanTerakhir = response; 
-        const ai = response.data || {};
-        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan") + " (" + (ai.minuman || "Air") + ")";
-        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
-        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
-        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
-        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
-        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g";
-        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi OK.";
-        document.getElementById("m-tips").innerText = ai.tips || "Siap.";
-        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Sehat selalu.'}"`;
-        document.getElementById("ai-result-modal").style.display = "flex";
-      } else { 
-        alert("Gagal Memproses Gambar: " + (response.message || "Respon server tidak valid.")); 
-      }
-    })
-    .catch((err) => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (AI Scan)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      alert("Gagal menghubungkan ke Apps Script: " + err.toString());
-    });
-  };
-  reader.readAsDataURL(file);
-}
-
-async function simpanHasilLogMakanan() {
-  if (!dataAnalisaMakanTerakhir || !dataAnalisaMakanTerakhir.data) { alert("Data tidak ditemukan."); return; }
-  const dataPayload = dataAnalisaMakanTerakhir.data;
-  const kaloriPayload = dataAnalisaMakanTerakhir.totalCal || dataAnalisaMakanTerakhir.data.kalori || 0;
-  tutupModalHasil();
-  
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("catatMakanan", { data: dataPayload, totalCal: Number(kaloriPayload) });
-    alert("Offline: Log gizi disimpan dalam antrean.");
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ aksi: "catatMakanan", data: dataPayload, totalCal: Number(kaloriPayload) })
-    });
-    if((await res.json()).status === "success") { 
-      alert("Log nutrisi sukses dicatat!"); 
-      await loadDashboard(); 
-    }
-  } catch(e) { 
-    simpanKeAntreanOffline("catatMakanan", { data: dataPayload, totalCal: Number(kaloriPayload) });
-  }
-}
-
-function tutupModalHasil() { document.getElementById("ai-result-modal").style.display = "none"; }
-function bukaModalCeramah() { document.getElementById("ceramah-modal").style.display = "flex"; pindahTabCeramah('lihat'); }
-function tutupModalCeramah() { document.getElementById("ceramah-modal").style.display = "none"; }
-
-function pindahTabCeramah(tab) {
-  const tabLihat = document.getElementById("tab-lihat");
-  const tabTambah = document.getElementById("tab-tambah");
-  const kontenLihat = document.getElementById("konten-lihat-ceramah");
-  const kontenTambah = document.getElementById("konten-tambah-ceramah");
-  if (tab === 'lihat') {
-    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenLihat.classList.remove("hidden");
-    kontenTambah.classList.add("hidden");
-    loadDaftarCeramahModal();
-  } else {
-    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenTambah.classList.remove("hidden");
-    kontenLihat.classList.add("hidden");
-  }
-}
-
-async function loadDaftarCeramahModal() {
-  const container = document.getElementById("konten-lihat-ceramah");
-  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>`;
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
-    const resJson = await res.json();
-    if (resJson.status === "success") {
-      container.innerHTML = "";
-      const list = resJson.data || [];
-      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
-      if (belumSelesai.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah.</p>`;
-        return;
-      }
-      belumSelesai.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-        div.innerHTML = `
-          <div class="max-w-[200px]">
-            <p class="text-xs font-black text-white truncate">${item.tema}</p>
-            <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
-            <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
-          </div>
-          <button onclick="selesaikanJadwalCeramahWidget(${item.rowId}); tutupModalCeramah();" class="bg-blue-600 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Koneksi Error.</p>`; }
-}
-
-async function simpanJadwalCeramah() {
-  const tema = document.getElementById("c-tema").value.trim();
-  const tanggal = document.getElementById("c-tanggal").value;
-  const jam = document.getElementById("c-jam").value;
-  const tempat = document.getElementById("c-tempat").value.trim();
-  if(!tema || !tanggal || !jam || !tempat) { alert("Harap isi seluruh formulir!"); return; }
-  
-  if (!navigator.onLine) {
-    simpanKeAntreanOffline("tambahCeramah", { tema, tanggal, jam, tempat });
-    alert("Offline: Jadwal ceramah disimpan dalam antrean.");
-    tutupModalCeramah();
-    return;
-  }
-
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) });
-    if ((await res.json()).status === "success") {
-      tutupModalCeramah();
-      await loadDashboard();
-    }
-  } catch(e) { 
-    simpanKeAntreanOffline("tambahCeramah", { tema, tanggal, jam, tempat });
-  }
-}
-
-function terapkanSistemTema() {
-  const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
-  document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
 }
 
 function switchModeSiangMalam() {
@@ -779,23 +347,452 @@ function switchModeSiangMalam() {
 
 function evaluasiVisualModeMalam() {
   const app = document.getElementById("main-app");
-  const listKartu = document.querySelectorAll(".glass-card");
-  if (modeMalamManual) {
-    app.classList.add("dark-mode-bg");
-    document.getElementById("time-indicator").innerText = "🌙";
-    listKartu.forEach(k => k.classList.add("dark-card"));
+  const indicator = document.getElementById("time-indicator");
+  const listCard = ["card-kalori", "card-out", "card-air", "card-hp", "card-todolist", "card-menulis", "card-shalat", "card-ceramah"];
+  
+  if(modeMalamManual) {
+    indicator.innerText = "🌙"; app.classList.add("dark-mode-bg");
+    listCard.forEach(id => document.getElementById(id)?.classList.add("dark-card"));
   } else {
-    app.classList.remove("dark-mode-bg");
-    document.getElementById("time-indicator").innerText = "☀️";
-    listKartu.forEach(k => k.classList.remove("dark-card"));
+    indicator.innerText = "☀️"; app.classList.remove("dark-mode-bg");
+    listCard.forEach(id => document.getElementById(id)?.classList.remove("dark-card"));
+  }
+}
+
+function terapkanSistemTema() {
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  const savedTheme = localStorage.getItem("user_theme");
+  if (isLocked && savedTheme) {
+    document.getElementById("header-gradient").style.background = savedTheme;
+    document.getElementById("lock-icon").innerText = "🔒";
+  } else {
+    const indeksAcak = Math.floor(Math.random() * KUMPULAN_TEMA.length);
+    const temaPilihan = KUMPULAN_TEMA[indeksAcak];
+    document.getElementById("header-gradient").style.background = temaPilihan;
+    localStorage.setItem("user_theme", temaPilihan);
+    document.getElementById("lock-icon").innerText = "🔓";
   }
 }
 
 function toggleThemeLock() {
-  let saatIni = Number(localStorage.getItem("pilihan_index_tema") || "0");
-  saatIni = (saatIni + 1) % KUMPULAN_TEMA.length;
-  localStorage.setItem("pilihan_index_tema", saatIni);
-  terapkanSistemTema();
+  const isLocked = localStorage.getItem("theme_locked") === "true";
+  if(isLocked) {
+    localStorage.setItem("theme_locked", "false"); document.getElementById("lock-icon").innerText = "🔓";
+  } else {
+    localStorage.setItem("theme_locked", "true"); document.getElementById("lock-icon").innerText = "🔒";
+  }
+}
+
+function prosesKalkulasiMoodIFS(persen) {
+  const textMood = document.getElementById("user-mood");
+  const textMustDo = document.getElementById("user-must-do");
+  
+  if(persen < 20) {
+    textMood.innerText = "😞 BURUK, AYO BERBENAH?";
+    textMustDo.innerText = "HARUS: Evaluasi Diri & Istighfar";
+  } else if(persen < 40) {
+    textMood.innerText = "😴 LELAH, ISTIRAHAT YA!";
+    textMustDo.innerText = "HARUS: Tidur Cepat / Rehat Total";
+  } else if(persen < 60) {
+    textMood.innerText = "🙂 STABIL, AYO LEBIH KUAT!";
+    textMustDo.innerText = "HARUS: Jalan Kaki & Minum Air Putih";
+  } else if(persen < 80) {
+    textMood.innerText = "🔥 SEMANGAT, ISTIQOMAH KAK!";
+    textMustDo.innerText = "HARUS: Lanjutkan Kerja & Sedekah";
+  } else {
+    textMood.innerText = "🚀 OPTIMAL, SEMOGA BERKAH!";
+    textMustDo.innerText = "HARUS: Pertahankan Pola Maksimal";
+  }
+}
+
+async function loadDashboard(){
+  try {
+    const res = await fetch(API_URL + "?api=1"); const json = await res.json();
+    if (json.status === "success" || json.data) {
+      const data = json.data;
+      if(data["MOTIVASI"] && data["MOTIVASI"].value) document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+      
+      const scoreC9 = Number(data["MOOD_SCORE"]?.value || 0);
+      prosesKalkulasiMoodIFS(scoreC9);
+
+      // Memuat nilai kalori masuk dan keluar
+      const kaloriMasuk = Number(data["KALORI MASUK"]?.value || 0);
+      document.getElementById("val-kalori").innerText = kaloriMasuk;
+      document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
+      
+      const totalGelasBaku = data["MINUM AIR"]?.value || 0;
+      document.getElementById("val-air").innerText = Math.floor(totalGelasBaku);
+      
+      document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+      document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + "M";
+      document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/5";
+      document.getElementById("val-murojaah").innerText = data["MUROJAAH"]?.value || 0;
+      document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
+      document.getElementById("val-konsistensi").innerText = scoreC9.toFixed(0) + "%";
+
+      // Badges Update
+      const countCeramah = Number(data["CERAMAH_COUNT"] || 0);
+      document.getElementById("badge-ceramah").innerText = `${countCeramah} Belum Terlaksana`;
+
+      const countTugas = Number(data["TUGAS_COUNT"] || 0);
+      document.getElementById("badge-tugas").innerText = `${countTugas} Tugas Tersisa`;
+
+      const targetKaloriD1 = Number(data["TARGET_KALORI_IN"]?.value || 2000); 
+      const persenBar = (kaloriMasuk / targetKaloriD1) * 100;
+      document.getElementById("bar-kalori").style.width = Math.min(persenBar, 100) + "%";
+    }
+  } catch(err) { console.error(err); }
+}
+
+async function tambahAir(){
+  let airElement = document.getElementById("val-air");
+  let airSekarang = Number(airElement.innerText);
+  airElement.innerText = airSekarang + 1;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "catatMinum",
+        jumlahL: 0.6
+      })
+    });
+    
+    const hasil = await res.json();
+    if(hasil.status === "success") {
+      await loadDashboard();
+    }
+  } catch(e) {
+    console.error("Koneksi gagal saat mencatat minum air:", e);
+  }
+}
+
+function handleFileSelect(input){
+  const file = input.files[0]; if(!file) return;
+
+  document.getElementById('icon-cam').classList.add('hidden');
+  document.getElementById('text-cam').innerText = "AI Menganalisa Makanan & Minuman...";
+  document.getElementById('loader-cam').classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64DataUnyil = e.target.result;
+
+    fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ 
+        aksi: "uploadFile", 
+        base64Data: base64DataUnyil, 
+        fileName: file.name 
+      }) 
+    })
+    .then(res => res.json())
+    .then(response => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
+      
+      if (response && response.status === "success") {
+        dataAnalisaMakanTerakhir = response;
+        const ai = response.data || {};
+        
+        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
+        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
+        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
+        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
+        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
+        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g"; // Parsing Lemak Aktif
+        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
+        document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
+        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
+        
+        document.getElementById("ai-result-modal").style.display = "flex";
+      } else {
+        alert("Gagal membaca respons: " + (response.message || "Error"));
+      }
+    })
+    .catch((err) => {
+      document.getElementById('icon-cam').classList.remove('hidden');
+      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+      document.getElementById('loader-cam').classList.add('hidden');
+      alert("Proses pencatatan selesai dilaksanakan.");
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+async function simpanHasilLogMakanan() {
+  if (!dataAnalisaMakanTerakhir) return;
+  tutupModalHasil();
+  
+  document.getElementById('icon-cam').classList.add('hidden');
+  document.getElementById('text-cam').innerText = "Menyimpan ke Spreadsheet...";
+  document.getElementById('loader-cam').classList.remove('hidden');
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "catatMakanan",
+        data: dataAnalisaMakanTerakhir.data,
+        totalCal: dataAnalisaMakanTerakhir.totalCal
+      })
+    });
+    const response = await res.json();
+    if(response.status === "success") {
+      alert("Data berhasil dicatatkan!");
+      await loadDashboard();
+    } else {
+      alert("Gagal menyimpan: " + response.message);
+    }
+  } catch(e) {
+    alert("Koneksi gagal saat menyimpan.");
+  } finally {
+    document.getElementById('icon-cam').classList.remove('hidden');
+    document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+    document.getElementById('loader-cam').classList.add('hidden');
+    dataAnalisaMakanTerakhir = null;
+  }
+}
+
+function tutupModalHasil() {
+  document.getElementById("ai-result-modal").style.display = "none";
+  dataAnalisaMakanTerakhir = null;
+}
+
+// JADWAL CERAMAH MODAL LOGIC
+function bukaModalCeramah() {
+  document.getElementById("ceramah-modal").style.display = "flex";
+  pindahTabCeramah('lihat');
+}
+
+function tutupModalCeramah() {
+  document.getElementById("ceramah-modal").style.display = "none";
+}
+
+function pindahTabCeramah(tab) {
+  const tabLihat = document.getElementById("tab-lihat");
+  const tabTambah = document.getElementById("tab-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-ceramah");
+  const kontenTambah = document.getElementById("konten-tambah-ceramah");
+
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarCeramah();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarCeramah() {
+  const container = document.getElementById("konten-lihat-ceramah");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>`;
+
+  try {
+    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
+    const resJson = await res.json();
+    
+    if (resJson.status === "success") {
+      container.innerHTML = "";
+      const list = resJson.data || [];
+      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
+      
+      if (belumSelesai.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah yang terdaftar.</p>`;
+        return;
+      }
+
+      belumSelesai.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center";
+        div.innerHTML = `
+          <div class="max-w-[180px]">
+            <p class="text-xs font-black text-white truncate">${item.tema}</p>
+            <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
+            <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
+          </div>
+          <button onclick="selesaikanJadwalCeramah(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition active:scale-95">✓ SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Gagal memuat jadwal.</p>`;
+    }
+  } catch(e) {
+    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Terjadi masalah koneksi.</p>`;
+  }
+}
+
+async function simpanJadwalCeramah() {
+  const tema = document.getElementById("c-tema").value.trim();
+  const tanggal = document.getElementById("c-tanggal").value;
+  const jam = document.getElementById("c-jam").value;
+  const tempat = document.getElementById("c-tempat").value.trim();
+
+  if (!tema || !tanggal || !jam || !tempat) {
+    alert("Mohon lengkapi semua data ceramah!");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "tambahCeramah",
+        tema: tema,
+        tanggal: tanggal,
+        jam: jam,
+        tempat: tempat
+      })
+    });
+    
+    if ((await res.json()).status === "success") {
+      document.getElementById("c-tema").value = "";
+      document.getElementById("c-tanggal").value = "";
+      document.getElementById("c-jam").value = "";
+      document.getElementById("c-tempat").value = "";
+      alert("Agenda ceramah berhasil ditambahkan!");
+      pindahTabCeramah('lihat');
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal menyimpan agenda ceramah.");
+  }
+}
+
+async function selesaikanJadwalCeramah(rowId) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "selesaikanCeramah",
+        rowId: rowId
+      })
+    });
+    if ((await res.json()).status === "success") {
+      await loadDaftarCeramah();
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal merubah status agenda.");
+  }
+}
+
+// TUGAS HARI INI MODAL LOGIC (SELAYAR PENUH)
+function bukaModalTugas() {
+  document.getElementById("tugas-modal").style.display = "flex";
+  pindahTabTugas('lihat');
+}
+
+function tutupModalTugas() {
+  document.getElementById("tugas-modal").style.display = "none";
+}
+
+function pindahTabTugas(tab) {
+  const tabLihat = document.getElementById("tab-tugas-lihat");
+  const tabTambah = document.getElementById("tab-tugas-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-tugas");
+  const kontenTambah = document.getElementById("konten-tambah-tugas");
+
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    loadDaftarTugasModal();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+async function loadDaftarTugasModal() {
+  const container = document.getElementById("konten-lihat-tugas");
+  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>`;
+
+  try {
+    const res = await fetch(API_URL + "?api=1");
+    const json = await res.json();
+    
+    if (json.status === "success" || json.data) {
+      container.innerHTML = "";
+      const list = json.data.LIST_TUGAS || [];
+      
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas hari ini telah diselesaikan!</p>`;
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex justify-between items-center";
+        div.innerHTML = `
+          <div class="max-w-[200px]">
+            <p class="text-xs font-bold text-white">${item.tugas}</p>
+          </div>
+          <button onclick="selesaikanTugasModal(${item.rowId})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[9px] px-2.5 py-1.5 rounded-lg transition active:scale-95">✓ SELESAI</button>
+        `;
+        container.appendChild(div);
+      });
+    } else {
+      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Gagal memuat tugas.</p>`;
+    }
+  } catch(e) {
+    container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4 italic">Terjadi masalah koneksi.</p>`;
+  }
+}
+
+async function simpanTugasBaruDariModal() {
+  const tugasText = document.getElementById("t-deskripsi").value.trim();
+  if(!tugasText) {
+    alert("Mohon ketikkan deskripsi tugas terlebih dahulu.");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "tambahTugas",
+        tugas: tugasText
+      })
+    });
+    
+    if ((await res.json()).status === "success") {
+      document.getElementById("t-deskripsi").value = "";
+      alert("Tugas berhasil ditambahkan!");
+      pindahTabTugas('lihat');
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal menambahkan tugas.");
+  }
+}
+
+async function selesaikanTugasModal(rowId) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        aksi: "selesaikanTugas",
+        rowId: rowId
+      })
+    });
+    if ((await res.json()).status === "success") {
+      await loadDaftarTugasModal();
+      await loadDashboard();
+    }
+  } catch(e) {
+    alert("Gagal merubah status tugas.");
+  }
 }
 </script>
 </body>
