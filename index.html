@@ -471,54 +471,91 @@ function handleFileSelect(input){
   const file = input.files[0]; if(!file) return;
 
   document.getElementById('icon-cam').classList.add('hidden');
-  document.getElementById('text-cam').innerText = "AI Menganalisa Makanan & Minuman...";
+  document.getElementById('text-cam').innerText = "Mengompres Gambar...";
   document.getElementById('loader-cam').classList.remove('hidden');
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const base64DataUnyil = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      // Setup canvas untuk kompresi
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
 
-    fetch(API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ 
-        aksi: "uploadFile", 
-        base64Data: base64DataUnyil, 
-        fileName: file.name 
-      }) 
-    })
-    .then(res => res.json())
-    .then(response => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      
-      if (response && response.status === "success") {
-        dataAnalisaMakanTerakhir = response;
-        const ai = response.data || {};
-        
-        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
-        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
-        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
-        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
-        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
-        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g"; // Parsing Lemak Aktif
-        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
-        document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
-        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
-        
-        document.getElementById("ai-result-modal").style.display = "flex";
+      // Batasi resolusi maksimal ke 800px pada sisi terpanjang
+      const max_size = 800;
+      if (width > height) {
+        if (width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        }
       } else {
-        alert("Gagal membaca respons: " + (response.message || "Error"));
+        if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
       }
-    })
-    .catch((err) => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      alert("Proses pencatatan selesai dilaksanakan.");
-    });
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Konversi ke format JPEG dengan kualitas 0.7 (70%)
+      const base64Compressed = canvas.toDataURL('image/jpeg', 0.7);
+
+      // Kirim data yang sudah dikompresi ke backend
+      kirimKeBackend(base64Compressed, file.name);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+// Fungsi pembantu untuk mengirim data setelah proses kompresi selesai
+function kirimKeBackend(base64Data, fileName) {
+  document.getElementById('text-cam').innerText = "AI Menganalisa Makanan & Minuman...";
+  
+  fetch(API_URL, { 
+    method: "POST", 
+    body: JSON.stringify({ 
+      aksi: "uploadFile", 
+      base64Data: base64Data, 
+      fileName: fileName 
+    }) 
+  })
+  .then(res => res.json())
+  .then(response => {
+    document.getElementById('icon-cam').classList.remove('hidden');
+    document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+    document.getElementById('loader-cam').classList.add('hidden');
+    
+    if (response && response.status === "success") {
+      dataAnalisaMakanTerakhir = response;
+      const ai = response.data || {};
+      
+      document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan Terdeteksi") + " (" + (ai.minuman || "Air") + ")";
+      document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
+      document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
+      document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
+      document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
+      document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g";
+      document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi seimbang.";
+      document.getElementById("m-tips").innerText = ai.tips || "Tetap pantau porsi makan.";
+      document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Kesehatan adalah aset utama.'}"`;
+      
+      document.getElementById("ai-result-modal").style.display = "flex";
+    } else {
+      alert("Gagal membaca respons: " + (response.message || "Error"));
+    }
+  })
+  .catch((err) => {
+    document.getElementById('icon-cam').classList.remove('hidden');
+    document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
+    document.getElementById('loader-cam').classList.add('hidden');
+    alert("Terjadi kesalahan koneksi saat mengirim data ke server.");
+  });
 }
 
 async function simpanHasilLogMakanan() {
