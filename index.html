@@ -78,7 +78,7 @@
     </div>
 
     <div class="glass-card p-2.5 rounded-2xl shadow-sm flex flex-col justify-between" id="card-out">
-      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🏃♂️ Kalori Out</p>
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
       <div class="flex items-baseline gap-0.5 text-amber-600">
         <h2 class="text-lg font-extrabold" id="val-kalori-keluar">0</h2>
         <span class="text-[8px] font-bold">kcal</span>
@@ -159,13 +159,12 @@
     </div>
   </div>
 
-  <div class="relative mt-2 shrink-0">
-    <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onchange="handleFileSelect(this)" accept="image/*" capture="environment">
-    <div id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
-      <span id="icon-cam" class="text-sm">📸</span>
-      <span id="text-cam" class="font-black text-[10px] tracking-wide">Ambil Foto Makanan (Kamera HP)</span>
-      <div id="loader-cam" class="loader rounded-full border-2 border-slate-500 h-3 w-3 hidden"></div>
-    </div>
+  <!-- BAGIAN TOMBOL KAMERA YANG DIUBAH MENJADI REDIRECT KE makanan.html -->
+  <div class="mt-2 shrink-0">
+    <a href="makanan.html" id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
+      <span class="text-sm">📸</span>
+      <span class="font-black text-[10px] tracking-wide">Ambil Foto Makanan (Kamera HP)</span>
+    </a>
   </div>
 
 </div>
@@ -411,49 +410,6 @@ async function tambahAir(){
     });
     if((await res.json()).status === "success") { await loadDashboard(); }
   } catch(e) { console.error("Gagal tambah air:", e); }
-}
-
-function handleFileSelect(input){
-  const file = input.files[0]; if(!file) return;
-  document.getElementById('icon-cam').classList.add('hidden');
-  document.getElementById('text-cam').innerText = "AI Menganalisa Porsi Makanan...";
-  document.getElementById('loader-cam').classList.remove('hidden');
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    fetch(API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ aksi: "uploadFile", base64Data: e.target.result, fileName: file.name }) 
-    })
-    .then(res => res.json())
-    .then(response => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      
-      if (response && response.status === "success") {
-        dataAnalisaMakanTerakhir = response; 
-        const ai = response.data || {};
-        document.getElementById("modal-title-makanan").innerText = (ai.makanan || "Makanan") + " (" + (ai.minuman || "Air") + ")";
-        document.getElementById("m-gram").innerText = (ai.gram || 0) + "g";
-        document.getElementById("m-kalori").innerText = (response.totalCal || ai.kalori || 0) + " kcal";
-        document.getElementById("m-protein").innerText = (ai.protein || 0) + "g";
-        document.getElementById("m-karbo").innerText = (ai.karbo || 0) + "g";
-        document.getElementById("m-lemak").innerText = (ai.lemak || 0) + "g";
-        document.getElementById("m-sehat").innerText = ai.sehat_gak || "Nutrisi OK.";
-        document.getElementById("m-tips").innerText = ai.tips || "Siap.";
-        document.getElementById("m-bijak").innerText = `"${ai.bijak || 'Sehat selalu.'}"`;
-        document.getElementById("ai-result-modal").style.display = "flex";
-      } else { alert("AI gagal merespons."); }
-    })
-    .catch(() => {
-      document.getElementById('icon-cam').classList.remove('hidden');
-      document.getElementById('text-cam').innerText = "Ambil Foto Makanan (Kamera HP)";
-      document.getElementById('loader-cam').classList.add('hidden');
-      alert("Error Server AI.");
-    });
-  };
-  reader.readAsDataURL(file);
 }
 
 async function simpanHasilLogMakanan() {
