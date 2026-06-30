@@ -661,35 +661,55 @@ async function panggilAnalisisRutinitasAI() {
       let rawText = result.nasehat;
       let advices = [];
 
-      // SYSTEM PARSING ANTI-MACET (ROBUST FALLBACK)
+      // 1. Coba potong menggunakan pemisah standar '|||'
       if (rawText.includes("|||")) {
-        // Metode 1: Menggunakan pemisah standar '|||'
         advices = rawText.split("|||");
-      } else if (/\n?\d+[\.\)]\s+/.test(rawText)) {
-        // Metode 2: Jika AI menggunakan format angka seperti 1., 2., atau 1), 2)
-        advices = rawText.split(/\n?\d+[\.\)]\s+/).filter(Boolean);
-      } else if (rawText.includes("\n\n")) {
-        // Metode 3: Jika AI memisahkan dengan jeda baris kosong ganda
-        advices = rawText.split(/\n\n+/).filter(Boolean);
-      } else {
-        // Metode 4: Jika hanya berupa satu paragraf panjang, bagi otomatis per 2-3 kalimat
-        const sentences = rawText.match(/[^.!?]+[.!?]+/g) || [rawText];
+      } 
+      // 2. Coba potong menggunakan penomoran angka (1., 2.)
+      else if (/\n?\d+[\.\)]\s+/.test(rawText)) {
+        advices = rawText.split(/\n?\d+[\.\)]\s+/);
+      } 
+      // 3. Coba potong berdasarkan paragraf (jeda baris)
+      else if (rawText.includes("\n\n") || rawText.includes("\n")) {
+        advices = rawText.split(/\n+/);
+      }
+
+      // Bersihkan elemen kosong
+      advices = advices.map(s => s.trim()).filter(s => s.length > 5);
+
+      // 4. METODE PENYELAMAT (SANGAT ROBUST): Jika masih terdeteksi 1 slide saja
+      if (advices.length <= 1) {
+        // Paksa potong berdasarkan tanda baca koma, titik, tanda seru, atau tanda tanya
+        const potongan = rawText.split(/[\.,\!?]\s+/);
         let tempSegment = "";
-        for (let i = 0; i < sentences.length; i++) {
-          tempSegment += sentences[i] + " ";
-          if ((i + 1) % 3 === 0 || i === sentences.length - 1) {
+        advices = [];
+        
+        for (let i = 0; i < potongan.length; i++) {
+          tempSegment += potongan[i] + ". ";
+          // Gabungkan setiap 2 klausa/kalimat pendek menjadi 1 slide agar tidak terlalu pendek
+          if ((i + 1) % 2 === 0 || i === potongan.length - 1) {
             advices.push(tempSegment.trim());
             tempSegment = "";
           }
         }
       }
 
-      // Bersihkan teks dari sisa-sisa karakter markdown
+      // 5. METODE PENYELAMAT AKHIR: Jika masih tetap 1 slide karena tidak ada tanda baca sama sekali, potong paksa per 150 karakter
+      if (advices.length <= 1 && rawText.length > 150) {
+        advices = [];
+        let index = 0;
+        while (index < rawText.length) {
+          advices.push(rawText.substring(index, index + 150) + "...");
+          index += 150;
+        }
+      }
+
+      // Bersihkan sisa-sisa karakter markdown (* atau #)
       localAiAdvices = advices.map(item => {
-        return item.replace(/[\*\#_]/g, '') 
-                   .replace(/^[-\*\s•\d\.\)]+/, '') 
+        return item.replace(/[\*\#_]/g, '')
+                   .replace(/^[-\*\s•\d\.\)]+/, '')
                    .trim();
-      }).filter(item => item.length > 5);
+      }).filter(item => item.length > 3);
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
@@ -700,13 +720,13 @@ async function panggilAnalisisRutinitasAI() {
         
         if (aiRotationInterval) clearInterval(aiRotationInterval);
         
-        // AUTO-ROTATE SETIAP 12 DETIK SECARA LOKAL
+        // JALANKAN ROTASI OTOMATIS SECARA BERKALA
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
         }, 12000);
       } else {
-        throw new Error("Hasil parsing nasehat kosong");
+        throw new Error("Gagal membagi nasehat.");
       }
     } else {
       throw new Error();
@@ -717,15 +737,21 @@ async function panggilAnalisisRutinitasAI() {
   }
 }
 
-// ANIMASI ROTASI TRANSPARAN LOKAL
+// ANIMASI ROTASI TRANSPARAN LOKAL (ANTI-BENTROK KELAS CSS)
 async function tampilkanNasehatAktif() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
+  // Sembunyikan teks secara halus dengan menghapus opacity-100 terlebih dahulu
+  teksEl.classList.remove("opacity-100");
   teksEl.classList.add("opacity-0");
-  await new Promise(r => setTimeout(r, 200));
   
+  // Berikan waktu tunda (delay) untuk transisi CSS memudar keluar
+  await new Promise(r => setTimeout(r, 400));
+  
+  // Ganti konten teks ke indeks berikutnya
   teksEl.innerText = localAiAdvices[currentAdviceIndex];
   
+  // Tampilkan kembali teks secara halus dengan menghapus opacity-0
   teksEl.classList.remove("opacity-0");
   teksEl.classList.add("opacity-100");
 }
