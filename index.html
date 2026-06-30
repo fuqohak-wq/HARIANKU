@@ -6,7 +6,7 @@
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; overflow: hidden; }
     .app-container { width: 100%; max-width: 480px; height: 100vh; background: #f8fafc; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; overflow-y: auto; position: relative; }
@@ -18,7 +18,7 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
-    #ai-result-modal, #ceramah-modal, #tugas-modal { 
+    #ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal { 
       display: none; 
       position: fixed; 
       inset: 0; 
@@ -139,6 +139,7 @@
     </div>
   </div>
 
+  <!-- AMALAN / AGENDA TRIGGER DENGAN NILAI INSTAN -->
   <div onclick="bukaModalCeramah()" class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-ceramah">
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5">
@@ -159,7 +160,7 @@
     </div>
   </div>
 
-  <!-- BAGIAN GRAFIK RIWAYAT BARU (DI ANTARA TUGAS DAN KAMERA) -->
+  <!-- GRAFIK TREND MOOD -->
   <div class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 flex flex-col justify-between" id="card-grafik-riwayat">
     <div class="flex justify-between items-center mb-1">
       <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">📈 Riwayat Tren Mood & Produktivitas</span>
@@ -167,7 +168,7 @@
     </div>
     <div id="container-grafik" class="h-16 w-full relative flex items-end justify-between px-1">
       <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
-        <!-- SVG Line chart digambar dinamis di sini -->
+        <!-- SVG Line chart digambar dinamis -->
       </svg>
     </div>
     <div id="label-grafik-tanggal" class="flex justify-between text-[7.5px] text-slate-400 font-bold mt-1 px-1">
@@ -175,11 +176,44 @@
     </div>
   </div>
 
-  <!-- BAGIAN TOMBOL KAMERA -->
+  <!-- [NEW] CARD REKOMENDASI RUTINITAS HARIAN OLEH AI (OPENROUTER) -->
+  <div class="glass-card p-3 rounded-2xl shadow-sm mt-0.5 flex flex-col justify-between" id="card-rekomendasi-ai">
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🤖 ARAHAN AKTIVITAS SEKARANG (AI)</span>
+      <span class="text-[7px] font-black bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full tracking-wide">OPENROUTER</span>
+    </div>
+    <div id="ai-rutinitas-loading" class="py-1 text-[10px] text-slate-500 font-semibold italic flex items-center gap-1.5">
+      <div class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></div>
+      Mempelajari jadwal rutinitas harian Anda...
+    </div>
+    <p id="ai-rutinitas-teks" class="text-[10px] text-slate-700 dark:text-slate-200 font-semibold leading-relaxed hidden">
+      Menunggu koordinasi satelit...
+    </p>
+  </div>
+
+  <!-- [NEW] CARD LAPORAN KEUANGAN GLOBAL -->
+  <div onclick="bukaModalKeuangan()" class="glass-card p-3 rounded-2xl shadow-sm mt-0.5 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-keuangan">
+    <div class="flex justify-between items-center mb-1.5">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">💰 Dompet Finansial</span>
+      <span class="text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full animate-pulse">SINKRON</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-blue-500/5 dark:bg-white/5 p-2 rounded-xl border border-slate-200/50 dark:border-white/5">
+        <p class="text-[7px] font-extrabold text-slate-400 uppercase">Uang Saya Sekarang</p>
+        <p id="keuangan-saldo" class="text-xs font-black text-slate-800 dark:text-slate-100">Rp 0</p>
+      </div>
+      <div class="bg-rose-500/5 dark:bg-white/5 p-2 rounded-xl border border-slate-200/50 dark:border-white/5">
+        <p class="text-[7px] font-extrabold text-slate-400 uppercase">Pengeluaran Bulan Ini</p>
+        <p id="keuangan-pengeluaran" class="text-xs font-black text-rose-600 dark:text-rose-400">Rp 0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOMBOL ALAT SCAN MAKANAN -->
   <div class="mt-2 shrink-0">
     <a href="makanan.html" id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
       <span class="text-sm">📸</span>
-      <span class="font-black text-[10px] tracking-wide">Ambil Foto Makanan (Kamera HP)</span>
+      <span class="font-black text-[10px] tracking-wide">Analisis Foto Makanan (Kamera HP)</span>
     </a>
   </div>
 
@@ -239,7 +273,7 @@
   </div>
 </div>
 
-<!-- MODAL CERAMAH -->
+<!-- MODAL CERAMAH (PRELOADED INSTANT) -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -247,7 +281,7 @@
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
     <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
-      <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>
+      <!-- Di-render instan dari memory -->
     </div>
     <div id="konten-tambah-ceramah" class="hidden space-y-3">
       <div>
@@ -274,7 +308,7 @@
   </div>
 </div>
 
-<!-- MODAL TUGAS -->
+<!-- MODAL TUGAS (PRELOADED INSTANT) -->
 <div id="tugas-modal" onclick="tutupModalTugas()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -282,7 +316,7 @@
       <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
     </div>
     <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
-      <p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat amalan tugas...</p>
+      <!-- Di-render instan dari memory -->
     </div>
     <div id="konten-tambah-tugas" class="hidden space-y-3">
       <div>
@@ -292,6 +326,66 @@
       <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN TUGAS</button>
     </div>
     <button onclick="tutupModalTugas()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl mt-3">TUTUP</button>
+  </div>
+</div>
+
+<!-- [NEW] MODAL DETIL LAPORAN KEUANGAN -->
+<div id="keuangan-modal" onclick="tutupModalKeuangan()">
+  <div class="full-modal-content" onclick="event.stopPropagation()">
+    <div class="flex-1 overflow-y-auto space-y-4">
+      <div class="text-center border-b border-white/10 pb-3">
+        <span class="text-2xl">📊</span>
+        <h3 class="text-sm font-black text-white mt-1">Laporan Arus Kas</h3>
+        <p class="text-[9px] text-emerald-400 font-bold tracking-widest uppercase">Overview Keuangan Mas Fuqohak</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="bg-white/5 p-3 rounded-xl flex justify-between items-center">
+          <div>
+            <p class="text-[8px] text-slate-400 font-extrabold uppercase">Total Saldo Terpantau</p>
+            <h4 id="detil-saldo" class="text-base font-black text-emerald-400">Rp 0</h4>
+          </div>
+          <span class="text-xl">💳</span>
+        </div>
+
+        <div class="bg-white/5 p-3 rounded-xl flex justify-between items-center">
+          <div>
+            <p class="text-[8px] text-slate-400 font-extrabold uppercase">Total Pengeluaran Bulan Ini</p>
+            <h4 id="detil-pengeluaran" class="text-base font-black text-rose-400">Rp 0</h4>
+          </div>
+          <span class="text-xl">📉</span>
+        </div>
+      </div>
+
+      <div class="space-y-2 mt-4">
+        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Metrik Estimasi Kategori:</p>
+        <div class="bg-white/5 rounded-xl p-2.5 text-[11px] space-y-2">
+          <div class="flex justify-between">
+            <span class="text-slate-400">🍔 Makan & Nutrisi</span>
+            <span class="font-extrabold text-slate-200">45%</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">🚗 Transportasi</span>
+            <span class="font-extrabold text-slate-200">20%</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">📚 Pembelian Buku & API Key</span>
+            <span class="font-extrabold text-slate-200">15%</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">🎁 Infaq & Sedekah</span>
+            <span class="font-extrabold text-slate-200">20%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-2 mt-4">
+      <a id="link-keuangan-html" href="keuangan.html" class="block w-full text-center bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl uppercase tracking-wider">
+        Kelola di Keuangan.html ➔
+      </a>
+      <button onclick="tutupModalKeuangan()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl uppercase">TUTUP</button>
+    </div>
   </div>
 </div>
 
@@ -307,6 +401,14 @@ const KUMPULAN_TEMA = [
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let dataAnalisaMakanTerakhir = null;
 
+// Global State untuk Preloaded Data
+let globalTasks = [];
+let globalCeramah = [];
+let globalRutinitas = [];
+let globalKeuangan = { saldo: 0, pengeluaran: 0 };
+let currentMoodStatus = "STABIL";
+let lastAiResponse = "";
+
 window.onload = async function(){
   tentukanKalenderDasar();
   terapkanSistemTema();
@@ -315,10 +417,11 @@ window.onload = async function(){
   muatDataDariOffline(); 
   await loadDashboard();
   
+  // Sinkronisasi otomatis di latar belakang setiap 15 detik
   setInterval(async () => {
     console.log("Sinkronisasi otomatis latar belakang aktif...");
     await loadDashboard();
-  }, 10000);
+  }, 15000);
 };
 
 function muatDataDariOffline() {
@@ -360,8 +463,15 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
-  // MENAMPILKAN MOOD DARI SEL A11 SPREADSHEET SECARA DINAMIS
+  // Menyimpan data ke Global State untuk pemuatan instan tanpa loading
+  globalTasks = data["LIST_TUGAS"] || [];
+  globalCeramah = data["LIST_CERAMAH"] || [];
+  globalRutinitas = data["RUTINITAS"] || [];
+  globalKeuangan = data["KEUANGAN"] || { saldo: 0, pengeluaran: 0 };
+
   const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
+  currentMoodStatus = teksMoodAsli;
+  
   let textMoodElement = document.getElementById("user-mood");
   let textMustDoElement = document.getElementById("user-must-do");
   
@@ -419,58 +529,63 @@ function renderDataKeLayar(data) {
   const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
-  // GAMBAR GRAFIK GARIS (SPARKLINE RIWAYAT) SECARA DINAMIS
+  // Update Tampilan Keuangan Terintegrasi
+  const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  document.getElementById("keuangan-saldo").innerText = formatter.format(globalKeuangan.saldo);
+  document.getElementById("keuangan-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
+
+  // Gambar grafik data tren
   if (data["RIWAYAT"]) {
     buildLineChart(data["RIWAYAT"]);
   }
+
+  // Menjalankan analisis rutinitas AI jika data rutinitas tersedia
+  if (globalRutinitas.length > 0 && lastAiResponse === "") {
+    panggilAnalisisRutinitasAI();
+  }
 }
 
-// PROGRAM PEMBUAT GRAFIK GARIS SVG MINIMALIS & MODERN
+// PEMBUAT GRAFIK GARIS SVG
 function buildLineChart(riwayat) {
   if (!riwayat || riwayat.length === 0) return;
 
   const svg = document.getElementById("grafik-svg");
   const labelContainer = document.getElementById("label-grafik-tanggal");
   
-  // Ambil angka mentah nilai riwayat
   const values = riwayat.map(item => item.jumlah);
   const minVal = Math.min(...values, 0);
-  const maxVal = Math.max(...values, 50); // Set baseline tinggi minimal skala 50
+  const maxVal = Math.max(...values, 50); 
   const valRange = maxVal - minVal || 1;
 
-  const w = 100; // Lebar koordinat SVG
-  const h = 35;  // Tinggi koordinat SVG
+  const w = 100; 
+  const h = 35;  
   const paddingY = 6;
   const graphH = h - (paddingY * 2);
 
-  // Kalkulasi koordinat X dan Y untuk setiap titik
   const points = riwayat.map((item, index) => {
     const x = (index / (riwayat.length - 1)) * w;
     const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
     return { x, y, val: item.jumlah, date: item.tanggal };
   });
 
-  // Gambar jalur garis lurus penghubung
   let pathD = `M ${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
     pathD += ` L ${points[i].x} ${points[i].y}`;
   }
 
-  // Path bayangan di bawah garis utama (Area Chart Effect)
   let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
 
-  // Ubah warna garis secara cerdas berdasarkan kondisi tren terakhir
   const lastVal = values[values.length - 1] || 0;
   const prevVal = values[values.length - 2] || 0;
-  let strokeColor = "#3b82f6"; // biru default stabil
+  let strokeColor = "#3b82f6"; 
   let badgeTren = document.getElementById("label-tren");
   
   if (lastVal > prevVal) {
-    strokeColor = "#10b981"; // Hijau bila naik
+    strokeColor = "#10b981"; 
     badgeTren.innerText = "📈 NAIK";
     badgeTren.className = "text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full animate-pulse";
   } else if (lastVal < prevVal) {
-    strokeColor = "#ef4444"; // Merah bila turun
+    strokeColor = "#ef4444"; 
     badgeTren.innerText = "📉 TURUN";
     badgeTren.className = "text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full";
   } else {
@@ -478,7 +593,6 @@ function buildLineChart(riwayat) {
     badgeTren.className = "text-[7.5px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full";
   }
 
-  // Suntik HTML komponen grafis ke dalam SVG
   svg.innerHTML = `
     <defs>
       <linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
@@ -486,18 +600,14 @@ function buildLineChart(riwayat) {
         <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0"/>
       </linearGradient>
     </defs>
-    <!-- Area gradient di bawah garis -->
     <path d="${areaD}" fill="url(#gradien-grafik)" />
-    <!-- Garis tren utama -->
     <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-    <!-- Titik lingkaran kecil pembatas data beserta teks nilainya -->
     ${points.map(p => `
       <circle cx="${p.x}" cy="${p.y}" r="1.5" fill="#ffffff" stroke="${strokeColor}" stroke-width="1" />
       <text x="${p.x}" y="${p.y - 4}" font-size="3" font-weight="900" fill="${modeMalamManual ? '#e2e8f0' : '#1e293b'}" text-anchor="middle">${p.val}</text>
     `).join('')}
   `;
 
-  // Tulis label tanggal horizontal di bawah grafik
   labelContainer.innerHTML = "";
   riwayat.forEach(item => {
     const el = document.createElement("span");
@@ -506,112 +616,41 @@ function buildLineChart(riwayat) {
   });
 }
 
-async function tambahAir(){
-  let airElement = document.getElementById("val-air");
-  let airSekarang = Number(airElement.innerText);
-  airElement.innerText = airSekarang + 1;
-
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
-    });
-    if((await res.json()).status === "success") { await loadDashboard(); }
-  } catch(e) { console.error("Gagal tambah air:", e); }
-}
-
-async function simpanHasilLogMakanan() {
-  if (!dataAnalisaMakanTerakhir || !dataAnalisaMakanTerakhir.data) { alert("Data kosong."); return; }
-  const dataPayload = dataAnalisaMakanTerakhir.data;
-  const kaloriPayload = dataAnalisaMakanTerakhir.totalCal || dataAnalisaMakanTerakhir.data.kalori || 0;
-  tutupModalHasil();
+// INTEGRASI ANALISIS JADWAL AI VIA OPENROUTER
+async function panggilAnalisisRutinitasAI() {
+  const loadingEl = document.getElementById("ai-rutinitas-loading");
+  const teksEl = document.getElementById("ai-rutinitas-teks");
   
   try {
-    const res = await fetch(API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify({ aksi: "catatMakanan", data: dataPayload, totalCal: Number(kaloriPayload) })
+      body: JSON.stringify({
+        aksi: "analisisRutinitasAI",
+        rutinitas: globalRutinitas,
+        mood: currentMoodStatus
+      })
     });
-    if((await res.json()).status === "success") { alert("Berhasil disimpan!"); await loadDashboard(); }
-  } catch(e) { alert("Gagal koneksi simpan."); }
-}
-
-function tutupModalHasil() { document.getElementById("ai-result-modal").style.display = "none"; }
-function bukaModalCeramah() { document.getElementById("ceramah-modal").style.display = "flex"; pindahTabCeramah('lihat'); }
-function tutupModalCeramah() { document.getElementById("ceramah-modal").style.display = "none"; }
-
-function pindahTabCeramah(tab) {
-  const tabLihat = document.getElementById("tab-lihat");
-  const tabTambah = document.getElementById("tab-tambah");
-  const kontenLihat = document.getElementById("konten-lihat-ceramah");
-  const kontenTambah = document.getElementById("konten-tambah-ceramah");
-  if (tab === 'lihat') {
-    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenLihat.classList.remove("hidden");
-    kontenTambah.classList.add("hidden");
-    loadDaftarCeramah();
-  } else {
-    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
-    kontenTambah.classList.remove("hidden");
-    kontenLihat.classList.add("hidden");
+    const result = await response.json();
+    if (result.status === "success" && result.saran) {
+      lastAiResponse = result.saran;
+      loadingEl.classList.add("hidden");
+      teksEl.innerText = lastAiResponse;
+      teksEl.classList.remove("hidden");
+    }
+  } catch(e) {
+    loadingEl.innerText = "Gagal memuat arahan satelit AI.";
   }
 }
 
-async function loadDaftarCeramah() {
-  const container = document.getElementById("konten-lihat-ceramah");
-  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat daftar jadwal...</p>`;
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getJadwalCeramah" }) });
-    const resJson = await res.json();
-    if (resJson.status === "success") {
-      container.innerHTML = "";
-      const list = resJson.data || [];
-      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
-      if (belumSelesai.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah.</p>`;
-        return;
-      }
-      belumSelesai.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-        div.innerHTML = `
-          <div class="max-w-[200px]">
-            <p class="text-xs font-black text-white truncate">${item.tema}</p>
-            <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
-            <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
-          </div>
-          <button onclick="selesaikanJadwalCeramah(${item.rowId})" class="bg-blue-600 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Koneksi Error.</p>`; }
+// PELAYANAN INSTAN DATA MODAL (TANPA LOADING LAGI)
+function bukaModalTugas() { 
+  document.getElementById("tugas-modal").style.display = "flex"; 
+  pindahTabTugas('lihat'); 
 }
 
-async function simpanJadwalCeramah() {
-  const tema = document.getElementById("c-tema").value.trim();
-  const tanggal = document.getElementById("c-tanggal").value;
-  const jam = document.getElementById("c-jam").value;
-  const tempat = document.getElementById("c-tempat").value.trim();
-  if(!tema || !tanggal || !jam || !tempat) return;
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) });
-    if ((await res.json()).status === "success") {
-      alert("Berhasil!"); pindahTabCeramah('lihat'); await loadDashboard();
-    }
-  } catch(e) { alert("Gagal."); }
+function tutupModalTugas() { 
+  document.getElementById("tugas-modal").style.display = "none"; 
 }
-
-async function selesaikanJadwalCeramah(rowId) {
-  try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) });
-    if ((await res.json()).status === "success") { loadDaftarCeramah(); await loadDashboard(); }
-  } catch(e) { alert("Gagal."); }
-}
-
-function bukaModalTugas() { document.getElementById("tugas-modal").style.display = "flex"; pindahTabTugas('lihat'); }
-function tutupModalTugas() { document.getElementById("tugas-modal").style.display = "none"; }
 
 function pindahTabTugas(tab) {
   const tabLihat = document.getElementById("tab-tugas-lihat");
@@ -623,7 +662,7 @@ function pindahTabTugas(tab) {
     tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
     kontenLihat.classList.remove("hidden");
     kontenTambah.classList.add("hidden");
-    loadDaftarTugas();
+    renderDaftarTugasInstan();
   } else {
     tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
     tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
@@ -632,53 +671,205 @@ function pindahTabTugas(tab) {
   }
 }
 
-async function loadDaftarTugas() {
+function renderDaftarTugasInstan() {
   const container = document.getElementById("konten-lihat-tugas");
-  container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Memuat tugas harian...</p>`;
+  container.innerHTML = "";
+  
+  const belumSelesai = globalTasks.filter(item => item.status.toUpperCase() === "BELUM");
+  if (belumSelesai.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas selesai. Hari yang luar biasa!</p>`;
+    return;
+  }
+  belumSelesai.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    div.innerHTML = `
+      <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
+      <button onclick="selesaikanTugasOptimis(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// OPTIMISTIC UPDATES: UI terupdate instan tanpa jeda server
+async function selesaikanTugasOptimis(rowId) {
+  // Ambil data untuk rollback jika gagal
+  const taskBackup = [...globalTasks];
+  
+  // Update instan di memori & UI
+  globalTasks = globalTasks.map(t => {
+    if (t.rowId === rowId) t.status = "SELESAI";
+    return t;
+  });
+  
+  const sisaTugas = globalTasks.filter(t => t.status === "BELUM").length;
+  document.getElementById("badge-tugas").innerText = sisaTugas + " Tugas Tersisa";
+  renderDaftarTugasInstan();
+
   try {
-    // MEMPERBAIKI AKSI AKSES: disesuaikan dari getTugas ke API_URL
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "getTugas" }) });
-    const resJson = await res.json();
-    if (resJson.status === "success") {
-      container.innerHTML = "";
-      const list = resJson.data || [];
-      const belumSelesai = list.filter(item => item.status.toUpperCase() === "BELUM");
-      if (belumSelesai.length === 0) {
-        container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas selesai.</p>`;
-        return;
-      }
-      belumSelesai.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-        div.innerHTML = `
-          <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
-          <button onclick="selesaikanTugasModal(${item.rowId})" class="bg-indigo-600 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-        `;
-        container.appendChild(div);
-      });
-    } else {
-      container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Gagal memuat: ${resJson.message}</p>`;
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "selesaikanTugas", rowId }) 
+    });
+    const result = await res.json();
+    if (result.status !== "success") {
+      throw new Error();
     }
-  } catch(e) { container.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-4">Error Koneksi.</p>`; }
+  } catch(e) {
+    alert("Koneksi gagal. Perubahan dibatalkan.");
+    globalTasks = taskBackup;
+    renderDaftarTugasInstan();
+  }
 }
 
 async function simpanTugasBaruDariModal() {
-  const tugasText = document.getElementById("t-deskripsi").value.trim();
+  const tInput = document.getElementById("t-deskripsi");
+  const tugasText = tInput.value.trim();
   if(!tugasText) return;
+  
+  tInput.value = "";
+  tutupModalTugas();
+  
   try {
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) });
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) 
+    });
     if ((await res.json()).status === "success") {
-      document.getElementById("t-deskripsi").value = ""; alert("Tugas Ditambahkan!"); pindahTabTugas('lihat'); await loadDashboard();
+      await loadDashboard();
     }
-  } catch(e) { alert("Gagal."); }
+  } catch(e) { 
+    alert("Gagal menambahkan tugas."); 
+  }
 }
 
-async function selesaikanTugasModal(rowId) {
+// MODAL CERAMAH (PRELOADED INSTANT)
+function bukaModalCeramah() { 
+  document.getElementById("ceramah-modal").style.display = "flex"; 
+  pindahTabCeramah('lihat'); 
+}
+
+function tutupModalCeramah() { 
+  document.getElementById("ceramah-modal").style.display = "none"; 
+}
+
+function pindahTabCeramah(tab) {
+  const tabLihat = document.getElementById("tab-lihat");
+  const tabTambah = document.getElementById("tab-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-ceramah");
+  const kontenTambah = document.getElementById("konten-tambah-ceramah");
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    renderDaftarCeramahInstan();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+function renderDaftarCeramahInstan() {
+  const container = document.getElementById("konten-lihat-ceramah");
+  container.innerHTML = "";
+  const belumSelesai = globalCeramah.filter(item => item.status.toUpperCase() === "BELUM");
+  
+  if (belumSelesai.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda dakwah ceramah.</p>`;
+    return;
+  }
+  
+  belumSelesai.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    div.innerHTML = `
+      <div class="max-w-[200px]">
+        <p class="text-xs font-black text-white truncate">${item.tema}</p>
+        <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
+        <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
+      </div>
+      <button onclick="selesaikanCeramahOptimis(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function selesaikanCeramahOptimis(rowId) {
+  const backupCeramah = [...globalCeramah];
+  
+  globalCeramah = globalCeramah.map(c => {
+    if (c.rowId === rowId) c.status = "SELESAI";
+    return c;
+  });
+  
+  const sisa = globalCeramah.filter(c => c.status === "BELUM").length;
+  document.getElementById("badge-ceramah").innerText = sisa + " Belum Terlaksana";
+  renderDaftarCeramahInstan();
+
   try {
-    // MEMASANG AKSI YANG TEPAT: selesaikanTugas agar terbaca di code.gs
-    const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ aksi: "selesaikanTugas", rowId }) });
-    if ((await res.json()).status === "success") { alert("Selesai!"); loadDaftarTugas(); await loadDashboard(); }
-  } catch(e) { alert("Gagal."); }
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) 
+    });
+    if ((await res.json()).status !== "success") throw new Error();
+  } catch(e) {
+    alert("Koneksi gagal.");
+    globalCeramah = backupCeramah;
+    renderDaftarCeramahInstan();
+  }
+}
+
+async function simpanJadwalCeramah() {
+  const tema = document.getElementById("c-tema").value.trim();
+  const tanggal = document.getElementById("c-tanggal").value;
+  const jam = document.getElementById("c-jam").value;
+  const tempat = document.getElementById("c-tempat").value.trim();
+  if(!tema || !tanggal || !jam || !tempat) return;
+  
+  tutupModalCeramah();
+  
+  try {
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) 
+    });
+    if ((await res.json()).status === "success") {
+      await loadDashboard();
+    }
+  } catch(e) { 
+    alert("Gagal menambahkan jadwal ceramah."); 
+  }
+}
+
+// MODAL LAPORAN KEUANGAN
+function bukaModalKeuangan() {
+  const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+  document.getElementById("detil-saldo").innerText = formatter.format(globalKeuangan.saldo);
+  document.getElementById("detil-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
+  document.getElementById("keuangan-modal").style.display = "flex";
+}
+
+function tutupModalKeuangan() {
+  document.getElementById("keuangan-modal").style.display = "none";
+}
+
+// FITUR PENDUKUNG (HIDRASI & TEMA)
+async function tambahAir(){
+  let airElement = document.getElementById("val-air");
+  let airSekarang = Number(airElement.innerText);
+  airElement.innerText = airSekarang + 1;
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
+    });
+  } catch(e) { 
+    console.error("Gagal menambah data air minum:", e); 
+  }
 }
 
 function terapkanSistemTema() {
