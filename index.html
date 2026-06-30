@@ -645,7 +645,6 @@ async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
-  // Tampilkan loading kembali saat proses sinkronisasi manual berjalan
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
   
@@ -659,11 +658,36 @@ async function panggilAnalisisRutinitasAI() {
     const result = await response.json();
     
     if (result.success && result.nasehat) {
-      // Membagi respons nasehat panjang dengan pemisah '|||'
-      const advices = result.nasehat.split("|||");
+      let rawText = result.nasehat;
+      let advices = [];
+
+      // SYSTEM PARSING ANTI-MACET (ROBUST FALLBACK)
+      if (rawText.includes("|||")) {
+        // Metode 1: Menggunakan pemisah standar '|||'
+        advices = rawText.split("|||");
+      } else if (/\n?\d+[\.\)]\s+/.test(rawText)) {
+        // Metode 2: Jika AI menggunakan format angka seperti 1., 2., atau 1), 2)
+        advices = rawText.split(/\n?\d+[\.\)]\s+/).filter(Boolean);
+      } else if (rawText.includes("\n\n")) {
+        // Metode 3: Jika AI memisahkan dengan jeda baris kosong ganda
+        advices = rawText.split(/\n\n+/).filter(Boolean);
+      } else {
+        // Metode 4: Jika hanya berupa satu paragraf panjang, bagi otomatis per 2-3 kalimat
+        const sentences = rawText.match(/[^.!?]+[.!?]+/g) || [rawText];
+        let tempSegment = "";
+        for (let i = 0; i < sentences.length; i++) {
+          tempSegment += sentences[i] + " ";
+          if ((i + 1) % 3 === 0 || i === sentences.length - 1) {
+            advices.push(tempSegment.trim());
+            tempSegment = "";
+          }
+        }
+      }
+
+      // Bersihkan teks dari sisa-sisa karakter markdown
       localAiAdvices = advices.map(item => {
-        return item.replace(/[\*\#_]/g, '') // Bersihkan markdown bold/italic/header
-                   .replace(/^[-\*\s•\d\.\)]+/, '') // Bersihkan bullet points di awal kalimat
+        return item.replace(/[\*\#_]/g, '') 
+                   .replace(/^[-\*\s•\d\.\)]+/, '') 
                    .trim();
       }).filter(item => item.length > 5);
       
@@ -681,13 +705,15 @@ async function panggilAnalisisRutinitasAI() {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
         }, 12000);
+      } else {
+        throw new Error("Hasil parsing nasehat kosong");
       }
     } else {
       throw new Error();
     }
   } catch(e) {
     console.error("Gagal sinkronisasi nasehat AI pribadi:", e);
-    loadingEl.innerText = "Gagal memuat nasehat AI. Pastikan Deploy Web App sudah benar.";
+    loadingEl.innerText = "Gagal memuat nasehat AI. Coba klik SYNC kembali.";
   }
 }
 
