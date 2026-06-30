@@ -8,220 +8,212 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #070d19; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; overflow: hidden; }
-    
-    /* Layout Presisi Khusus 1 Layar Penuh Tanpa Scroll-Bar Utama */
-    .app-container { width: 100%; max-width: 480px; height: 100vh; height: 100dvh; background: #f1f5f9; display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 10px; overflow: hidden; position: relative; }
-    
-    /* Dark Mode Premium & Glassmorphism Ringan */
-    .dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
-    .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
-    .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-    
-    /* Scrollbar Halus Khusus untuk Box AI yang Cerewet */
-    .scroll-ai::-webkit-scrollbar { width: 3px; }
-    .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; padding: 0; min-height: 100vh; display: flex; justify-content: center; overflow: hidden; }
+    .app-container { width: 100%; max-width: 480px; height: 100vh; background: #f8fafc; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px; overflow-y: auto; position: relative; }
+    .dark-mode-bg { background: #0b1329 !important; color: #f1f5f9 !important; }
+    .dark-card { background: rgba(30, 41, 59, 0.75) !important; border: 1px solid rgba(255, 255, 255, 0.05) !important; color: white !important; }
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    .loader { border-top-color: #fff; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     
     #ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal { 
       display: none; 
       position: fixed; 
       inset: 0; 
       z-index: 100; 
-      background: rgba(0, 0, 0, 0.9); 
+      background: rgba(0, 0, 0, 0.85); 
       align-items: center; 
       justify-content: center; 
-      backdrop-filter: blur(10px); 
+      backdrop-filter: blur(8px); 
     }
-    .full-modal-content { width: 100%; max-width: 480px; height: 100vh; height: 100dvh; background: #080f1e; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; overflow-y: auto; }
+    .full-modal-content { width: 100%; max-width: 480px; height: 100vh; background: #0b1329; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 24px; overflow-y: auto; }
   </style>
 </head>
 <body>
 
-<div id="main-app" class="app-container shadow-2xl transition-all duration-500">
+<div id="main-app" class="app-container p-3 shadow-2xl">
 
-  <!-- HEADER GRADIENT -->
-  <div id="header-gradient" class="p-2 rounded-2xl shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-0.5 shrink-0" style="background: linear-gradient(135deg, #1e56e3 0%, #0369a1 100%);">
-    <div class="flex justify-between items-center w-full">
+  <div id="header-gradient" class="p-2.5 rounded-[1.25rem] shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-1 shrink-0" style="background: linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%);">
+    <div class="flex justify-between items-center z-10 w-full">
       <div class="flex-1 min-w-0">
-        <div class="flex items-baseline gap-1.5">
-          <h1 class="text-[11px] font-extrabold tracking-tight shrink-0">Mas Fuqohak</h1>
-          <div class="text-[7.5px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
-            <span id="date-masehi">Memuat...</span>
+        <div class="flex items-baseline gap-1.5 flex-wrap">
+          <h1 class="text-xs font-extrabold tracking-tight shrink-0">Mas Fuqohak</h1>
+          <div class="text-[8.5px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
+            <span id="date-masehi">Memuat Tanggal...</span>
             <span>•</span>
-            <span id="date-hijriah" class="text-blue-200 font-bold">13 Muharram 1448 H</span>
+            <span id="date-hijriah" class="text-blue-200">13 Muharram 1448 H</span>
           </div>
         </div>
-        <div class="flex justify-between items-center mt-0.5">
-          <div id="user-mood" class="text-[8.5px] font-extrabold text-yellow-300 drop-shadow">🔄 Analisa Mood...</div>
-          <div id="user-must-do" class="text-[7.5px] font-black text-rose-100 uppercase tracking-tight">HARUS: Sinkronisasi...</div>
+        <div class="flex flex-col gap-0 mt-0.5">
+          <div id="user-mood" class="text-[9px] font-bold text-yellow-300">🔄 Analisa Mood...</div>
+          <div id="user-must-do" class="text-[8px] font-black text-rose-200 uppercase tracking-tight">HARUS: Sinkronisasi...</div>
         </div>
       </div>
       
-      <div class="flex items-center gap-1 shrink-0 ml-1.5">
-        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1.5 rounded-full text-[9px] hover:scale-105 active:scale-95 transition">☀️</button>
-        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1.5 rounded-xl text-[7px] font-bold flex items-center justify-center">
+      <div class="flex items-center gap-1 shrink-0 ml-2">
+        <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-1 rounded-full text-[10px] hover:scale-105 active:scale-95 transition">☀️</button>
+        <button onclick="toggleThemeLock()" id="btn-lock" class="bg-white/20 p-1 rounded-lg text-[8px] font-bold flex items-center justify-center">
           <span id="lock-icon">🔓</span>
         </button>
       </div>
     </div>
 
-    <div class="bg-black/20 rounded-lg p-0.5 border border-white/10 shadow-inner">
-      <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
+    <div class="bg-black/15 rounded-md p-1 border border-white/5 shadow-inner">
+      <p id="display-quote" class="text-[8.5px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
     </div>
   </div>
       
-  <!-- METRICS GRID -->
-  <div class="grid grid-cols-2 gap-1.5 shrink-0">
-    <div class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-orange-500 flex flex-col justify-between" id="card-kalori">
-      <p class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
-      <div class="flex items-baseline gap-0.5 leading-none mt-0.5">
-        <h2 class="text-sm font-black text-slate-800" id="val-kalori">0</h2>
-        <span class="text-[7px] text-slate-400 font-bold">kcal</span>
+  <div class="grid grid-cols-2 gap-2 mt-0.5">
+    <div class="glass-card p-2.5 rounded-2xl shadow-sm flex flex-col justify-between" id="card-kalori">
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
+      <div class="flex items-baseline gap-0.5">
+        <h2 class="text-lg font-extrabold text-slate-800" id="val-kalori">0</h2>
+        <span class="text-[8px] text-slate-400 font-bold">kcal</span>
       </div>
-      <div class="w-full bg-slate-200/60 h-0.5 mt-1 rounded-full overflow-hidden">
-        <div id="bar-kalori" class="bg-gradient-to-r from-orange-500 to-amber-400 h-full transition-all duration-500" style="width:0%"></div>
-      </div>
-    </div>
-
-    <div class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-emerald-500 flex flex-col justify-between" id="card-out">
-      <p class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">🏃‍♂️ Kalori Out</p>
-      <div class="flex items-baseline gap-0.5 text-emerald-600 leading-none mt-0.5">
-        <h2 class="text-sm font-black" id="val-kalori-keluar">0</h2>
-        <span class="text-[7px] font-bold text-slate-400">kcal</span>
+      <div class="w-full bg-slate-200/60 h-1 mt-0.5 rounded-full overflow-hidden">
+        <div id="bar-kalori" class="bg-blue-600 h-full transition-all duration-500" style="width:0%"></div>
       </div>
     </div>
 
-    <div onclick="tambahAir()" class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-blue-500 cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-air">
-      <p class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
-      <div class="flex items-baseline gap-0.5 text-blue-500 leading-none mt-0.5">
-        <h2 class="text-sm font-black" id="val-air">0</h2>
-        <span class="text-[7px] font-bold text-slate-400"> Gelas</span>
+    <div class="glass-card p-2.5 rounded-2xl shadow-sm flex flex-col justify-between" id="card-out">
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🏃♂️ Kalori Out</p>
+      <div class="flex items-baseline gap-0.5 text-amber-600">
+        <h2 class="text-lg font-extrabold" id="val-kalori-keluar">0</h2>
+        <span class="text-[8px] font-bold">kcal</span>
       </div>
     </div>
 
-    <div class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-rose-500 flex flex-col justify-between" id="card-hp">
-      <p class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📱 Screen Time</p>
-      <div class="flex items-baseline gap-0.5 text-rose-500 leading-none mt-0.5">
-        <h2 class="text-sm font-black" id="val-hp">0</h2>
-        <span class="text-[7px] font-bold text-slate-400">Jam</span>
+    <div onclick="tambahAir()" class="glass-card p-2.5 rounded-2xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-air">
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">💧 Hidrasi</p>
+      <div class="flex items-baseline gap-0.5 text-blue-500">
+        <h2 class="text-lg font-extrabold" id="val-air">0</h2>
+        <span class="text-[8px] font-bold"> Gelas</span>
+      </div>
+    </div>
+
+    <div class="glass-card p-2.5 rounded-2xl shadow-sm flex flex-col justify-between" id="card-hp">
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">📱 Screen Time</p>
+      <div class="flex items-baseline gap-0.5 text-rose-500">
+        <h2 class="text-lg font-extrabold" id="val-hp">0</h2>
+        <span class="text-[8px] font-bold">Jam</span>
       </div>
     </div>
   </div>
 
-  <!-- ENGLISH & MENULIS -->
-  <div class="grid grid-cols-2 gap-1.5 shrink-0">
-    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
-      <p class="text-[7.5px] font-bold text-indigo-100 uppercase tracking-wider">🇬🇧 English Hub</p>
-      <div class="flex justify-between items-baseline leading-none mt-0.5">
-        <span class="text-[8px] font-bold text-white truncate max-w-[80px]">Belajar AI ➔</span>
-        <span class="text-xs font-black text-white" id="val-english">0 M</span>
+  <div class="grid grid-cols-2 gap-2 mt-0.5">
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-2.5 shadow-md hover:scale-[1.01] active:scale-95 transition text-white relative overflow-hidden flex flex-col justify-between">
+      <p class="text-[8.5px] font-bold text-indigo-200 uppercase tracking-wider">🇬🇧 English Hub</p>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[10px] font-bold text-white truncate max-w-[80px]">Belajar AI ➔</span>
+        <span class="text-sm font-black text-white" id="val-english">0 M</span>
       </div>
     </a>
 
-    <a href="writer.html" class="block glass-card p-1.5 rounded-xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-menulis">
-      <p class="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider">✍️ Menulis</p>
-      <div class="flex justify-between items-baseline leading-none mt-0.5">
-        <span class="text-[8px] text-slate-500 font-bold">Progres ➔</span>
-        <span class="text-xs font-black text-indigo-600" id="val-menulis">0</span>
+    <a href="writer.html" class="block glass-card p-2.5 rounded-2xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-menulis">
+      <p class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">✍️ Menulis</p>
+      <div class="flex justify-between items-baseline mt-1">
+        <span class="text-[10px] text-slate-500 font-bold">Progres ➔</span>
+        <span class="text-sm font-black text-indigo-600" id="val-menulis">0</span>
       </div>
     </a>
   </div>
 
-  <!-- SPIRITUAL & IBADAH -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm shrink-0" id="card-shalat">
-    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-0.5 mb-0.5">
-      <h3 class="text-[8.5px] font-black text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
-      <span id="val-konsistensi" class="text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded-full">0%</span>
+  <div class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5" id="card-shalat">
+    <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-1 mb-1">
+      <h3 class="text-[10px] font-extrabold text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
+      <span id="val-konsistensi" class="text-[8.5px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">0%</span>
     </div>
-    <div class="flex justify-between text-center leading-none">
+    <div class="flex justify-between text-center">
+      <div class="flex items-center gap-1">
+        <span class="text-xs">🕌</span>
+        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Jamaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-shalat">0/7</span>
+      </div>
+      <div id="card-murojaah" class="flex items-center gap-1">
+        <span class="text-xs">📖</span>
+        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Murojaah:</span>
+        <span class="text-xs font-black text-emerald-600" id="val-murojaah">0/3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AMALAN / AGENDA TRIGGER DENGAN NILAI INSTAN -->
+  <div onclick="bukaModalCeramah()" class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-ceramah">
+    <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5">
-        <span class="text-[10px]">🕌</span>
-        <span class="text-[8.5px] font-bold text-slate-600 dark:text-slate-300">Jamaah:</span>
-        <span class="text-[10px] font-black text-emerald-600" id="val-shalat">0/7</span>
+        <span class="text-xs">🎤</span>
+        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
       </div>
-      <div id="card-murojaah" class="flex items-center gap-1.5">
-        <span class="text-[10px]">📖</span>
-        <span class="text-[8.5px] font-bold text-slate-600 dark:text-slate-300">Murojaah:</span>
-        <span class="text-[10px] font-black text-emerald-600" id="val-murojaah">0/3</span>
-      </div>
+      <span id="badge-ceramah" class="text-[8.5px] font-black bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0 Belum Terlaksana</span>
     </div>
   </div>
 
-  <!-- CERAMAH & TUGAS -->
-  <div class="grid grid-cols-2 gap-1.5 shrink-0">
-    <div onclick="bukaModalCeramah()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
-      <div class="flex items-center gap-1">
-        <span class="text-[10px]">🎤</span>
-        <span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
+  <div onclick="bukaModalTugas()" class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-todolist">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-1.5">
+        <span class="text-xs">📋</span>
+        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">Tugas Hari Ini</span>
       </div>
-      <span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
-    </div>
-
-    <div onclick="bukaModalTugas()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
-      <div class="flex items-center gap-1">
-        <span class="text-[10px]">📋</span>
-        <span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Daftar Tugas</span>
-      </div>
-      <span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md">0</span>
+      <span id="badge-tugas" class="text-[8.5px] font-black bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">0 Tugas Tersisa</span>
     </div>
   </div>
 
-  <!-- GRAFIK TREN MOOD -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
-    <div class="flex justify-between items-center mb-0.5">
-      <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
-      <span id="label-tren" class="text-[7px] font-black bg-blue-100 text-blue-700 px-1 rounded">MEMUAT</span>
+  <!-- GRAFIK TREND MOOD -->
+  <div class="glass-card p-2.5 rounded-2xl shadow-sm mt-0.5 flex flex-col justify-between" id="card-grafik-riwayat">
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">📈 Riwayat Tren Mood & Produktivitas</span>
+      <span id="label-tren" class="text-[7.5px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">MEMUAT</span>
     </div>
-    <div id="container-grafik" class="h-10 w-full relative flex items-end justify-between px-1">
+    <div id="container-grafik" class="h-16 w-full relative flex items-end justify-between px-1">
       <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
-        <!-- SVG Line chart -->
+        <!-- SVG Line chart digambar dinamis -->
       </svg>
     </div>
-    <div id="label-grafik-tanggal" class="flex justify-between text-[7px] text-slate-400 font-bold mt-0.5 px-1">
+    <div id="label-grafik-tanggal" class="flex justify-between text-[7.5px] text-slate-400 font-bold mt-1 px-1">
       <span>-</span><span>-</span><span>-</span><span>-</span>
     </div>
   </div>
 
-  <!-- KARTU NASEHAT AI CEREWET (TINGGI DISESUAIKAN UNTUK TEKS CEREWET YANG PANJANG) -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
-    <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
-      <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
-      <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.2 rounded-full">AUTO-ROTATE 12s</span>
+  <!-- [NEW] CARD REKOMENDASI RUTINITAS HARIAN OLEH AI (OPENROUTER) -->
+  <div class="glass-card p-3 rounded-2xl shadow-sm mt-0.5 flex flex-col justify-between" id="card-rekomendasi-ai">
+    <div class="flex justify-between items-center mb-1">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">🤖 ARAHAN AKTIVITAS SEKARANG (AI)</span>
+      <span class="text-[7px] font-black bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full tracking-wide">OPENROUTER</span>
     </div>
-    <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
-      <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
-        <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
-        Mengkalkulasi koordinasi waktu produktif Anda...
+    <div id="ai-rutinitas-loading" class="py-1 text-[10px] text-slate-500 font-semibold italic flex items-center gap-1.5">
+      <div class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></div>
+      Mempelajari jadwal rutinitas harian Anda...
+    </div>
+    <p id="ai-rutinitas-teks" class="text-[10px] text-slate-700 dark:text-slate-200 font-semibold leading-relaxed hidden">
+      Menunggu koordinasi satelit...
+    </p>
+  </div>
+
+  <!-- [NEW] CARD LAPORAN KEUANGAN GLOBAL -->
+  <div onclick="bukaModalKeuangan()" class="glass-card p-3 rounded-2xl shadow-sm mt-0.5 cursor-pointer hover:scale-[1.01] active:scale-95 transition" id="card-keuangan">
+    <div class="flex justify-between items-center mb-1.5">
+      <span class="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">💰 Dompet Finansial</span>
+      <span class="text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full animate-pulse">SINKRON</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <div class="bg-blue-500/5 dark:bg-white/5 p-2 rounded-xl border border-slate-200/50 dark:border-white/5">
+        <p class="text-[7px] font-extrabold text-slate-400 uppercase">Uang Saya Sekarang</p>
+        <p id="keuangan-saldo" class="text-xs font-black text-slate-800 dark:text-slate-100">Rp 0</p>
       </div>
-      <p id="ai-rutinitas-teks" class="text-[8.5px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
-        Menghubungkan satelit harian...
-      </p>
+      <div class="bg-rose-500/5 dark:bg-white/5 p-2 rounded-xl border border-slate-200/50 dark:border-white/5">
+        <p class="text-[7px] font-extrabold text-slate-400 uppercase">Pengeluaran Bulan Ini</p>
+        <p id="keuangan-pengeluaran" class="text-xs font-black text-rose-600 dark:text-rose-400">Rp 0</p>
+      </div>
     </div>
   </div>
 
-  <!-- DOMPET FINANSIAL GLOBAL -->
-  <div onclick="bukaModalKeuangan()" class="bg-gradient-to-r from-slate-900 to-zinc-800 p-1.5 rounded-xl shadow-md cursor-pointer hover:scale-[1.01] active:scale-95 transition shrink-0 border border-slate-700/50 flex flex-col justify-between" id="card-keuangan">
-    <div class="flex justify-between items-center border-b border-white/5 pb-0.5 mb-1">
-      <span class="text-[7.5px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1">💳 VIP BLACK CARD</span>
-      <span class="text-[6.5px] font-black bg-emerald-500/20 text-emerald-400 px-1 py-0.2 rounded border border-emerald-500/20">LIVE</span>
-    </div>
-    <div class="grid grid-cols-2 gap-1.5">
-      <div class="flex flex-col leading-none">
-        <span class="text-[6.5px] font-extrabold text-slate-400 uppercase">Available Balance</span>
-        <p id="keuangan-saldo" class="text-[11px] font-black text-white mt-0.5">Rp 0</p>
-      </div>
-      <div class="flex flex-col leading-none">
-        <span class="text-[6.5px] font-extrabold text-rose-400 uppercase">Monthly Expenses</span>
-        <p id="keuangan-pengeluaran" class="text-[11px] font-black text-rose-400 mt-0.5">Rp 0</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCAN MAKANAN LINK -->
-  <div class="shrink-0 mt-0.5">
-    <a href="makanan.html" id="btn-upload" class="bg-gradient-to-r from-slate-950 to-slate-900 text-white rounded-xl p-1.5 shadow-sm flex items-center justify-center gap-1.5 hover:from-slate-900 hover:to-slate-800 active:scale-95 transition duration-300 border border-slate-800">
-      <span class="text-xs">📸</span>
-      <span class="font-black text-[8px] tracking-wide uppercase">Analisis Foto Makanan (Kamera HP)</span>
+  <!-- TOMBOL ALAT SCAN MAKANAN -->
+  <div class="mt-2 shrink-0">
+    <a href="makanan.html" id="btn-upload" class="bg-slate-900 text-white rounded-xl p-2.5 shadow-md flex items-center justify-center gap-2 hover:bg-slate-800 active:scale-95 transition duration-300">
+      <span class="text-sm">📸</span>
+      <span class="font-black text-[10px] tracking-wide">Analisis Foto Makanan (Kamera HP)</span>
     </a>
   </div>
 
@@ -281,7 +273,7 @@
   </div>
 </div>
 
-<!-- MODAL CERAMAH -->
+<!-- MODAL CERAMAH (PRELOADED INSTANT) -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -289,7 +281,7 @@
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
     <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
-      <!-- Terisi instan -->
+      <!-- Di-render instan dari memory -->
     </div>
     <div id="konten-tambah-ceramah" class="hidden space-y-3">
       <div>
@@ -316,7 +308,7 @@
   </div>
 </div>
 
-<!-- MODAL TUGAS -->
+<!-- MODAL TUGAS (PRELOADED INSTANT) -->
 <div id="tugas-modal" onclick="tutupModalTugas()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -324,12 +316,12 @@
       <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
     </div>
     <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
-      <!-- Terisi instan -->
+      <!-- Di-render instan dari memory -->
     </div>
     <div id="konten-tambah-tugas" class="hidden space-y-3">
       <div>
         <label class="text-[10px] text-slate-400 font-bold uppercase">Deskripsi Tugas Baru</label>
-        <textarea id="t-deskripsi" rows="3" placeholder="Tuliskan detail tugas..." class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1 resize-none"></textarea>
+        <textarea id="t-deskripsi" rows="3" placeholder="Tuliskan detail tugas Mas Fuqohak..." class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1 resize-none"></textarea>
       </div>
       <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN TUGAS</button>
     </div>
@@ -337,37 +329,37 @@
   </div>
 </div>
 
-<!-- DETIL LAPORAN KEUANGAN MODAL -->
+<!-- [NEW] MODAL DETIL LAPORAN KEUANGAN -->
 <div id="keuangan-modal" onclick="tutupModalKeuangan()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
-    <div class="flex-1 overflow-y-auto space-y-3">
-      <div class="text-center border-b border-white/10 pb-2">
-        <span class="text-xl">📊</span>
-        <h3 class="text-xs font-black text-white mt-1">Laporan Dompet Saya</h3>
-        <p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">Overview Keuangan Mas Fuqohak</p>
+    <div class="flex-1 overflow-y-auto space-y-4">
+      <div class="text-center border-b border-white/10 pb-3">
+        <span class="text-2xl">📊</span>
+        <h3 class="text-sm font-black text-white mt-1">Laporan Arus Kas</h3>
+        <p class="text-[9px] text-emerald-400 font-bold tracking-widest uppercase">Overview Keuangan Mas Fuqohak</p>
       </div>
 
-      <div class="space-y-1.5">
-        <div class="bg-white/5 p-2 rounded-lg flex justify-between items-center">
+      <div class="space-y-2">
+        <div class="bg-white/5 p-3 rounded-xl flex justify-between items-center">
           <div>
-            <p class="text-[7px] text-slate-400 font-bold uppercase">Total Saldo Terpantau</p>
-            <h4 id="detil-saldo" class="text-sm font-black text-emerald-400">Rp 0</h4>
+            <p class="text-[8px] text-slate-400 font-extrabold uppercase">Total Saldo Terpantau</p>
+            <h4 id="detil-saldo" class="text-base font-black text-emerald-400">Rp 0</h4>
           </div>
-          <span class="text-base">💳</span>
+          <span class="text-xl">💳</span>
         </div>
 
-        <div class="bg-white/5 p-2 rounded-lg flex justify-between items-center">
+        <div class="bg-white/5 p-3 rounded-xl flex justify-between items-center">
           <div>
-            <p class="text-[7px] text-slate-400 font-bold uppercase">Total Pengeluaran Bulan Ini</p>
-            <h4 id="detil-pengeluaran" class="text-sm font-black text-rose-400">Rp 0</h4>
+            <p class="text-[8px] text-slate-400 font-extrabold uppercase">Total Pengeluaran Bulan Ini</p>
+            <h4 id="detil-pengeluaran" class="text-base font-black text-rose-400">Rp 0</h4>
           </div>
-          <span class="text-base">📉</span>
+          <span class="text-xl">📉</span>
         </div>
       </div>
 
-      <div class="space-y-1 mt-2">
-        <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Estimasi Alokasi:</p>
-        <div class="bg-white/5 rounded-lg p-2 text-[10px] space-y-1.5">
+      <div class="space-y-2 mt-4">
+        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Metrik Estimasi Kategori:</p>
+        <div class="bg-white/5 rounded-xl p-2.5 text-[11px] space-y-2">
           <div class="flex justify-between">
             <span class="text-slate-400">🍔 Makan & Nutrisi</span>
             <span class="font-extrabold text-slate-200">45%</span>
@@ -388,11 +380,11 @@
       </div>
     </div>
 
-    <div class="space-y-1.5 mt-2">
-      <a id="link-keuangan-html" href="keuangan.html" class="block w-full text-center bg-blue-600 text-white font-black text-[10px] py-2 rounded-lg uppercase tracking-wider">
+    <div class="space-y-2 mt-4">
+      <a id="link-keuangan-html" href="keuangan.html" class="block w-full text-center bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl uppercase tracking-wider">
         Kelola di Keuangan.html ➔
       </a>
-      <button onclick="tutupModalKeuangan()" class="w-full bg-slate-800 text-slate-300 font-black text-[10px] py-2 rounded-lg uppercase">TUTUP</button>
+      <button onclick="tutupModalKeuangan()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl uppercase">TUTUP</button>
     </div>
   </div>
 </div>
@@ -401,15 +393,15 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 const KUMPULAN_TEMA = [
-  "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
-  "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-  "linear-gradient(135deg, #047857 0%, #059669 100%)"
+  "linear-gradient(135deg, #1e56e3 0%, #0ea5e9 100%)",
+  "linear-gradient(135deg, #111827 0%, #374151 100%)",
+  "linear-gradient(135deg, #059669 0%, #10b981 100%)"
 ];
 
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let dataAnalisaMakanTerakhir = null;
 
-// Global Cache Memory
+// Global State untuk Preloaded Data
 let globalTasks = [];
 let globalCeramah = [];
 let globalRutinitas = [];
@@ -425,22 +417,11 @@ window.onload = async function(){
   muatDataDariOffline(); 
   await loadDashboard();
   
-  // Panggilan AI Pertama
-  setTimeout(() => {
-    if (globalRutinitas.length > 0) panggilAnalisisRutinitasAI();
-  }, 1000);
-
-  // Auto-rotate nasehat AI setiap 12 detik tanpa reload halaman
-  setInterval(() => {
-    if (globalRutinitas.length > 0) {
-      panggilAnalisisRutinitasAI();
-    }
-  }, 12000);
-
-  // Sinkronisasi data lainnya setiap 20 detik
+  // Sinkronisasi otomatis di latar belakang setiap 15 detik
   setInterval(async () => {
+    console.log("Sinkronisasi otomatis latar belakang aktif...");
     await loadDashboard();
-  }, 20000);
+  }, 15000);
 };
 
 function muatDataDariOffline() {
@@ -482,7 +463,7 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
-  // Menyimpan data ke memory
+  // Menyimpan data ke Global State untuk pemuatan instan tanpa loading
   globalTasks = data["LIST_TUGAS"] || [];
   globalCeramah = data["LIST_CERAMAH"] || [];
   globalRutinitas = data["RUTINITAS"] || [];
@@ -498,16 +479,16 @@ function renderDataKeLayar(data) {
 
   if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
     textMoodElement.innerText = "😞 " + teksMoodAsli;
-    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, bangkit!";
-    textMustDoElement.className = "text-[7px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
+    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, ayo bangkit!";
+    textMustDoElement.className = "text-[8px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
   } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
     textMoodElement.innerText = "😊 " + teksMoodAsli;
-    textMustDoElement.innerText = "Kondisi Stabil! Jaga ritme ibadah & produktivitas.";
-    textMustDoElement.className = "text-[7px] font-black text-emerald-200 uppercase tracking-tight";
+    textMustDoElement.innerText = "Kondisi Stabil! Pertahankan ritme ibadah & produktivitas.";
+    textMustDoElement.className = "text-[8px] font-black text-emerald-200 uppercase tracking-tight";
   } else {
     textMoodElement.innerText = "🔥 " + teksMoodAsli;
     textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
-    textMustDoElement.className = "text-[7px] font-black text-rose-200 uppercase tracking-tight";
+    textMustDoElement.className = "text-[8px] font-black text-rose-200 uppercase tracking-tight";
   }
 
   const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
@@ -524,11 +505,11 @@ function renderDataKeLayar(data) {
   labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
 
   if (persentaseSpiritual >= 100) {
-    labelKonsistensi.className = "text-[7px] font-black bg-emerald-500 text-white px-1.5 py-0.2 rounded-full animate-bounce";
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-bounce";
   } else if (persentaseSpiritual >= 50) {
-    labelKonsistensi.className = "text-[7px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded-full";
+    labelKonsistensi.className = "text-[9px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
   } else {
-    labelKonsistensi.className = "text-[7px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded-full";
+    labelKonsistensi.className = "text-[9px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
   }
 
   document.getElementById("val-air").innerText = Math.floor(Number(data["MINUM AIR"]?.value || 0));
@@ -538,8 +519,8 @@ function renderDataKeLayar(data) {
   document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
   document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
   
-  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
-  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
+  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0) + " Tugas Tersisa";
+  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0) + " Belum Terlaksana";
   
   if (data["MOTIVASI"]?.value) {
     document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
@@ -548,16 +529,23 @@ function renderDataKeLayar(data) {
   const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
-  // Update Tampilan VIP Black Card Keuangan
+  // Update Tampilan Keuangan Terintegrasi
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   document.getElementById("keuangan-saldo").innerText = formatter.format(globalKeuangan.saldo);
   document.getElementById("keuangan-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
 
+  // Gambar grafik data tren
   if (data["RIWAYAT"]) {
     buildLineChart(data["RIWAYAT"]);
   }
+
+  // Menjalankan analisis rutinitas AI jika data rutinitas tersedia
+  if (globalRutinitas.length > 0 && lastAiResponse === "") {
+    panggilAnalisisRutinitasAI();
+  }
 }
 
+// PEMBUAT GRAFIK GARIS SVG
 function buildLineChart(riwayat) {
   if (!riwayat || riwayat.length === 0) return;
 
@@ -595,14 +583,14 @@ function buildLineChart(riwayat) {
   if (lastVal > prevVal) {
     strokeColor = "#10b981"; 
     badgeTren.innerText = "📈 NAIK";
-    badgeTren.className = "text-[7px] font-black bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded";
+    badgeTren.className = "text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full animate-pulse";
   } else if (lastVal < prevVal) {
     strokeColor = "#ef4444"; 
     badgeTren.innerText = "📉 TURUN";
-    badgeTren.className = "text-[7px] font-black bg-rose-100 text-rose-700 px-1 py-0.2 rounded";
+    badgeTren.className = "text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full";
   } else {
     badgeTren.innerText = "↔️ STABIL";
-    badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
+    badgeTren.className = "text-[7.5px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full";
   }
 
   svg.innerHTML = `
@@ -628,16 +616,10 @@ function buildLineChart(riwayat) {
   });
 }
 
-// ASISTEN AI CEREWET DENGAN SMOOTH FADE TRANSITION
+// INTEGRASI ANALISIS JADWAL AI VIA OPENROUTER
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
-  
-  teksEl.classList.add("opacity-0");
-  await new Promise(r => setTimeout(r, 200));
-  
-  loadingEl.classList.remove("hidden");
-  teksEl.classList.add("hidden");
   
   try {
     const response = await fetch(API_URL, {
@@ -654,18 +636,13 @@ async function panggilAnalisisRutinitasAI() {
       loadingEl.classList.add("hidden");
       teksEl.innerText = lastAiResponse;
       teksEl.classList.remove("hidden");
-      
-      setTimeout(() => {
-        teksEl.classList.remove("opacity-0");
-        teksEl.classList.add("opacity-100");
-      }, 50);
     }
   } catch(e) {
     loadingEl.innerText = "Gagal memuat arahan satelit AI.";
   }
 }
 
-// PRELOADED TUGAS (TAMPIL INSTAN)
+// PELAYANAN INSTAN DATA MODAL (TANPA LOADING LAGI)
 function bukaModalTugas() { 
   document.getElementById("tugas-modal").style.display = "flex"; 
   pindahTabTugas('lihat'); 
@@ -700,7 +677,7 @@ function renderDaftarTugasInstan() {
   
   const belumSelesai = globalTasks.filter(item => item.status.toUpperCase() === "BELUM");
   if (belumSelesai.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas selesai!</p>`;
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua tugas selesai. Hari yang luar biasa!</p>`;
     return;
   }
   belumSelesai.forEach(item => {
@@ -714,17 +691,19 @@ function renderDaftarTugasInstan() {
   });
 }
 
-// OPTIMISTIC UPDATES
+// OPTIMISTIC UPDATES: UI terupdate instan tanpa jeda server
 async function selesaikanTugasOptimis(rowId) {
+  // Ambil data untuk rollback jika gagal
   const taskBackup = [...globalTasks];
   
+  // Update instan di memori & UI
   globalTasks = globalTasks.map(t => {
     if (t.rowId === rowId) t.status = "SELESAI";
     return t;
   });
   
   const sisaTugas = globalTasks.filter(t => t.status === "BELUM").length;
-  document.getElementById("badge-tugas").innerText = sisaTugas;
+  document.getElementById("badge-tugas").innerText = sisaTugas + " Tugas Tersisa";
   renderDaftarTugasInstan();
 
   try {
@@ -733,9 +712,11 @@ async function selesaikanTugasOptimis(rowId) {
       body: JSON.stringify({ aksi: "selesaikanTugas", rowId }) 
     });
     const result = await res.json();
-    if (result.status !== "success") throw new Error();
+    if (result.status !== "success") {
+      throw new Error();
+    }
   } catch(e) {
-    alert("Koneksi gagal.");
+    alert("Koneksi gagal. Perubahan dibatalkan.");
     globalTasks = taskBackup;
     renderDaftarTugasInstan();
   }
@@ -757,10 +738,12 @@ async function simpanTugasBaruDariModal() {
     if ((await res.json()).status === "success") {
       await loadDashboard();
     }
-  } catch(e) { alert("Gagal menambahkan."); }
+  } catch(e) { 
+    alert("Gagal menambahkan tugas."); 
+  }
 }
 
-// PRELOADED CERAMAH (TAMPIL INSTAN)
+// MODAL CERAMAH (PRELOADED INSTANT)
 function bukaModalCeramah() { 
   document.getElementById("ceramah-modal").style.display = "flex"; 
   pindahTabCeramah('lihat'); 
@@ -795,7 +778,7 @@ function renderDaftarCeramahInstan() {
   const belumSelesai = globalCeramah.filter(item => item.status.toUpperCase() === "BELUM");
   
   if (belumSelesai.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda ceramah.</p>`;
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada agenda dakwah ceramah.</p>`;
     return;
   }
   
@@ -823,7 +806,7 @@ async function selesaikanCeramahOptimis(rowId) {
   });
   
   const sisa = globalCeramah.filter(c => c.status === "BELUM").length;
-  document.getElementById("badge-ceramah").innerText = sisa;
+  document.getElementById("badge-ceramah").innerText = sisa + " Belum Terlaksana";
   renderDaftarCeramahInstan();
 
   try {
@@ -856,10 +839,12 @@ async function simpanJadwalCeramah() {
     if ((await res.json()).status === "success") {
       await loadDashboard();
     }
-  } catch(e) { alert("Gagal menyimpan."); }
+  } catch(e) { 
+    alert("Gagal menambahkan jadwal ceramah."); 
+  }
 }
 
-// KEUANGAN MODAL
+// MODAL LAPORAN KEUANGAN
 function bukaModalKeuangan() {
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   document.getElementById("detil-saldo").innerText = formatter.format(globalKeuangan.saldo);
@@ -871,7 +856,7 @@ function tutupModalKeuangan() {
   document.getElementById("keuangan-modal").style.display = "none";
 }
 
-// PROSEDUR SPIRITUAL & TEMA
+// FITUR PENDUKUNG (HIDRASI & TEMA)
 async function tambahAir(){
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
@@ -882,7 +867,9 @@ async function tambahAir(){
       method: "POST",
       body: JSON.stringify({ aksi: "catatMinum", jumlahL: 1 })
     });
-  } catch(e) { console.error("Gagal mencatat hidrasi:", e); }
+  } catch(e) { 
+    console.error("Gagal menambah data air minum:", e); 
+  }
 }
 
 function terapkanSistemTema() {
