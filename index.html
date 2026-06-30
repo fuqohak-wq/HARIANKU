@@ -39,7 +39,7 @@
 
 <div id="main-app" class="app-container shadow-2xl transition-all duration-500">
 
-  <!-- HEADER GRADIENT (ELEGANT RADIAL RECONSTRUCTION) -->
+  <!-- HEADER GRADIENT -->
   <div id="header-gradient" class="p-2 rounded-2xl shadow-md relative transition-all duration-700 text-white overflow-hidden flex flex-col gap-0.5 shrink-0" style="background: linear-gradient(135deg, #1e56e3 0%, #0369a1 100%);">
     <div class="flex justify-between items-center w-full">
       <div class="flex-1 min-w-0">
@@ -70,7 +70,7 @@
     </div>
   </div>
       
-  <!-- METRICS GRID DENGAN INDIKATOR VERTIKAL KIRI (SANGAT PRETTIER) -->
+  <!-- METRICS GRID -->
   <div class="grid grid-cols-2 gap-1.5 shrink-0">
     <div class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-orange-500 flex flex-col justify-between" id="card-kalori">
       <p class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">🔥 Kalori In</p>
@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <!-- ENGLISH & MENULIS (SIDE-BY-SIDE MODERN) -->
+  <!-- ENGLISH & MENULIS -->
   <div class="grid grid-cols-2 gap-1.5 shrink-0">
     <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
       <p class="text-[7.5px] font-bold text-indigo-100 uppercase tracking-wider">🇬🇧 English Hub</p>
@@ -127,7 +127,7 @@
     </a>
   </div>
 
-  <!-- SPIRITUAL & IBADAH (VISUAL PREMIUM) -->
+  <!-- SPIRITUAL & IBADAH -->
   <div class="glass-card p-1.5 rounded-xl shadow-sm shrink-0" id="card-shalat">
     <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-0.5 mb-0.5">
       <h3 class="text-[8.5px] font-black text-slate-800" id="title-spiritual">🕌 Spiritual & Ibadah</h3>
@@ -147,7 +147,7 @@
     </div>
   </div>
 
-  <!-- CERAMAH & TUGAS (PADAT BERDAMPINGAN) -->
+  <!-- CERAMAH & TUGAS -->
   <div class="grid grid-cols-2 gap-1.5 shrink-0">
     <div onclick="bukaModalCeramah()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
       <div class="flex items-center gap-1">
@@ -166,7 +166,7 @@
     </div>
   </div>
 
-  <!-- GRAFIK TREN MOOD (MINIMALIS MODERN) -->
+  <!-- GRAFIK TREN MOOD -->
   <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
     <div class="flex justify-between items-center mb-0.5">
       <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -182,14 +182,14 @@
     </div>
   </div>
 
-  <!-- [NEW STYLE] KARTU NASEHAT AI CEREWET (GLOWING BORDER + INTERNAL SCROLLBAR) -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-20" id="card-rekomendasi-ai">
+  <!-- KARTU NASEHAT AI CEREWET (TINGGI DISESUAIKAN UNTUK TEKS CEREWET YANG PANJANG) -->
+  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
       <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
       <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.2 rounded-full">AUTO-ROTATE 12s</span>
     </div>
-    <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-center">
-      <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5">
+    <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
+      <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
         <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
         Mengkalkulasi koordinasi waktu produktif Anda...
       </div>
@@ -199,7 +199,7 @@
     </div>
   </div>
 
-  <!-- [NEW STYLE] DOMPET FINANSIAL GLOBAL (GAYA VIP BLACK CARD) -->
+  <!-- DOMPET FINANSIAL GLOBAL -->
   <div onclick="bukaModalKeuangan()" class="bg-gradient-to-r from-slate-900 to-zinc-800 p-1.5 rounded-xl shadow-md cursor-pointer hover:scale-[1.01] active:scale-95 transition shrink-0 border border-slate-700/50 flex flex-col justify-between" id="card-keuangan">
     <div class="flex justify-between items-center border-b border-white/5 pb-0.5 mb-1">
       <span class="text-[7.5px] font-black text-slate-300 uppercase tracking-wider flex items-center gap-1">💳 VIP BLACK CARD</span>
@@ -217,7 +217,7 @@
     </div>
   </div>
 
-  <!-- SCAN MAKANAN LINK (SLICK CAMERA BUTTON) -->
+  <!-- SCAN MAKANAN LINK -->
   <div class="shrink-0 mt-0.5">
     <a href="makanan.html" id="btn-upload" class="bg-gradient-to-r from-slate-950 to-slate-900 text-white rounded-xl p-1.5 shadow-sm flex items-center justify-center gap-1.5 hover:from-slate-900 hover:to-slate-800 active:scale-95 transition duration-300 border border-slate-800">
       <span class="text-xs">📸</span>
@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<!-- MODAL CERAMAH (PRELOADED INSTANT) -->
+<!-- MODAL CERAMAH -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -289,7 +289,7 @@
       <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
     </div>
     <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
-      <!-- Terisi instan dari memori cache -->
+      <!-- Terisi instan -->
     </div>
     <div id="konten-tambah-ceramah" class="hidden space-y-3">
       <div>
@@ -316,7 +316,7 @@
   </div>
 </div>
 
-<!-- MODAL TUGAS (PRELOADED INSTANT) -->
+<!-- MODAL TUGAS -->
 <div id="tugas-modal" onclick="tutupModalTugas()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex justify-around border-b border-white/10 pb-2 mb-3">
@@ -324,7 +324,7 @@
       <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
     </div>
     <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
-      <!-- Terisi instan dari memori cache -->
+      <!-- Terisi instan -->
     </div>
     <div id="konten-tambah-tugas" class="hidden space-y-3">
       <div>
