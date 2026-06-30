@@ -66,7 +66,7 @@
     </div>
 
     <div class="bg-black/20 rounded-lg p-0.5 border border-white/10 shadow-inner">
-      <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Sinkronisasi energi motivasimu..."</p>
+      <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Kesabaran panjang, menghasilkan kemenangan yang tidak semua orang dapat"</p>
     </div>
   </div>
       
@@ -402,7 +402,6 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 // URL WEB APP APPS SCRIPT AKUN GOOGLE PRIBADI ANDA (SINKRONISASI GEMINI AI)
-// Tempelkan URL Web App hasil deployment akun pribadi Anda yang baru di dalam tanda kutip di bawah ini!
 const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
 
 const KUMPULAN_TEMA = [
@@ -637,30 +636,22 @@ async function panggilAnalisisRutinitasAI() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
   if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
-    loadingEl.innerHTML = "⚠️ Masukkan URL Web App pribadi Anda di dalam file index.html terlebih dahulu!";
+    loadingEl.innerText = "Masukkan URL Web App pribadi Anda di index.html.";
     return;
   }
   
   try {
-    // SINKRONISASI AKTIF: Langsung menembak URL akun pribadi Anda secara bersih
     const response = await fetch(PERSONAL_AI_URL);
     const result = await response.json();
     
     if (result.success && result.nasehat) {
-      // Membagi respons nasehat panjang dengan pemisah '|||' atau pecahan baris '\n'
-      let advices = [];
-      if (result.nasehat.includes("|||")) {
-        advices = result.nasehat.split("|||");
-      } else {
-        advices = result.nasehat.split("\n");
-      }
-      
-      // Bersihkan karakter markdown bintang-bintang (*), angka, atau bullet point yang dihasilkan Gemini
+      // Membagi respons nasehat panjang dengan pemisah '|||'
+      const advices = result.nasehat.split("|||");
       localAiAdvices = advices.map(item => {
         return item.replace(/[\*\#_]/g, '') // Bersihkan markdown bold/italic/header
-                   .replace(/^[-\*\s•\d\.\)]+/, '') // Bersihkan bullet points atau nomor urut di awal kalimat
+                   .replace(/^[-\*\s•\d\.\)]+/, '') // Bersihkan bullet points di awal kalimat
                    .trim();
-      }).filter(item => item.length > 10);
+      }).filter(item => item.length > 5);
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
@@ -676,15 +667,13 @@ async function panggilAnalisisRutinitasAI() {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
         }, 12000);
-      } else {
-        throw new Error("Hasil nasehat kosong atau tidak terformat dengan baik.");
       }
     } else {
-      throw new Error(result.error || "Gagal mendapatkan nasehat sukses dari Gemini.");
+      throw new Error();
     }
   } catch(e) {
-    console.error("Detail Error Sinkronisasi AI Pribadi:", e);
-    loadingEl.innerHTML = `<span class="text-rose-500 font-bold">⚠️ Error: ${e.message}</span><br><span class="text-[7.5px] text-slate-500">Pastikan Deploy Web App Akun Pribadi sudah di-set ke 'Anyone' & URL-nya sudah terpasang dengan benar.</span>`;
+    console.error("Gagal sinkronisasi nasehat AI pribadi:", e);
+    loadingEl.innerText = "Gagal memuat nasehat AI. Pastikan Deploy Web App sudah benar.";
   }
 }
 
