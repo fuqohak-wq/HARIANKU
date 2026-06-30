@@ -186,7 +186,11 @@
   <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
       <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
-      <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.2 rounded-full">AUTO-ROTATE 12s</span>
+      <div class="flex items-center gap-1">
+        <!-- Tombol Sinkronisasi Manual Tambahan -->
+        <button onclick="panggilAnalisisRutinitasAI()" class="text-[6.5px] font-black bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded-full transition active:scale-95">🔄 SYNC</button>
+        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">AUTO-ROTATE 12s</span>
+      </div>
     </div>
     <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
       <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
@@ -490,11 +494,17 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
+  // === PERBAIKAN: Update Teks Motivasi Secara Dinamis ===
+  if (data["MOTIVASI"] && data["MOTIVASI"].value) {
+    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+  }
+  // ======================================================
+
   globalTasks = data["LIST_TUGAS"] || [];
   globalCeramah = data["LIST_CERAMAH"] || [];
   globalRutinitas = data["RUTINITAS"] || [];
   globalKeuangan = data["KEUANGAN"] || { saldo: 0, pengeluaran: 0 };
-
+  
   const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
   currentMoodStatus = teksMoodAsli;
   
@@ -630,10 +640,14 @@ function buildLineChart(riwayat) {
   });
 }
 
-// MEMANGGIL AI SATU KALI UNTUK MENDAPATKAN BATCH NASEHAT CEREWET DARI AKUN PRIBADI
+// MEMANGGIL AI UNTUK MENDAPATKAN BATCH NASEHAT CEREWET DARI AKUN PRIBADI
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
+  
+  // Tampilkan loading kembali saat proses sinkronisasi manual berjalan
+  loadingEl.classList.remove("hidden");
+  teksEl.classList.add("hidden");
   
   if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
     loadingEl.innerText = "Masukkan URL Web App pribadi Anda di index.html.";
