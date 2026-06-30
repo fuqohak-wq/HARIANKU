@@ -398,55 +398,84 @@
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
+// GANTI / TAMBAHKAN VARIABEL GLOBAL INI DI DALAM TAG <script> ANDA
+const URL_BACKEND_AI = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec"; 
 
-const KUMPULAN_TEMA = [
-  "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
-  "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-  "linear-gradient(135deg, #047857 0%, #059669 100%)"
-];
+let listNasehatAI = []; // Tempat menyimpan kumpulan nasehat dari AI
+let indexNasehatAktif = 0;
+let timerRotasiAI = null;
 
-let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
-let dataAnalisaMakanTerakhir = null;
+// Fungsi untuk memanggil AI Studio via Google Apps Script (Hanya dipanggil SEKALI saat window.onload)
+async function panggilAnalisisRutinitasAI() {
+    const loadingEl = document.getElementById("ai-rutinitas-loading");
+    const teksEl = document.getElementById("ai-rutinitas-teks");
+    
+    if (!loadingEl || !teksEl) return;
+    
+    loadingEl.classList.remove("hidden");
+    teksEl.classList.add("hidden");
 
-// Global Cache Memory
-let globalTasks = [];
-let globalCeramah = [];
-let globalRutinitas = [];
-let globalKeuangan = { saldo: 0, pengeluaran: 0 };
-let currentMoodStatus = "STABIL";
-
-// Array Penyimpan Batch Nasehat AI
-let localAiAdvices = [];
-let currentAdviceIndex = 0;
-let aiRotationInterval = null;
-
-window.onload = async function(){
-  tentukanKalenderDasar();
-  terapkanSistemTema();
-  evaluasiVisualModeMalam();
-  
-  muatDataDariOffline(); 
-  await loadDashboard();
-  
-  // Memanggil AI hanya satu kali saat halaman dimuat
-  setTimeout(() => {
-    if (globalRutinitas.length > 0) panggilAnalisisRutinitasAI();
-  }, 1000);
-
-  // Sinkronisasi data latar belakang yang lain diperlambat (setiap 30 detik) untuk menjaga keamanan API
-  setInterval(async () => {
-    await loadDashboard();
-  }, 30000);
-};
-
-function muatDataDariOffline() {
-  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
-  if (cacheData) {
     try {
-      renderDataKeLayar(JSON.parse(cacheData));
-    } catch(e) { console.error("Cache offline rusak:", e); }
-  }
+        // Kita panggil backend Google Apps Script yang terhubung ke Gemini 2.5 Flash
+        const response = await fetch(URL_BACKEND_AI);
+        const data = await response.json();
+
+        if (data.success && data.nasehat) {
+            // Memisahkan teks nasehat panjang dari AI menjadi beberapa baris variasi
+            // Catatan: Pastikan prompt di code.gs Anda menghasilkan format poin (misal dipisahkan dengan enter/newline)
+            listNasehatAI = data.nasehat.split("\n").filter(line => line.trim().length > 10);
+            
+            // Jika AI mengembalikan satu teks utuh besar, kita masukkan sebagai elemen pertama
+            if (listNasehatAI.length === 0) {
+                listNasehatAI.push(data.nasehat);
+            }
+
+            indexNasehatAktif = 0;
+            jalankanRotasiOtomatisTeksAI();
+        } else {
+            teksEl.innerText = "Gagal memuat wejangan ghaib dari AI. Coba cek koneksi.";
+            teksEl.classList.remove("hidden");
+            loadingEl.classList.add("hidden");
+        }
+    } catch (error) {
+        console.error("Error Fetch AI:", error);
+        teksEl.innerText = "Satelit AI mendeteksi gangguan sinyal batin harian.";
+        teksEl.classList.remove("hidden");
+        loadingEl.classList.add("hidden");
+    }
+}
+
+// Fungsi utama pencegah boros kuota: Melakukan rotasi teks lokal tanpa hit API lagi
+function jalankanRotasiOtomatisTeksAI() {
+    const loadingEl = document.getElementById("ai-rutinitas-loading");
+    const teksEl = document.getElementById("ai-rutinitas-teks");
+    
+    if (listNasehatAI.length === 0) return;
+    
+    loadingEl.classList.add("hidden");
+    teksEl.classList.remove("hidden");
+
+    // Tampilkan nasehat pertama dengan efek fade-in halus
+    teksEl.style.opacity = "0";
+    setTimeout(() => {
+        teksEl.innerText = listNasehatAI[indexNasehatAktif].replace(/^[0-9.\-* ]+/, ""); // Bersihkan simbol list/angka di depan kalimat
+        teksEl.style.opacity = "1";
+    }, 200);
+
+    // Bersihkan interval lama jika ada
+    if (timerRotasiAI) clearInterval(timerRotasiAI);
+
+    // Jalankan rotasi otomatis lokal setiap 12 detik (bisa diubah sesuai keinginan, misal 60000 untuk 1 menit)
+    timerRotasiAI = setInterval(() => {
+        indexNasehatAktif = (indexNasehatAktif + 1) % listNasehatAI.length;
+        
+        // Animasi pergantian teks halus
+        teksEl.style.opacity = "0";
+        setTimeout(() => {
+            teksEl.innerText = listNasehatAI[indexNasehatAktif].replace(/^[0-9.\-* ]+/, "");
+            teksEl.style.opacity = "1";
+        }, 300);
+    }, 12000); // Sesuai indikator visual "AUTO-ROTATE 12s" pada gambar komponen Anda
 }
 
 function tentukanKalenderDasar() {
