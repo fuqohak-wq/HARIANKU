@@ -182,7 +182,7 @@
     </div>
   </div>
 
-  <!-- KARTU NASEHAT AI CEREWET (PENGATURAN TINGGI STABIL DENGAN SCROLL SEHAT) -->
+  <!-- KARTU NASEHAT AI PRIBADI (TINGGI STABIL DENGAN SCROLL SEHAT) -->
   <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
       <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
@@ -398,84 +398,67 @@
 </div>
 
 <script>
-// GANTI / TAMBAHKAN VARIABEL GLOBAL INI DI DALAM TAG <script> ANDA
-const URL_BACKEND_AI = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec"; 
+// URL API UTAMA SINKRONISASI DATABASE (UIN)
+const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-let listNasehatAI = []; // Tempat menyimpan kumpulan nasehat dari AI
-let indexNasehatAktif = 0;
-let timerRotasiAI = null;
+// URL WEB APP APPS SCRIPT AKUN GOOGLE PRIBADI ANDA (KHUSUS UNTUK SINKRONISASI GEMINI AI)
+const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
 
-// Fungsi untuk memanggil AI Studio via Google Apps Script (Hanya dipanggil SEKALI saat window.onload)
-async function panggilAnalisisRutinitasAI() {
-    const loadingEl = document.getElementById("ai-rutinitas-loading");
-    const teksEl = document.getElementById("ai-rutinitas-teks");
-    
-    if (!loadingEl || !teksEl) return;
-    
-    loadingEl.classList.remove("hidden");
-    teksEl.classList.add("hidden");
+const KUMPULAN_TEMA = [
+  "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
+  "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+  "linear-gradient(135deg, #047857 0%, #059669 100%)"
+];
 
-    try {
-        // Kita panggil backend Google Apps Script yang terhubung ke Gemini 2.5 Flash
-        const response = await fetch(URL_BACKEND_AI);
-        const data = await response.json();
+let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
+let dataAnalisaMakanTerakhir = null;
 
-        if (data.success && data.nasehat) {
-            // Memisahkan teks nasehat panjang dari AI menjadi beberapa baris variasi
-            // Catatan: Pastikan prompt di code.gs Anda menghasilkan format poin (misal dipisahkan dengan enter/newline)
-            listNasehatAI = data.nasehat.split("\n").filter(line => line.trim().length > 10);
-            
-            // Jika AI mengembalikan satu teks utuh besar, kita masukkan sebagai elemen pertama
-            if (listNasehatAI.length === 0) {
-                listNasehatAI.push(data.nasehat);
-            }
+// Global Cache Memory
+let globalTasks = [];
+let globalCeramah = [];
+let globalRutinitas = [];
+let globalKeuangan = { saldo: 0, pengeluaran: 0 };
+let currentMoodStatus = "STABIL";
 
-            indexNasehatAktif = 0;
-            jalankanRotasiOtomatisTeksAI();
-        } else {
-            teksEl.innerText = "Gagal memuat wejangan ghaib dari AI. Coba cek koneksi.";
-            teksEl.classList.remove("hidden");
-            loadingEl.classList.add("hidden");
-        }
-    } catch (error) {
-        console.error("Error Fetch AI:", error);
-        teksEl.innerText = "Satelit AI mendeteksi gangguan sinyal batin harian.";
-        teksEl.classList.remove("hidden");
-        loadingEl.classList.add("hidden");
+// Array Penyimpan Batch Nasehat AI
+let localAiAdvices = [];
+let currentAdviceIndex = 0;
+let aiRotationInterval = null;
+
+window.onload = async function(){
+  tentukanKalenderDasar();
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  
+  muatDataDariOffline(); 
+  await loadDashboard();
+  
+  // Memanggil nasehat AI dari server akun Google pribadi di awal
+  setTimeout(() => {
+    panggilAnalisisRutinitasAI();
+  }, 1200);
+
+  // Auto-rotate nasehat AI setiap 12 detik tanpa hit ulang server (hemat kuota)
+  setInterval(() => {
+    if (localAiAdvices.length > 0) {
+      currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
+      tampilkanNasehatAktif();
     }
-}
+  }, 12000);
 
-// Fungsi utama pencegah boros kuota: Melakukan rotasi teks lokal tanpa hit API lagi
-function jalankanRotasiOtomatisTeksAI() {
-    const loadingEl = document.getElementById("ai-rutinitas-loading");
-    const teksEl = document.getElementById("ai-rutinitas-teks");
-    
-    if (listNasehatAI.length === 0) return;
-    
-    loadingEl.classList.add("hidden");
-    teksEl.classList.remove("hidden");
+  // Sinkronisasi data utama (UIN) setiap 25 detik
+  setInterval(async () => {
+    await loadDashboard();
+  }, 25000);
+};
 
-    // Tampilkan nasehat pertama dengan efek fade-in halus
-    teksEl.style.opacity = "0";
-    setTimeout(() => {
-        teksEl.innerText = listNasehatAI[indexNasehatAktif].replace(/^[0-9.\-* ]+/, ""); // Bersihkan simbol list/angka di depan kalimat
-        teksEl.style.opacity = "1";
-    }, 200);
-
-    // Bersihkan interval lama jika ada
-    if (timerRotasiAI) clearInterval(timerRotasiAI);
-
-    // Jalankan rotasi otomatis lokal setiap 12 detik (bisa diubah sesuai keinginan, misal 60000 untuk 1 menit)
-    timerRotasiAI = setInterval(() => {
-        indexNasehatAktif = (indexNasehatAktif + 1) % listNasehatAI.length;
-        
-        // Animasi pergantian teks halus
-        teksEl.style.opacity = "0";
-        setTimeout(() => {
-            teksEl.innerText = listNasehatAI[indexNasehatAktif].replace(/^[0-9.\-* ]+/, "");
-            teksEl.style.opacity = "1";
-        }, 300);
-    }, 12000); // Sesuai indikator visual "AUTO-ROTATE 12s" pada gambar komponen Anda
+function muatDataDariOffline() {
+  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+  if (cacheData) {
+    try {
+      renderDataKeLayar(JSON.parse(cacheData));
+    } catch(e) { console.error("Cache offline rusak:", e); }
+  }
 }
 
 function tentukanKalenderDasar() {
@@ -508,6 +491,7 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
+  // Menyimpan data ke memory
   globalTasks = data["LIST_TUGAS"] || [];
   globalCeramah = data["LIST_CERAMAH"] || [];
   globalRutinitas = data["RUTINITAS"] || [];
@@ -566,6 +550,14 @@ function renderDataKeLayar(data) {
   document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
   document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
   
+  if (data["MOTIVASI"]?.value) {
+    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+  }
+  
+  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+  document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
+
+  // Update Tampilan VIP Black Card Keuangan
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   document.getElementById("keuangan-saldo").innerText = formatter.format(globalKeuangan.saldo);
   document.getElementById("keuangan-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
@@ -645,51 +637,42 @@ function buildLineChart(riwayat) {
   });
 }
 
-// MEMANGGIL AI SATU KALI UNTUK MENDAPATKAN 5 BATCH NASEHAT CEREWET
+// ASISTEN AI CEREWET: MEMANGGIL BATCH NYA DARI PERSONAL AKUN UNTUK BEBAS LIMIT & BEBAS BLOKIR
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
+  if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
+    loadingEl.innerText = "Masukkan URL Web App pribadi Anda di index.html.";
+    return;
+  }
+  
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "analisisRutinitasAI",
-        rutinitas: globalRutinitas,
-        mood: currentMoodStatus
-      })
-    });
+    const response = await fetch(PERSONAL_AI_URL);
     const result = await response.json();
-    if (result.status === "success" && result.saran) {
-      // Memecah teks besar dari API menjadi 5 bagian terpisah menggunakan '|||'
-      const advices = result.saran.split("|||");
-      localAiAdvices = advices.map(item => item.trim()).filter(item => item.length > 10);
+    
+    if (result.success && result.nasehat) {
+      // Membagi respons nasehat panjang dengan pemisah '|||'
+      const advices = result.nasehat.split("|||");
+      localAiAdvices = advices.map(item => item.trim()).filter(item => item.length > 5);
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
         teksEl.classList.remove("hidden");
         currentAdviceIndex = 0;
         
-        // Tampilkan nasehat pertama
         tampilkanNasehatAktif();
-        
-        // Bersihkan interval rotasi lama jika ada
-        if (aiRotationInterval) clearInterval(aiRotationInterval);
-        
-        // Putar nasehat secara lokal di memori HP setiap 12 detik tanpa hit API lagi (Anti Blokir & Super Lancar)
-        aiRotationInterval = setInterval(() => {
-          currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
-          tampilkanNasehatAktif();
-        }, 12000);
       }
+    } else {
+      throw new Error();
     }
   } catch(e) {
-    console.error("Gagal sinkronisasi batch nasehat AI:", e);
-    loadingEl.innerText = "Gagal menyambungkan analisis harian.";
+    console.error("Gagal sinkronisasi nasehat AI pribadi:", e);
+    loadingEl.innerText = "Gagal memuat arahan satelit AI.";
   }
 }
 
-// EFEK ANIMASI FADE-OUT / FADE-IN SAAT PERGANTIAN TEXT CEREWET SECARA LOKAL
+// ANIMASI ROTASI TRANSPARAN LOKAL
 async function tampilkanNasehatAktif() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
