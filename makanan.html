@@ -44,16 +44,18 @@
         </script>
 
         <!-- Pesan Motivasi Sehat -->
-        <div class="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/20 dark:to-blue-500/20 border border-emerald-500/20 dark:border-emerald-500/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
-            <div class="text-2xl text-emerald-500 dark:text-emerald-400">
-                <i class="fa-solid fa-seedling"></i>
-            </div>
-            <div>
-                <p class="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Motivasi Sehat Hari Ini</p>
-                <p class="text-sm font-medium text-slate-700 dark:text-slate-200">"Setiap pilihan makanan sehat yang Anda ambil hari ini adalah langkah investasi berharga untuk kebahagiaan tubuh Anda di masa mendatang."</p>
-            </div>
-        </div>
-
+        <!-- Pesan Motivasi Sehat -->
+<div class="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/20 dark:to-blue-500/20 border border-emerald-500/20 dark:border-emerald-500/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
+    <div class="text-2xl text-emerald-500 dark:text-emerald-400">
+        <i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+    </div>
+    <div>
+        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Saran Sehat Saat Ini</p>
+        <p id="aiMotivationText" class="text-sm font-medium text-slate-700 dark:text-slate-200">
+            Menganalisis saran terbaik untukmu...
+        </p>
+    </div>
+</div>
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-md dark:shadow-xl border border-slate-200 dark:border-slate-700 p-6 mb-8">
             <h2 class="text-lg font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-slate-200">
                 <i class="fa-solid fa-utensils text-blue-500 dark:text-blue-400"></i> Catat Makanan Anda
@@ -415,21 +417,25 @@
             });
         }
 
-        // Ambil Data dari Spreadsheet
-        async function fetchData() {
-            if(GAS_WEB_APP_URL === "URL_WEB_APP_GAS_ANDA_DISINI") return;
-            try {
-                const res = await fetch(GAS_WEB_APP_URL);
-                const result = await res.json();
-                if (result.status === "success") {
-                    renderDashboard(result.dashboard);
-                    renderRiwayat(result.riwayat);
-                }
-            } catch (error) {
-                console.error("Gagal sinkronisasi data sheet:", error);
+        // Update fungsi fetchData yang sudah ada
+async function fetchData() {
+    if(GAS_WEB_APP_URL === "https://script.google.com/macros/s/AKfycbxyR-YR6cfWMYrvgZsavVqWCZVDh_FFIdyDDTWWIzM4SxibMkDAdNlOaA2T3pCa1SpA/exec") return;
+    try {
+        const res = await fetch(GAS_WEB_APP_URL);
+        const result = await res.json();
+        if (result.status === "success") {
+            renderDashboard(result.dashboard);
+            renderRiwayat(result.riwayat);
+            
+            // TAMBAHKAN BARIS INI:
+            if (result.motivation) {
+                document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
             }
         }
-
+    } catch (error) {
+        console.error("Gagal sinkronisasi data sheet:", error);
+    }
+}
         // POST - Kirim Kamera Langsung
         formCamera.addEventListener("submit", async (e) => {
             e.preventDefault();
