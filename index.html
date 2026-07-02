@@ -655,8 +655,8 @@ async function panggilAnalisisRutinitasAI() {
       // Memecah berdasarkan pemisah |||
       let advices = result.nasehat.split("|||").map(s => s.trim()).filter(s => s.length > 10);
       
-      if (advices.length > 0) {
-        localAiAdvices = advices;
+      // ... kode sebelumnya ...
+      if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
         teksEl.classList.remove("hidden");
         currentAdviceIndex = 0;
@@ -665,12 +665,16 @@ async function panggilAnalisisRutinitasAI() {
         
         if (aiRotationInterval) clearInterval(aiRotationInterval);
         
-        // ROTASI SETIAP 60 DETIK (1 Menit)
+        // JALANKAN ROTASI: Diperlama menjadi 45 detik (45000ms) karena teks sangat panjang
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
-        }, 60000); 
+        }, 45000); 
+
+        // Update label di UI
+        document.querySelector(".bg-purple-100").innerText = "AUTO-ROTATE 45s";
       }
+// ... kode selanjutnya ...
     }
   } catch(e) {
     loadingEl.innerText = "Gagal memuat data AI.";
