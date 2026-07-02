@@ -189,7 +189,7 @@
       <div class="flex items-center gap-1">
         <!-- Tombol Sinkronisasi Manual Tambahan -->
         <button onclick="panggilAnalisisRutinitasAI()" class="text-[6.5px] font-black bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded-full transition active:scale-95">🔄 SYNC</button>
-        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">AUTO-ROTATE 12s</span>
+        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">AUTO-ROTATE 60s</span>
       </div>
     </div>
     <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
@@ -645,6 +645,12 @@ async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
+  // Hentikan interval rotasi yang sedang berjalan saat melakukan sinkronisasi ulang
+  if (aiRotationInterval) {
+    clearInterval(aiRotationInterval);
+    aiRotationInterval = null;
+  }
+  
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
   
@@ -665,51 +671,25 @@ async function panggilAnalisisRutinitasAI() {
       if (rawText.includes("|||")) {
         advices = rawText.split("|||");
       } 
-      // 2. Coba potong menggunakan penomoran angka (1., 2.)
-      else if (/\n?\d+[\.\)]\s+/.test(rawText)) {
-        advices = rawText.split(/\n?\d+[\.\)]\s+/);
-      } 
-      // 3. Coba potong berdasarkan paragraf (jeda baris)
-      else if (rawText.includes("\n\n") || rawText.includes("\n")) {
-        advices = rawText.split(/\n+/);
+      // 2. Jika tidak ada '|||', coba potong berdasarkan jeda paragraf ganda
+      else if (rawText.includes("\n\n")) {
+        advices = rawText.split("\n\n");
+      }
+      // 3. Jika tidak ada jeda paragraf ganda, coba potong berdasarkan jeda baris biasa
+      else if (rawText.includes("\n")) {
+        advices = rawText.split("\n");
+      }
+      // 4. Jika gagal mendeteksi pemisah, tampilkan teks utuh dalam satu slide
+      else {
+        advices = [rawText];
       }
 
-      // Bersihkan elemen kosong
-      advices = advices.map(s => s.trim()).filter(s => s.length > 5);
-
-      // 4. METODE PENYELAMAT (SANGAT ROBUST): Jika masih terdeteksi 1 slide saja
-      if (advices.length <= 1) {
-        // Paksa potong berdasarkan tanda baca koma, titik, tanda seru, atau tanda tanya
-        const potongan = rawText.split(/[\.,\!?]\s+/);
-        let tempSegment = "";
-        advices = [];
-        
-        for (let i = 0; i < potongan.length; i++) {
-          tempSegment += potongan[i] + ". ";
-          // Gabungkan setiap 2 klausa/kalimat pendek menjadi 1 slide agar tidak terlalu pendek
-          if ((i + 1) % 2 === 0 || i === potongan.length - 1) {
-            advices.push(tempSegment.trim());
-            tempSegment = "";
-          }
-        }
-      }
-
-      // 5. METODE PENYELAMAT AKHIR: Jika masih tetap 1 slide karena tidak ada tanda baca sama sekali, potong paksa per 150 karakter
-      if (advices.length <= 1 && rawText.length > 150) {
-        advices = [];
-        let index = 0;
-        while (index < rawText.length) {
-          advices.push(rawText.substring(index, index + 150) + "...");
-          index += 150;
-        }
-      }
-
-      // Bersihkan sisa-sisa karakter markdown (* atau #)
+      // Bersihkan karakter pemformatan markdown (* atau #) dan nomor urut di awal teks
       localAiAdvices = advices.map(item => {
         return item.replace(/[\*\#_]/g, '')
                    .replace(/^[-\*\s•\d\.\)]+/, '')
                    .trim();
-      }).filter(item => item.length > 3);
+      }).filter(item => item.length > 15); // Menyaring teks kosong atau yang terlalu pendek
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
@@ -718,15 +698,14 @@ async function panggilAnalisisRutinitasAI() {
         
         tampilkanNasehatAktif();
         
-        if (aiRotationInterval) clearInterval(aiRotationInterval);
-        
-        // JALANKAN ROTASI OTOMATIS SECARA BERKALA
+        // JALANKAN ROTASI OTOMATIS SETIAP 60 DETIK (1 MENIT)
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
-        }, 12000);
+        }, 60000); // 60000 ms = 1 menit
+        
       } else {
-        throw new Error("Gagal membagi nasehat.");
+        throw new Error("Gagal memproses struktur nasehat.");
       }
     } else {
       throw new Error();
