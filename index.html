@@ -645,7 +645,6 @@ async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
-  // Hentikan interval rotasi yang sedang berjalan saat melakukan sinkronisasi ulang
   if (aiRotationInterval) {
     clearInterval(aiRotationInterval);
     aiRotationInterval = null;
@@ -663,33 +662,12 @@ async function panggilAnalisisRutinitasAI() {
     const response = await fetch(PERSONAL_AI_URL);
     const result = await response.json();
     
-    if (result.success && result.nasehat) {
-      let rawText = result.nasehat;
-      let advices = [];
-
-      // 1. Coba potong menggunakan pemisah standar '|||'
-      if (rawText.includes("|||")) {
-        advices = rawText.split("|||");
-      } 
-      // 2. Jika tidak ada '|||', coba potong berdasarkan jeda paragraf ganda
-      else if (rawText.includes("\n\n")) {
-        advices = rawText.split("\n\n");
-      }
-      // 3. Jika tidak ada jeda paragraf ganda, coba potong berdasarkan jeda baris biasa
-      else if (rawText.includes("\n")) {
-        advices = rawText.split("\n");
-      }
-      // 4. Jika gagal mendeteksi pemisah, tampilkan teks utuh dalam satu slide
-      else {
-        advices = [rawText];
-      }
-
-      // Bersihkan karakter pemformatan markdown (* atau #) dan nomor urut di awal teks
-      localAiAdvices = advices.map(item => {
-        return item.replace(/[\*\#_]/g, '')
-                   .replace(/^[-\*\s•\d\.\)]+/, '')
-                   .trim();
-      }).filter(item => item.length > 15); // Menyaring teks kosong atau yang terlalu pendek
+    // Memeriksa apakah nasehat yang dikirim berupa Array (hasil parse JSON dari backend)
+    if (result.success && Array.isArray(result.nasehat)) {
+      // Bersihkan karakter-karakter aneh yang tidak sengaja terbawa
+      localAiAdvices = result.nasehat.map(item => {
+        return item.replace(/[\*\#_]/g, '').trim();
+      }).filter(item => item.length > 15);
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
@@ -702,20 +680,19 @@ async function panggilAnalisisRutinitasAI() {
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
-        }, 60000); // 60000 ms = 1 menit
+        }, 60000); // 60000 milidetik = 1 menit
         
       } else {
-        throw new Error("Gagal memproses struktur nasehat.");
+        throw new Error("Format nasehat kosong.");
       }
     } else {
-      throw new Error();
+      throw new Error("Keluaran AI tidak berupa array.");
     }
   } catch(e) {
     console.error("Gagal sinkronisasi nasehat AI pribadi:", e);
     loadingEl.innerText = "Gagal memuat nasehat AI. Coba klik SYNC kembali.";
   }
 }
-
 // ANIMASI ROTASI TRANSPARAN LOKAL (ANTI-BENTROK KELAS CSS)
 async function tampilkanNasehatAktif() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
