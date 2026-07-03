@@ -288,28 +288,24 @@
         }
 
         // Fetch Data
-        async function fetchData() {
-            try {
-                const res = await fetch(GAS_WEB_APP_URL);
-                const result = await res.json();
-                if (result.status === "success") {
-                    renderDashboard(result.dashboard);
-                    renderRiwayat(result.riwayat);
-                    
-                    if (result.motivation) {
-                        const hr = new Date().getHours();
-                        let lbl = "Saran Sarapan";
-                        if (hr >= 11 && hr < 15) lbl = "Saran Makan Siang";
-                        else if (hr >= 15 && hr < 18) lbl = "Saran Cemilan";
-                        else if (hr >= 18 || hr < 4) lbl = "Saran Makan Malam";
-
-                        document.getElementById("aiAdviceTitle").innerText = lbl;
-                        document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
-                        document.getElementById("aiRecipeText").innerText = result.recipe;
-                    }
-                }
-            } catch (e) { console.error("Sync Error", e); }
+// Fetch Data
+async function fetchData() {
+    try {
+        const res = await fetch(GAS_WEB_APP_URL);
+        const result = await res.json();
+        if (result.status === "success") {
+            renderDashboard(result.dashboard);
+            renderRiwayat(result.riwayat);
+            
+            // Render Saran AI Dinamis dari Server
+            if (result.motivation) {
+                document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
+                document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
+                document.getElementById("aiRecipeText").innerText = result.recipe;
+            }
         }
+    } catch (e) { console.error("Sync Error", e); }
+}
 
         // Action Handlers
         const postAction = async (action, body, btn) => {
