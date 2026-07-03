@@ -10,7 +10,7 @@
 
     <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center">
         <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
-        <p class="text-sm mt-2 opacity-90">Sistem Anti-Galan: Rekam aman, bisa kirim ulang jika server AI Google sedang sibuk.</p>
+        <p class="text-sm mt-2 opacity-90">Sistem Anti-Gagal: Rekam aman, bisa kirim ulang jika server AI Google sedang sibuk.</p>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pb-12">
@@ -23,14 +23,22 @@
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base">
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-gray-500 block">🎯 Target Surah yang Dibaca Hari Ini (Opsional - Sangat Membantu Akurasi AI):</label>
+                <input type="text" id="surahHint" placeholder="Contoh: Sebagian An-Nisa & Al-Ma'idah sampai khatam" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
                     🔴 Mulai Rekam Murojaah
                 </button>
-                <button id="testMicBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm">
+                <button id="pauseBtn" class="hidden bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
+                    ⏸️ Jeda Rekaman
+                </button>
+                <button id="testMicBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full">
                     🔊 Tes Suara Mic
                 </button>
-                <div class="text-center md:text-right">
+                <div class="text-center md:text-right w-full">
                     <span id="timer" class="text-2xl font-mono font-bold text-gray-600">00:00:00</span>
                 </div>
             </div>
@@ -101,292 +109,431 @@
     </main>
 
     <script>
-        const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
-        const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
+    const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
+    const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
 
-        // DOM Elements
-        const fileInput = document.getElementById('audioFile');
-        const uploadForm = document.getElementById('uploadForm');
-        const uploadPrompt = document.getElementById('uploadPrompt');
-        const fileSelectedName = document.getElementById('fileSelectedName');
-        const submitBtn = document.getElementById('submitBtn');
-        const statusBox = document.getElementById('statusBox');
-        const containerLaporan = document.getElementById('containerLaporan');
-        
-        const recordBtn = document.getElementById('recordBtn');
-        const testMicBtn = document.getElementById('testMicBtn');
-        const timerLabel = document.getElementById('timer');
-        const volumeBar = document.getElementById('volumeBar');
-        const volumeLabel = document.getElementById('volumeLabel');
-        const networkStatus = document.getElementById('networkStatus');
-        const offlineQueueBox = document.getElementById('offlineQueueBox');
-        
-        const audioPlaybackBox = document.getElementById('audioPlaybackBox');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const resendBtn = document.getElementById('resendBtn');
+    // DOM Elements
+    const fileInput = document.getElementById('audioFile');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const fileSelectedName = document.getElementById('fileSelectedName');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusBox = document.getElementById('statusBox');
+    const containerLaporan = document.getElementById('containerLaporan');
+    
+    const recordBtn = document.getElementById('recordBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const testMicBtn = document.getElementById('testMicBtn');
+    const timerLabel = document.getElementById('timer');
+    const volumeBar = document.getElementById('volumeBar');
+    const volumeLabel = document.getElementById('volumeLabel');
+    const networkStatus = document.getElementById('networkStatus');
+    const offlineQueueBox = document.getElementById('offlineQueueBox');
+    const surahHintInput = document.getElementById('surahHint');
+    
+    const audioPlaybackBox = document.getElementById('audioPlaybackBox');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const resendBtn = document.getElementById('resendBtn');
 
-        // Perekam Variables
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let startTime = null;
-        let timerInterval = null;
-        let audioCtx = null;
-        let analyser = null;
-        let streamGlobal = null;
-        let isRecording = false;
-        let isTestingMic = false;
-        let pendingBlob = null; 
-        let lastRecordedBlob = null; // Menyimpan cache abadi selama halaman belum di-refresh
+    // Perekam Variables
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let startTime = null;
+    let totalElapsedTime = 0; 
+    let timerInterval = null;
+    let audioCtx = null;
+    let analyser = null;
+    let streamGlobal = null;
+    let isRecording = false;
+    let isPaused = false;
+    let isTestingMic = false;
+    let pendingBlob = null; 
+    let lastRecordedBlob = null; 
 
-        // 1. Deteksi Sinyal Internet
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
+    // ==========================================
+    // SYSTEM INI: INDEXEDDB UNTUK ANTI-HILANG AUDIO
+    // ==========================================
+    const dbName = "MurojaahOfflineDB";
+    const storeName = "AudioStore";
 
-        function updateOnlineStatus() {
-            if (navigator.onLine) {
-                networkStatus.textContent = "🟢 Online";
-                networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700";
-                offlineQueueBox.classList.add('hidden');
-                if (pendingBlob) {
-                    tampilkanStatus("Sinyal kembali normal! Mengirim antrean rekaman murojaah-mu ke server...", "bg-blue-50 border-blue-200 text-blue-700");
-                    kirimBlobAudio(pendingBlob);
-                    pendingBlob = null;
+    function bukaDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(dbName, 1);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(storeName)) {
+                    db.createObjectStore(storeName);
                 }
-            } else {
-                networkStatus.textContent = "🔴 Offline Mode";
-                networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-700";
-                offlineQueueBox.classList.remove('hidden');
-            }
-        }
-
-        // 2. Visualizer Level Suara Mic
-        async function inisialisasiAudioVisualizer(stream) {
-            if (audioCtx) audioCtx.close();
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            
-            function draw() {
-                if (!isRecording && !isTestingMic) {
-                    volumeBar.style.width = "0%";
-                    volumeLabel.textContent = "Mic Mati";
-                    return;
-                }
-                requestAnimationFrame(draw);
-                analyser.getByteFrequencyData(dataArray);
-                let total = 0;
-                for (let i = 0; i < bufferLength; i++) total += dataArray[i];
-                let average = total / bufferLength;
-                let volumePercent = Math.min(Math.round((average / 128) * 100), 100);
-                
-                volumeBar.style.width = volumePercent + "%";
-                if (volumePercent > 5) {
-                    volumeLabel.textContent = `🎤 Mic Menangkap Suara (${volumePercent}%)`;
-                    volumeBar.className = "bg-emerald-500 h-full transition-all duration-75";
-                } else {
-                    volumeLabel.textContent = "💤 Sunyi.. Dekatkan Suara";
-                    volumeBar.className = "bg-gray-300 h-full transition-all duration-75";
-                }
-            }
-            draw();
-        }
-
-        // 3. Tombol Rekam Utama
-        recordBtn.addEventListener('click', async () => {
-            if (!isRecording) {
-                if (isTestingMic) testMicBtn.click();
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
-                    });
-                    
-                    streamGlobal = stream;
-                    audioChunks = [];
-                    audioPlaybackBox.classList.add('hidden');
-                    audioPlayer.src = "";
-                    
-                    let options = { mimeType: 'audio/webm;codecs=opus' };
-                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                        options = { mimeType: 'audio/mp4' }; 
-                    }
-                    
-                    mediaRecorder = new MediaRecorder(stream, options);
-                    mediaRecorder.ondataavailable = (e) => {
-                        if (e.data.size > 0) audioChunks.push(e.data);
-                    };
-                    
-                    mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                        lastRecordedBlob = audioBlob; // Amankan ke dalam cache anti-gagal!
-                        
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        audioPlayer.src = audioUrl;
-                        audioPlaybackBox.classList.remove('hidden'); 
-                        
-                        if (navigator.onLine) {
-                            tampilkanStatus("Rekaman selesai! Mengirim audio hemat ke server Google Gemini...", "bg-blue-50 border-blue-200 text-blue-700");
-                            kirimBlobAudio(audioBlob);
-                        } else {
-                            pendingBlob = audioBlob;
-                            tampilkanStatus("🎉 Berhasil disimpan offline! Rekaman tersimpan aman di memori HP. Hubungkan kembali ke internet untuk mengirim otomatis.", "bg-amber-50 border-amber-200 text-amber-700");
-                        }
-                        streamGlobal.getTracks().forEach(track => track.stop());
-                    };
-                    
-                    mediaRecorder.start(1000); 
-                    isRecording = true;
-                    recordBtn.textContent = "⏹️ Selesai & Kirim";
-                    recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base";
-                    
-                    startTime = Date.now();
-                    timerInterval = setInterval(updateTimer, 1000);
-                    inisialisasiAudioVisualizer(stream);
-                    
-                } catch (err) {
-                    alert("Gagal mengakses Mikrofon.");
-                }
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
-                recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base";
-                clearInterval(timerInterval);
-                timerLabel.textContent = "00:00:00";
-            }
+            };
+            request.onsuccess = (e) => resolve(e.target.result);
+            request.onerror = (e) => reject(e.target.error);
         });
+    }
 
-        // 4. Fitur Kirim Ulang Rekaman Terakhir (Tombol Sakti Cadangan)
-        resendBtn.addEventListener('click', async () => {
-            if (!lastRecordedBlob) {
-                alert("Belum ada rekaman yang tersimpan di halaman ini.");
+    async function simpanAudioKeHP(blob) {
+        try {
+            const db = await bukaDatabase();
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.put(blob, "rekaman_terakhir");
+            console.log("Audio berhasil dikunci di memori HP (IndexedDB)");
+        } catch (err) {
+            console.error("Gagal simpan ke IndexedDB:", err);
+        }
+    }
+
+    async function ambilAudioDariHP() {
+        try {
+            const db = await bukaDatabase();
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readonly");
+                const store = tx.objectStore(storeName);
+                const request = store.get("rekaman_terakhir");
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => resolve(null);
+            });
+        } catch (err) {
+            return null;
+        }
+    }
+
+    // Periksa apakah ada rekaman terselamatkan saat aplikasi baru dibuka
+    async function cekRekamanTerselamatkan() {
+        const blobSelamat = await ambilAudioDariHP();
+        if (blobSelamat) {
+            lastRecordedBlob = blobSelamat;
+            const audioUrl = URL.createObjectURL(blobSelamat);
+            audioPlayer.src = audioUrl;
+            audioPlaybackBox.classList.remove('hidden');
+            tampilkanStatus("✨ <strong>Sistem Mendeteksi Rekaman Sebelumnya!</strong> Jika tadi aplikasi terpejam/crash, Anda bisa memutarnya kembali atau klik tombol 'Kirim Ulang Rekaman Ini' di bawah.", "bg-amber-50 border-amber-200 text-amber-800");
+        }
+    }
+
+    // Proteksi saat user tidak sengaja me-refresh halaman ketika rekaman aktif
+    window.addEventListener('beforeunload', (e) => {
+        if (isRecording) {
+            e.preventDefault();
+            e.returnValue = "Rekaman Anda sedang berjalan, jika keluar rekaman saat ini akan hilang!";
+        }
+    });
+
+    // ==========================================
+    // FITUR UTAMA
+    // ==========================================
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    function updateOnlineStatus() {
+        if (navigator.onLine) {
+            networkStatus.textContent = "🟢 Online";
+            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700";
+            offlineQueueBox.classList.add('hidden');
+            if (pendingBlob) {
+                tampilkanStatus("Sinyal kembali normal! Mengirim antrean rekaman murojaah-mu...", "bg-blue-50 border-blue-200 text-blue-700");
+                kirimBlobAudio(pendingBlob);
+                pendingBlob = null;
+            }
+        } else {
+            networkStatus.textContent = "🔴 Offline Mode";
+            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-700";
+            offlineQueueBox.classList.remove('hidden');
+        }
+    }
+
+    async function inisialisasiAudioVisualizer(stream) {
+        if (audioCtx) audioCtx.close();
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        function draw() {
+            if (!isRecording && !isTestingMic) {
+                volumeBar.style.width = "0%";
+                volumeLabel.textContent = "Mic Mati";
                 return;
             }
-            resendBtn.disabled = true;
-            resendBtn.innerHTML = "⏳ Mengirim Ulang...";
-            tampilkanStatus("Mencoba menembak ulang file rekaman terakhir ke Google Gemini...", "bg-blue-50 border-blue-200 text-blue-700");
+            requestAnimationFrame(draw);
+            if (isPaused) {
+                volumeBar.style.width = "0%";
+                volumeLabel.textContent = "⏸️ Rekaman Dijeda";
+                return;
+            }
+            analyser.getByteFrequencyData(dataArray);
+            let total = 0;
+            for (let i = 0; i < bufferLength; i++) total += dataArray[i];
+            let average = total / bufferLength;
+            let volumePercent = Math.min(Math.round((average / 128) * 100), 100);
             
-            await kirimBlobAudio(lastRecordedBlob);
-            
-            resendBtn.disabled = false;
-            resendBtn.innerHTML = "🔄 Kirim Ulang Rekaman Ini";
-        });
-
-        // Fitur Tes Suara Mic
-        testMicBtn.addEventListener('click', async () => {
-            if (!isTestingMic) {
-                if (isRecording) return;
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    streamGlobal = stream;
-                    isTestingMic = true;
-                    testMicBtn.textContent = "🛑 Matikan Tes Suara";
-                    testMicBtn.className = "bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm";
-                    inisialisasiAudioVisualizer(stream);
-                } catch (err) {
-                    alert("Tidak dapat mengetes mic.");
-                }
+            volumeBar.style.width = volumePercent + "%";
+            if (volumePercent > 5) {
+                volumeLabel.textContent = `🎤 Mic Menangkap Suara (${volumePercent}%)`;
+                volumeBar.className = "bg-emerald-500 h-full transition-all duration-75";
             } else {
-                isTestingMic = false;
-                testMicBtn.textContent = "🔊 Tes Suara Mic";
-                testMicBtn.className = "bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm";
-                if (streamGlobal) streamGlobal.getTracks().forEach(track => track.stop());
-            }
-        });
-
-        function updateTimer() {
-            const elapsedTime = Date.now() - startTime;
-            const secs = Math.floor((elapsedTime / 1000) % 60);
-            const mins = Math.floor((elapsedTime / 1000 / 60) % 60);
-            const hrs = Math.floor((elapsedTime / 1000 / 60 / 60));
-            timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Fungsi Kirim
-        async function kirimBlobAudio(blob) {
-            const ext = blob.type.includes('mp4') ? 'mp4' : 'mp3';
-            const fileDibuat = new File([blob], `rekaman_langsung.${ext}`, { type: blob.type });
-            const formData = new FormData();
-            formData.append('file', fileDibuat);
-            
-            try {
-                const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-                const data = await response.json();
-                if (response.ok && data.status === "success") {
-                    tampilkanStatus(`🎉 <strong>Rekaman Berhasil Dikirim!</strong> Gemini sedang mengantre mendengarkan suara. Jika dalam 3 menit muncul 'ERROR SYSTEM 503' di bawah, silakan tekan tombol 'Kirim Ulang' di atas.`, "bg-green-50 border-green-200 text-green-700");
-                } else {
-                    throw new Error(data.message || "Server menolak file.");
-                }
-            } catch (err) {
-                tampilkanStatus(`❌ <strong>Gagal Mengirim:</strong> ${err.message}. Hubungkan internet lalu gunakan tombol kirim ulang.`, "bg-red-50 border-red-200 text-red-700");
+                volumeLabel.textContent = "💤 Sunyi.. Dekatkan Suara";
+                volumeBar.className = "bg-gray-300 h-full transition-all duration-75";
             }
         }
+        draw();
+    }
 
-        function tampilkanStatus(pesan, gayaKelas) {
-            statusBox.className = `mt-4 p-4 rounded-xl text-sm font-medium border ${gayaKelas}`;
-            statusBox.innerHTML = pesan;
-            statusBox.classList.remove('hidden');
-        }
-
-        // Ambil Laporan
-        async function muatLaporan() {
+    recordBtn.addEventListener('click', async () => {
+        if (!isRecording) {
+            if (isTestingMic) testMicBtn.click();
             try {
-                const res = await fetch(GSCRIPT_GET_URL);
-                const data = await res.json();
-                if (data.length === 0) {
-                    containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Belum ada riwayat setoran hafalan.</p>`;
-                    return;
-                }
-                containerLaporan.innerHTML = "";
-                data.forEach(item => {
-                    const tanggal = new Date(item.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
-                    let bgKoreksi = "bg-green-50 border-green-200 text-green-800";
-                    if (item.koreksi.includes("salah") || item.koreksi.includes("loncat") || item.koreksi.includes("LOMPAT") || item.koreksi.includes("ERROR")) {
-                        bgKoreksi = "bg-red-50 border-red-200 text-red-800";
-                    }
-                    containerLaporan.innerHTML += `
-                        <div class="p-4 rounded-xl border border-gray-100 bg-gray-50/50 space-y-2">
-                            <div class="flex justify-between text-xs text-gray-400">
-                                <span>📅 ${tanggal} WIB</span>
-                                <span class="font-bold text-emerald-600">Status Selesai</span>
-                            </div>
-                            <div class="p-4 rounded-lg border font-mono text-xs bg-white text-gray-800 leading-relaxed whitespace-pre-line ${bgKoreksi}">${item.koreksi}</div>
-                        </div>
-                    `;
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
+                
+                streamGlobal = stream;
+                audioChunks = [];
+                audioPlaybackBox.classList.add('hidden');
+                audioPlayer.src = "";
+                
+                let options = { mimeType: 'audio/webm;codecs=opus' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    options = { mimeType: 'audio/mp4' }; 
+                }
+                
+                mediaRecorder = new MediaRecorder(stream, options);
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                    lastRecordedBlob = audioBlob; 
+                    
+                    // AMANKAN KE DATABASE LOCAL HP DULU SEBELUM LOGIKA LAIN JALAN
+                    await simpanAudioKeHP(audioBlob);
+                    
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlaybackBox.classList.remove('hidden'); 
+                    
+                    if (navigator.onLine) {
+                        tampilkanStatus("Rekaman disimpan di HP & Sedang dikirim ke server Google Gemini AI...", "bg-blue-50 border-blue-200 text-blue-700");
+                        kirimBlobAudio(audioBlob);
+                    } else {
+                        pendingBlob = audioBlob;
+                        tampilkanStatus("🎉 Berhasil diamankan offline! Rekaman tersimpan kuat di memori internal HP Anda. Hubungkan kembali ke internet untuk mengirim.", "bg-amber-50 border-amber-200 text-amber-700");
+                    }
+                    streamGlobal.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start(1000); 
+                isRecording = true;
+                isPaused = false;
+                totalElapsedTime = 0;
+                
+                recordBtn.textContent = "⏹️ Selesai & Kirim";
+                recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+                
+                pauseBtn.textContent = "⏸️ Jeda Rekaman";
+                pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+                pauseBtn.classList.remove('hidden');
+
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+                inisialisasiAudioVisualizer(stream);
+                
             } catch (err) {
-                containerLaporan.innerHTML = `<p class="text-xs text-red-500">Gagal memuat data dari Sheets.</p>`;
+                alert("Gagal mengakses Mikrofon.");
+            }
+        } else {
+            mediaRecorder.stop();
+            isRecording = false;
+            isPaused = false;
+            recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
+            recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+            
+            pauseBtn.classList.add('hidden');
+            clearInterval(timerInterval);
+            timerLabel.textContent = "00:00:00";
+            totalElapsedTime = 0;
+        }
+    });
+
+    pauseBtn.addEventListener('click', () => {
+        if (!mediaRecorder || !isRecording) return;
+        if (mediaRecorder.state === 'recording') {
+            mediaRecorder.pause();
+            isPaused = true;
+            totalElapsedTime += Date.now() - startTime; 
+            pauseBtn.textContent = "▶️ Lanjutkan";
+            pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+        } else if (mediaRecorder.state === 'paused') {
+            mediaRecorder.resume();
+            isPaused = false;
+            startTime = Date.now(); 
+            pauseBtn.textContent = "⏸️ Jeda Rekaman";
+            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+        }
+    });
+
+    resendBtn.addEventListener('click', async () => {
+        if (!lastRecordedBlob) {
+            alert("Belum ada rekaman yang tersimpan.");
+            return;
+        }
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = "⏳ Mengirim Ulang...";
+        tampilkanStatus("Mencoba mengirim kembali file rekaman terakhir ke Google Gemini...", "bg-blue-50 border-blue-200 text-blue-700");
+        await kirimBlobAudio(lastRecordedBlob);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = "🔄 Kirim Ulang Rekaman Ini";
+    });
+
+    testMicBtn.addEventListener('click', async () => {
+        if (!isTestingMic) {
+            if (isRecording) return;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                streamGlobal = stream;
+                isTestingMic = true;
+                testMicBtn.textContent = "🛑 Matikan Tes";
+                testMicBtn.className = "bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
+                inisialisasiAudioVisualizer(stream);
+            } catch (err) {
+                alert("Tidak dapat mengetes mic.");
+            }
+        } else {
+            isTestingMic = false;
+            testMicBtn.textContent = "🔊 Tes Suara Mic";
+            testMicBtn.className = "bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
+            if (streamGlobal) streamGlobal.getTracks().forEach(track => track.stop());
+        }
+    });
+
+    function updateTimer() {
+        if (isPaused) return; 
+        const elapsedTime = totalElapsedTime + (Date.now() - startTime);
+        const secs = Math.floor((elapsedTime / 1000) % 60);
+        const mins = Math.floor((elapsedTime / 1000 / 60) % 60);
+        const hrs = Math.floor((elapsedTime / 1000 / 60 / 60));
+        timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    async function kirimBlobAudio(blob) {
+        const ext = blob.type.includes('mp4') ? 'mp4' : 'mp3';
+        const fileDibuat = new File([blob], `rekaman_langsung.${ext}`, { type: blob.type });
+        const formData = new FormData();
+        formData.append('file', fileDibuat);
+        
+        if (surahHintInput && surahHintInput.value.trim() !== "") {
+            formData.append('surah_hint', surahHintInput.value.trim());
+        }
+        
+        try {
+            const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
+            const data = await response.json();
+            if (response.ok && data.status === "success") {
+                tampilkanStatus(`🎉 <strong>Rekaman Berhasil Dikirim!</strong> Gemini sedang mendengarkan suara Anda. Jika dalam 3 menit belum ada update, Anda selalu bisa menekan tombol 'Kirim Ulang' di atas tanpa harus merekam lagi.`, "bg-green-50 border-green-200 text-green-700");
+            } else {
+                throw new Error(data.message || "Server sibuk.");
+            }
+        } catch (err) {
+            tampilkanStatus(`❌ <strong>Gagal Mengirim:</strong> ${err.message}. Tenang, rekaman aman di HP! Gunakan tombol kirim ulang jika sinyal membaik.`, "bg-red-50 border-red-200 text-red-700");
+        }
+    }
+
+    function tampilkanStatus(pesan, gayaKelas) {
+        statusBox.className = `mt-4 p-4 rounded-xl text-sm font-medium border ${gayaKelas}`;
+        statusBox.innerHTML = pesan;
+        statusBox.classList.remove('hidden');
+    }
+
+    async function muatLaporan() {
+        try {
+            containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data...</p>`;
+            const res = await fetch(GSCRIPT_GET_URL);
+            const data = await res.json();
+            
+            if (data.length === 0) {
+                containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Belum ada riwayat setoran hafalan.</p>`;
+                return;
+            }
+            containerLaporan.innerHTML = "";
+            
+            data.forEach((item, index) => {
+                const tanggal = new Date(item.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
+                let bgKoreksi = "bg-green-50 border-green-200 text-green-800";
+                if (item.koreksi.includes("salah") || item.koreksi.includes("loncat") || item.koreksi.includes("Salah") || item.koreksi.includes("ERROR")) {
+                    bgKoreksi = "bg-red-50 border-red-200 text-red-800";
+                }
+                
+                const kartuLaporan = document.createElement('div');
+                kartuLaporan.className = `p-4 rounded-xl border relative ${bgKoreksi}`;
+                kartuLaporan.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="font-bold text-xs uppercase tracking-wider opacity-70">${item.menit}</span>
+                            <p class="text-[11px] opacity-60">${tanggal} — ${item.status}</p>
+                        </div>
+                        <button onclick="hapusBaris(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-100 p-1.5 rounded-lg transition text-xs font-semibold flex items-center gap-1">
+                            🗑️ Hapus
+                        </button>
+                    </div>
+                    <div class="whitespace-pre-wrap text-xs font-mono bg-white/60 p-3 rounded-lg border border-black/5 mt-2">
+                        ${item.koreksi}
+                    </div>
+                `;
+                containerLaporan.appendChild(kartuLaporan);
+            });
+        } catch (err) {
+            containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets.</p>`;
+        }
+    }
+
+    async function hapusBaris(index) {
+        if (confirm("Apakah Anda yakin ingin menghapus baris riwayat ini?")) {
+            try {
+                tampilkanStatus("Sedang menghapus baris data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
+                const response = await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
+                setTimeout(() => {
+                    tampilkanStatus("🗑️ Baris berhasil dihapus dari sistem!", "bg-green-50 border-green-200 text-green-700");
+                    muatLaporan();
+                }, 2000);
+            } catch (err) {
+                alert("Gagal menghapus data: " + err.message);
             }
         }
+    }
 
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length > 0) {
-                uploadPrompt.classList.add('hidden');
-                fileSelectedName.textContent = `📄 ${fileInput.files[0].name}`;
-                fileSelectedName.classList.remove('hidden');
-            }
-        });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            uploadPrompt.classList.add('hidden');
+            fileSelectedName.textContent = `📄 ${fileInput.files[0].name}`;
+            fileSelectedName.classList.remove('hidden');
+        }
+    });
 
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const file = fileInput.files[0];
-            if (!file) return;
-            submitBtn.disabled = true;
-            tampilkanStatus("Sedang mengirim file...", "bg-blue-50 border-blue-200 text-blue-700");
-            await kirimBlobAudio(file);
-            submitBtn.disabled = false;
-            uploadForm.reset();
-            uploadPrompt.classList.remove('hidden');
-            fileSelectedName.classList.add('hidden');
-        });
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const file = fileInput.files[0];
+        if (!file) return;
+        submitBtn.disabled = true;
+        tampilkanStatus("Sedang mengirim file...", "bg-blue-50 border-blue-200 text-blue-700");
+        
+        // JIKA UPLOAD FILE LUAR, TETAP AMANKAN DI DATABASE SEBAGAI REKAMAN TERAKHIR
+        await simpanAudioKeHP(file); 
+        
+        await kirimBlobAudio(file);
+        submitBtn.disabled = false;
+        uploadForm.reset();
+        uploadPrompt.classList.remove('hidden');
+        fileSelectedName.classList.add('hidden');
+    });
 
-        updateOnlineStatus();
-        muatLaporan();
-        setInterval(muatLaporan, 30000); 
-    </script>
+    // SISTEM UTAMA SAAT HALAMAN DI-LOAD
+    updateOnlineStatus();
+    muatLaporan();
+    cekRekamanTerselamatkan(); // Jalankan cek IndexedDB anti-hilang
+    setInterval(muatLaporan, 30000); 
+</script>
 </body>
 </html>
