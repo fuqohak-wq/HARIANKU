@@ -228,7 +228,7 @@
 
         const modal = document.getElementById("nutritionModal");
 
-        // Manajemen Tema
+        // Manajemen Tema Dark/Light
         const htmlEl = document.documentElement;
         const themeToggleBtn = document.getElementById("themeToggle");
         const themeIcon = document.getElementById("themeIcon");
@@ -255,11 +255,12 @@
             applyTheme(htmlEl.classList.contains("dark") ? "light" : "dark");
         };
 
+        // Memuat Data Pertama Kali saat Halaman Siap
         document.addEventListener("DOMContentLoaded", () => {
             fetchData();
         });
 
-        // Tab Switcher
+        // Tab Switcher Input Makanan
         const tabs = [
             { btn: document.getElementById("tabCamera"), wrap: document.getElementById("wrapperCamera") },
             { btn: document.getElementById("tabGallery"), wrap: document.getElementById("wrapperGallery") },
@@ -267,38 +268,42 @@
         ];
 
         tabs.forEach(tab => {
-            tab.btn.onclick = () => {
-                tabs.forEach(t => {
-                    t.btn.classList.replace("border-blue-500", "border-transparent");
-                    t.btn.classList.replace("text-blue-600", "text-slate-500");
-                    t.wrap.classList.add("hidden");
-                });
-                tab.btn.classList.replace("border-transparent", "border-blue-500");
-                tab.btn.classList.replace("text-slate-500", "text-blue-600");
-                tab.wrap.classList.remove("hidden");
+            if(tab.btn) {
+                tab.btn.onclick = () => {
+                    tabs.forEach(t => {
+                        t.btn.classList.replace("border-blue-500", "border-transparent");
+                        t.btn.classList.replace("text-blue-600", "text-slate-500");
+                        t.wrap.classList.add("hidden");
+                    });
+                    tab.btn.classList.replace("border-transparent", "border-blue-500");
+                    tab.btn.classList.replace("text-slate-500", "text-blue-600");
+                    tab.wrap.classList.remove("hidden");
+                }
             }
         });
 
-        // Preview Handlers
+        // Image Preview Handler
         const handlePreview = (input, preview, placeholder) => {
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        preview.src = ev.target.result;
-                        preview.classList.remove("hidden");
-                        placeholder.classList.add("hidden");
+            if(input) {
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            preview.src = ev.target.result;
+                            preview.classList.remove("hidden");
+                            placeholder.classList.add("hidden");
+                        }
+                        reader.readAsDataURL(file);
                     }
-                    reader.readAsDataURL(file);
-                }
-            };
+                };
+            }
         };
 
         handlePreview(document.getElementById("cameraFile"), document.getElementById("cameraPreview"), document.getElementById("dropzoneContentCamera"));
         handlePreview(document.getElementById("galleryFile"), document.getElementById("galleryPreview"), document.getElementById("dropzoneContentGallery"));
 
-        // Ambil Data Utama
+        // Integrasi GET Data API Backend Utama
         async function fetchData(forceNewRecipe = false) {
             try {
                 let url = GAS_WEB_APP_URL;
@@ -313,23 +318,23 @@
                     renderDashboard(result.dashboard);
                     renderRiwayat(result.riwayat);
                     
-                    // Render Motivasi (Petuah) -> Selalu baru setiap kali reload halaman
                     if (result.motivation) {
                         document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
                     }
                     
-                    // Logika State Resep Berdasarkan Pilihan User (Menggunakan localStorage)
                     handleRecipeState(result);
                 }
-            } catch (e) { console.error("Sync Error", e); }
+            } catch (e) { 
+                console.error("Sync Error", e); 
+                document.getElementById("riwayatTableBody").innerHTML = `<tr><td colspan="6" class="text-center py-4 text-rose-500">Gagal menyinkronkan data dari server.</td></tr>`;
+            }
         }
 
-        // Mengatur Logika State Resep agar Tidak Berubah kecuali Diputuskan
+        // State Manager untuk Kunci Resep AI Sisi Klien
         function handleRecipeState(result) {
             const savedRecipe = localStorage.getItem("current_recipe_data");
-            const recipeState = localStorage.getItem("recipe_state"); // 'pending', 'liked', 'disliked'
+            const recipeState = localStorage.getItem("recipe_state");
             
-            // Jika statusnya kosong atau resep diganti/disukai, pakai resep baru dari server
             if (!savedRecipe || recipeState === "liked" || recipeState === "disliked") {
                 const newRecipeObj = {
                     timeLabel: result.meal_waktu || "Saran Hidangan",
@@ -340,7 +345,6 @@
                 localStorage.setItem("recipe_state", "pending");
                 displayRecipeHTML(newRecipeObj);
             } else {
-                // Jika masih 'pending' (belum dipilih), kunci penawaran agar tetap muncul yang sama
                 displayRecipeHTML(JSON.parse(savedRecipe));
             }
         }
@@ -351,16 +355,16 @@
             document.getElementById("aiRecipeText").innerText = obj.recipeText;
         }
 
-        // Handler Klik Suka atau Ganti Menu
+        // Pembuat Keputusan Klik Hidangan (Suka/Ganti)
         async function handleRecipeDecision(decision) {
+            const btnLike = document.getElementById("btnLikeRecipe");
+            const btnDislike = document.getElementById("btnDislikeRecipe");
+
             if (decision === 'like') {
                 localStorage.setItem("recipe_state", "liked");
                 const current = JSON.parse(localStorage.getItem("current_recipe_data"));
+                btnLike.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
                 
-                // Masukkan animasi loading singkat
-                document.getElementById("btnLikeRecipe").innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
-                
-                // Kirim resep yang dimakan otomatis ke Jurnal
                 const dummyData = {
                     nama_makanan: current.menuName,
                     kategori: "Rekomendasi AI",
@@ -374,29 +378,29 @@
                     lemak_tak_jenuh_g: 6,
                     serat: 6,
                     air: 100,
-                    analisis_kesehatan: "Menu rekomendasi yang dipilih dan dimakan dengan penuh komitmen kebaikan tubuh.",
+                    analisis_kesehatan: "Menu rekomendasi pilihan yang dinikmati untuk mendukung kebaikan metabolisme.",
                     is_healthy: true
                 };
 
                 try {
                     await fetch(GAS_WEB_APP_URL, {
                         method: "POST",
-                        body: JSON.stringify({ action: "save", data: dummyData, originalInput: "Memilih menu rekomendasi AI" })
+                        body: JSON.stringify({ action: "save", data: dummyData, originalInput: "Memilih rekomendasi menu AI" })
                     });
-                    alert(`Hebat! ${current.menuName} berhasil dicatat di jurnal gizi harianmu.`);
+                    alert(`Berhasil dicatat! Selamat menikmati ${current.menuName}.`);
                 } catch(e) { console.error(e); }
 
-                // Tarik resep baru setelah disukai
+                btnLike.innerHTML = `<i class="fa-solid fa-check"></i> Suka & Makan`;
                 fetchData(true);
             } else if (decision === 'dislike') {
                 localStorage.setItem("recipe_state", "disliked");
-                document.getElementById("btnDislikeRecipe").innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengganti...`;
-                // Tarik resep baru langsung
-                fetchData(true);
+                btnDislike.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengganti...`;
+                await fetchData(true);
+                btnDislike.innerHTML = `<i class="fa-solid fa-xmark"></i> Tidak Suka (Ganti)`;
             }
         }
 
-        // Render Dashboard Kartu Nutrisi Warna Warni Berdasarkan Status Capaian
+        // Render Dashboard Gizi Warna Warni Kontras
         function renderDashboard(data) {
             if (!data) return;
             const grid = document.getElementById("dashboardGrid");
@@ -446,11 +450,11 @@
             });
         }
 
-        // Render Riwayat Menjadi Harian Terkonsolidasi
+        // Render Data Riwayat Tabel Jurnal Gizi Terkonsolidasi
         function renderRiwayat(arr) {
             const body = document.getElementById("riwayatTableBody");
             if (!arr || arr.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Belum ada riwayat makan harian.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400">Belum ada catatan aktivitas riwayat makan.</td></tr>`;
                 return;
             }
             body.innerHTML = "";
@@ -458,13 +462,11 @@
                 const targetKkal = globalTargets.kalori || 2000;
                 const isOver = row.kalori > targetKkal;
                 
-                // Kesimpulan kebaikan hari itu
                 let statusBadge = `<span class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Sehat</span>`;
                 if (isOver || row.lemak > (globalTargets.lemak || 65)) {
                     statusBadge = `<span class="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2.5 py-1 rounded-full text-xs font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Kurang Sehat</span>`;
                 }
 
-                // Format tanggal buatan indah
                 const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
                 const formattedDate = new Date(row.tanggal).toLocaleDateString('id-ID', options);
 
@@ -481,10 +483,10 @@
             });
         }
 
-        // Buka Modal Hasil Analisis AI dengan Parameter Kewaspadaan & Detoks Tinggi
+        // Membuka Modal Hasil Penilaian AI Beserta Detoksasi Komplit
         function openModal(data) {
             document.getElementById("modalFoodTitle").innerText = data.nama_makanan + ` (${data.porsi || '1 Porsi'})`;
-            document.getElementById("popKalori").innerText = Math.round(data.calori_kkal || data.kalori_kkal || 0);
+            document.getElementById("popKalori").innerText = Math.round(data.kalori_kkal || data.calori_kkal || 0);
             document.getElementById("popProtein").innerText = Math.round(data.protein_g || 0);
             
             const lemak = Math.round(data.lemak_total_g || 0);
@@ -498,34 +500,39 @@
             const detoxSec = document.getElementById("detoxSection");
             const detoxAdvice = document.getElementById("modalDetoxAdvice");
 
-            // Tuntunan indah saran sehat & detoksasi berdasarkan penilaian AI
             document.getElementById("modalConclusion").innerText = data.analisis_kesehatan || "Makanan teranalisis dengan baik.";
 
             if (data.is_healthy === false || lemak > 18 || data.gula > 20) {
-                // KONDISI KHASIAT BURUK / KURANG SEHAT
-                boxLemak.className = "bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-300 text-rose-600 dark:text-rose-400 animate-pulse";
-                banner.className = "p-3.5 rounded-xl mb-4 text-xs font-bold flex items-center gap-2 bg-rose-500/10 text-rose-600 border border-rose-500/20";
-                icon.className = "fa-solid fa-radiation animate-spin";
-                txt.innerText = "Tingkat Kewaspadaan: Tinggi! Gula, Minyak, atau Lemak Berlebih.";
-                
+                boxLemak.className = "bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-300 text-rose-600 dark:text-rose-400";
+                banner.className = "p-3.5 rounded-xl mb-4 text-xs font-bold flex items-center gap-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20";
+                icon.className = "fa-solid fa-triangle-exclamation text-rose-500";
+                txt.innerText = data.catatan_ai || "Peringatan kandungan lemak atau gula tinggi!";
                 detoxSec.classList.remove("hidden");
-                detoxAdvice.innerText = data.catatan_ai || "Disarankan melakukan jalan cepat selama 20 menit hari ini dan perbanyak minum air putih hangat untuk menyeimbangkan metabolisme sistem tubuh.";
+                detoxAdvice.innerText = "Disarankan jalan kaki cepat selama 15-20 menit atau konsumsi segelas air hangat dengan perasan jeruk nipis.";
             } else {
-                // KONDISI SEHAT WAL'AFIAT
                 boxLemak.className = "bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-100 text-emerald-600 dark:text-emerald-400";
-                banner.className = "p-3.5 rounded-xl mb-4 text-xs font-bold flex items-center gap-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20";
-                icon.className = "fa-solid fa-circle-check";
-                txt.innerText = "Tingkat Kewaspadaan: Aman. Pilihan gizi ini baik bagi investasi sel tubuhmu.";
-                
-                detoxSec.classList.remove("hidden");
-                detoxSec.querySelector('p').innerHTML = `<i class="fa-solid fa-person-running text-emerald-500"></i> Saran Aktivitas Penunjang:`;
-                detoxAdvice.className = "bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 p-3.5 rounded-xl text-xs font-medium leading-relaxed";
-                detoxAdvice.innerText = "Bagus! Pertahankan energi prima ini. Cukup imbangi dengan hidrasi harian minimal 2.5 liter cairan jernih untuk optimasi ginjal.";
+                banner.className = "p-3.5 rounded-xl mb-4 text-xs font-bold flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+                icon.className = "fa-solid fa-circle-check text-emerald-500";
+                txt.innerText = "Pilihan makanan hebat! Nutrisi seimbang & aman dikonsumsi.";
+                detoxSec.classList.add("hidden");
             }
 
             modal.classList.remove("hidden");
-            document.getElementById("btnConfirmSave").onclick = () => {
-                postAction("save", { action: "save", data: data, originalInput: currentRawInput }, document.getElementById("btnConfirmSave"));
+            
+            document.getElementById("btnConfirmSave").onclick = async () => {
+                const btnSave = document.getElementById("btnConfirmSave");
+                btnSave.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan Jurnal...`;
+                try {
+                    await fetch(GAS_WEB_APP_URL, {
+                        method: "POST",
+                        body: JSON.stringify({ action: "save", data: data, originalInput: currentRawInput })
+                    });
+                    closeModal();
+                    fetchData();
+                } catch(err) {
+                    alert("Gagal menyimpan data ke Google Sheets.");
+                }
+                btnSave.innerText = "Simpan ke Jurnal";
             };
         }
 
@@ -533,74 +540,82 @@
             modal.classList.add("hidden");
         }
 
-        // Action Handlers
-        const postAction = async (action, body, btn) => {
-            const oldHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Memproses Data...`;
+        // Logic Submit Form Input Teks
+        document.getElementById("writeForm").onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnSubmitWrite");
+            const query = document.getElementById("foodInput").value;
+            currentRawInput = query;
+
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Mengevaluasi Nutrisi...`;
             try {
-                const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify(body) });
-                const json = await res.json();
-                if (json.status === "success") {
-                    if (action === "analyze") {
-                        temporaryAiData = json.data;
-                        openModal(json.data);
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "analyze", input: query })
+                });
+                const resData = await res.json();
+                if(resData.status === "success") {
+                    openModal(resData.data);
+                } else {
+                    alert("Gagal menganalisis: " + resData.message);
+                }
+            } catch(err) {
+                alert("Koneksi gagal.");
+            }
+            btn.innerText = "Analisis Teks AI";
+        };
+
+        // Helper Konversi Gambar File ke Base64 String
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
+
+        // Handler Submit Gambar (Kamera & Galeri)
+        const handleImageForm = (formId, fileId, contextId, btnId, btnDefaultText) => {
+            document.getElementById(formId).onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById(btnId);
+                const fileEl = document.getElementById(fileId);
+                const contextEl = document.getElementById(contextId);
+
+                if(!fileEl.files || fileEl.files.length === 0) {
+                    alert("Pilih atau ambil foto terlebih dahulu.");
+                    return;
+                }
+
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Memindai Gambar AI...`;
+                try {
+                    const file = fileEl.files[0];
+                    const base64Data = await fileToBase64(file);
+                    currentRawInput = contextEl.value || "Analisis Input Gambar";
+
+                    const res = await fetch(GAS_WEB_APP_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            action: "analyze",
+                            input: currentRawInput,
+                            image: base64Data,
+                            mimeType: file.type
+                        })
+                    });
+                    const resData = await res.json();
+                    if(resData.status === "success") {
+                        openModal(resData.data);
                     } else {
-                        closeModal();
-                        fetchData();
-                        alert("Data gizi berhasil dikunci dalam jurnal!");
+                        alert("AI gagal menganalisis gambar: " + resData.message);
                     }
-                } else alert("Error dari AI: " + json.message);
-            } catch (e) { alert("Koneksi gagal atau terputus."); }
-            btn.disabled = false;
-            btn.innerHTML = oldHtml;
+                } catch(err) {
+                    alert("Proses pengiriman file gagal.");
+                }
+                btn.innerText = btnDefaultText;
+            };
         };
 
-        document.getElementById("writeForm").onsubmit = (e) => {
-            e.preventDefault();
-            const val = document.getElementById("foodInput").value;
-            currentRawInput = val;
-            postAction("analyze", { action: "analyze", input: val }, document.getElementById("btnSubmitWrite"));
-        };
-
-        const handleImgSubmit = async (e, fileInput, ctxInput, btn) => {
-            e.preventDefault();
-            const file = fileInput.files[0];
-            if (!file) { alert("Pilih foto terlebih dahulu!"); return; }
-            
-            btn.disabled = true;
-            const originalBtnText = btn.innerHTML;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengompres Gambar...`;
-            
-            const compressed = await compressImg(file);
-            currentRawInput = ctxInput.value || "Analisis berbasis unggahan foto makanan";
-            
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> AI Menganalisis Foto...`;
-            postAction("analyze", { action: "analyze", image: compressed.base64, mimeType: compressed.mime, input: currentRawInput }, btn);
-        };
-
-        document.getElementById("cameraForm").onsubmit = (e) => handleImgSubmit(e, document.getElementById("cameraFile"), document.getElementById("cameraContext"), document.getElementById("btnSubmitCamera"));
-        document.getElementById("galleryForm").onsubmit = (e) => handleImgSubmit(e, document.getElementById("galleryFile"), document.getElementById("galleryContext"), document.getElementById("btnSubmitGallery"));
-
-        async function compressImg(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement("canvas");
-                        let w = img.width, h = img.height, max = 800;
-                        if (w > h && w > max) { h *= max / w; w = max; }
-                        else if (h > max) { w *= max / h; h = max; }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-                        resolve({ base64: canvas.toDataURL("image/jpeg", 0.7).split(",")[1], mime: "image/jpeg" });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        handleImageForm("cameraForm", "cameraFile", "cameraContext", "btnSubmitCamera", "Analisis Foto AI");
+        handleImageForm("galleryForm", "galleryFile", "galleryContext", "btnSubmitGallery", "Analisis Gambar AI");
     </script>
 </body>
 </html>
