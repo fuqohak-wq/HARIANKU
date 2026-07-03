@@ -41,32 +41,58 @@
             const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyR-YR6cfWMYrvgZsavVqWCZVDh_FFIdyDDTWWIzM4SxibMkDAdNlOaA2T3pCa1SpA/exec";
         </script>
 
-        <div class="bg-gradient-to-r from-blue-500/10 to-emerald-500/10 dark:from-blue-500/20 dark:to-emerald-500/20 border border-blue-500/20 dark:border-blue-500/30 rounded-2xl p-5 mb-6 flex items-start gap-4 shadow-sm">
-            <div class="text-3xl text-blue-500 dark:text-blue-400 mt-1">
-                <i class="fa-solid fa-utensils animate-bounce"></i>
+        <!-- REKOMENDASI MENU CARD - DESIGN BARU -->
+<div class="relative overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-1 mb-8 shadow-xl">
+    <!-- Dekorasi Aksent -->
+    <div id="accentColor" class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+    
+    <div class="p-6 sm:flex items-start gap-6">
+        <!-- Ikon Waktu Dinamis -->
+        <div class="hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 items-center justify-center text-3xl text-blue-500" id="waktuIcon">
+            <i class="fa-solid fa-cloud-sun"></i>
+        </div>
+
+        <div class="flex-1">
+            <div class="flex flex-wrap justify-between items-center mb-3">
+                <span id="recipeTimeLabel" class="px-3 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 rounded-full text-[10px] font-bold uppercase tracking-widest italic">Memuat Waktu...</span>
+                <span class="text-[10px] font-medium text-slate-400"><i class="fa-solid fa-sparkles text-amber-400"></i> AI Personalized</span>
             </div>
-            <div class="flex-1">
-                <p id="aiAdviceTitle" class="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-1">Rekomendasi Menu Anda</p>
-                
-                <p id="aiMotivationText" class="text-sm font-medium italic text-slate-700 dark:text-slate-200 mb-3 border-l-2 border-amber-400 pl-2">"Merasakan harmoni alam dalam piring sehatmu..."</p>
-                
-                <div class="bg-white/80 dark:bg-slate-900/60 p-4 rounded-xl border border-white/60 dark:border-slate-700/50 shadow-inner">
-                    <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block mb-1" id="recipeTimeLabel">Ide Hidangan Sehat:</span>
-                    <h4 id="recipeMenuName" class="text-sm font-bold text-slate-800 dark:text-white mb-1">-</h4>
-                    <p id="aiRecipeText" class="text-xs text-slate-600 dark:text-slate-400 font-normal leading-relaxed mb-3">Sedang meracik resep sehat...</p>
-                    
-                    <div class="flex items-center gap-2">
-                        <button id="btnLikeRecipe" onclick="handleRecipeDecision('like')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                            <i class="fa-solid fa-check"></i> Suka & Makan
-                        </button>
-                        <button id="btnDislikeRecipe" onclick="handleRecipeDecision('dislike')" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                            <i class="fa-solid fa-xmark"></i> Tidak Suka (Ganti)
-                        </button>
+            
+            <h2 id="aiMotivationText" class="text-lg sm:text-xl font-serif italic text-slate-700 dark:text-slate-200 leading-relaxed mb-5 uppercase tracking-tight">
+                "Mempersiapkan harmoni rasa untuk kesehatanmu..."
+            </h2>
+
+            <div class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-700/50 relative">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter mb-1">Rekomendasi Menu:</p>
+                        <h4 id="recipeMenuName" class="text-xl font-black text-slate-800 dark:text-white tracking-tight">-</h4>
                     </div>
+                    <button onclick="fetchData(true)" class="text-slate-400 hover:text-blue-500 transition-colors">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+                
+                <p id="aiRecipeText" class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">-</p>
+                
+                <!-- Info "Why This" -->
+                <div class="flex items-start gap-2 mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                    <i class="fa-solid fa-circle-info text-amber-500 text-xs mt-1"></i>
+                    <p id="aiWhyThis" class="text-[11px] text-amber-700 dark:text-amber-300 italic font-medium leading-tight">Alasan kesehatan akan muncul di sini...</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="btnLikeRecipe" onclick="handleRecipeDecision('like')" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-utensils"></i> Catat Makan Ini
+                    </button>
+                    <button id="btnDislikeRecipe" onclick="handleRecipeDecision('dislike')" class="px-5 py-3 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-300 transition-all">
+                        Ganti Menu
+                    </button>
                 </div>
             </div>
         </div>
-
+    </div>
+</div>
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-md dark:shadow-xl border border-slate-200 dark:border-slate-700 p-6 mb-8">
             <h2 class="text-lg font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-slate-200">
                 <i class="fa-solid fa-pen-to-square text-blue-500 dark:text-blue-400"></i> Catat Makanan
@@ -350,55 +376,58 @@
         }
 
         function displayRecipeHTML(obj) {
-            document.getElementById("recipeTimeLabel").innerText = obj.timeLabel + ":";
-            document.getElementById("recipeMenuName").innerText = obj.menuName;
-            document.getElementById("aiRecipeText").innerText = obj.recipeText;
-        }
+    document.getElementById("recipeTimeLabel").innerText = obj.timeLabel;
+    document.getElementById("recipeMenuName").innerText = obj.menuName;
+    document.getElementById("aiRecipeText").innerText = obj.recipeText;
+    
+    // Update bagian "Why This"
+    const whyThisEl = document.getElementById("aiWhyThis");
+    if(whyThisEl) whyThisEl.innerText = obj.whyThis || "Menu ini dipilih khusus untuk melengkapi nutrisimu hari ini.";
 
-        // Pembuat Keputusan Klik Hidangan (Suka/Ganti)
-        async function handleRecipeDecision(decision) {
-            const btnLike = document.getElementById("btnLikeRecipe");
-            const btnDislike = document.getElementById("btnDislikeRecipe");
+    // Logika Ganti Warna/Ikon berdasarkan Waktu
+    const accent = document.getElementById("accentColor");
+    const iconWrapper = document.getElementById("waktuIcon");
+    const label = document.getElementById("recipeTimeLabel");
+    
+    if (obj.timeLabel.includes("Pagi")) {
+        accent.className = "absolute top-0 left-0 w-2 h-full bg-amber-400";
+        iconWrapper.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        iconWrapper.className = "hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-900/30 items-center justify-center text-3xl text-amber-500";
+        label.className = "px-3 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 rounded-full text-[10px] font-bold uppercase tracking-widest italic";
+    } else if (obj.timeLabel.includes("Siang")) {
+        accent.className = "absolute top-0 left-0 w-2 h-full bg-orange-500";
+        iconWrapper.innerHTML = '<i class="fa-solid fa-bowl-food"></i>';
+        iconWrapper.className = "hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-orange-50 dark:bg-orange-900/30 items-center justify-center text-3xl text-orange-500";
+    } else if (obj.timeLabel.includes("Sore") || obj.timeLabel.includes("Snack")) {
+        accent.className = "absolute top-0 left-0 w-2 h-full bg-emerald-500";
+        iconWrapper.innerHTML = '<i class="fa-solid fa-apple-whole"></i>';
+        iconWrapper.className = "hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 items-center justify-center text-3xl text-emerald-500";
+    } else {
+        accent.className = "absolute top-0 left-0 w-2 h-full bg-indigo-600";
+        iconWrapper.innerHTML = '<i class="fa-solid fa-moon"></i>';
+        iconWrapper.className = "hidden sm:flex flex-shrink-0 w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 items-center justify-center text-3xl text-indigo-500";
+    }
+}
 
-            if (decision === 'like') {
-                localStorage.setItem("recipe_state", "liked");
-                const current = JSON.parse(localStorage.getItem("current_recipe_data"));
-                btnLike.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Menyimpan...`;
-                
-                const dummyData = {
-                    nama_makanan: current.menuName,
-                    kategori: "Rekomendasi AI",
-                    porsi: "1 Porsi",
-                    berat_gram: 250,
-                    kalori_kkal: 320,
-                    protein_g: 15,
-                    karbohidrat_g: 40,
-                    lemak_total_g: 8,
-                    lemak_jenuh_g: 2,
-                    lemak_tak_jenuh_g: 6,
-                    serat: 6,
-                    air: 100,
-                    analisis_kesehatan: "Menu rekomendasi pilihan yang dinikmati untuk mendukung kebaikan metabolisme.",
-                    is_healthy: true
-                };
-
-                try {
-                    await fetch(GAS_WEB_APP_URL, {
-                        method: "POST",
-                        body: JSON.stringify({ action: "save", data: dummyData, originalInput: "Memilih rekomendasi menu AI" })
-                    });
-                    alert(`Berhasil dicatat! Selamat menikmati ${current.menuName}.`);
-                } catch(e) { console.error(e); }
-
-                btnLike.innerHTML = `<i class="fa-solid fa-check"></i> Suka & Makan`;
-                fetchData(true);
-            } else if (decision === 'dislike') {
-                localStorage.setItem("recipe_state", "disliked");
-                btnDislike.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengganti...`;
-                await fetchData(true);
-                btnDislike.innerHTML = `<i class="fa-solid fa-xmark"></i> Tidak Suka (Ganti)`;
-            }
-        }
+// Update juga di handleRecipeState untuk menyimpan why_this
+function handleRecipeState(result) {
+    const savedRecipe = localStorage.getItem("current_recipe_data");
+    const recipeState = localStorage.getItem("recipe_state");
+    
+    if (!savedRecipe || recipeState === "liked" || recipeState === "disliked") {
+        const newRecipeObj = {
+            timeLabel: result.meal_waktu || "Saran Hidangan",
+            menuName: result.meal_name || "Menu Sehat",
+            recipeText: result.recipe || "Memuat resep...",
+            whyThis: result.why_this || "Cocok untuk hari ini."
+        };
+        localStorage.setItem("current_recipe_data", JSON.stringify(newRecipeObj));
+        localStorage.setItem("recipe_state", "pending");
+        displayRecipeHTML(newRecipeObj);
+    } else {
+        displayRecipeHTML(JSON.parse(savedRecipe));
+    }
+}
 
         // Render Dashboard Gizi Warna Warni Kontras
         function renderDashboard(data) {
