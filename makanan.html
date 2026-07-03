@@ -41,156 +41,67 @@
             const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyR-YR6cfWMYrvgZsavVqWCZVDh_FFIdyDDTWWIzM4SxibMkDAdNlOaA2T3pCa1SpA/exec"; 
         </script>
 
-        <!-- SEKSI SARAN AI DINAMIS (MENU & RESEP) -->
-        <div class="bg-gradient-to-r from-blue-500/10 to-emerald-500/10 dark:from-blue-500/20 dark:to-emerald-500/20 border border-blue-500/20 dark:border-blue-500/30 rounded-2xl p-5 mb-6 flex items-start gap-4">
-            <div class="text-3xl text-blue-500 dark:text-blue-400 mt-1">
-                <i class="fa-solid fa-utensils animate-bounce"></i>
-            </div>
-            <div class="flex-1">
-                <p id="aiAdviceTitle" class="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-1">Rekomendasi Menu Anda</p>
-                <p id="aiMotivationText" class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">"Menganalisis waktu hari ini untuk saran terbaik..."</p>
-                <div class="bg-white/50 dark:bg-slate-900/40 p-3 rounded-xl border border-white/60 dark:border-slate-700/50">
-                    <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block mb-1">Ide Masak Jomblo (Mudah & Cepat):</span>
-                    <p id="aiRecipeText" class="text-xs text-slate-600 dark:text-slate-400 italic font-medium leading-relaxed">Sedang meracik resep sehat...</p>
-                </div>
-            </div>
-        </div>
+        let currentRecommendedFood = ""; // Menyimpan nama menu yang disarankan secara global
 
-        <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-md dark:shadow-xl border border-slate-200 dark:border-slate-700 p-6 mb-8">
-            <h2 class="text-lg font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                <i class="fa-solid fa-pen-to-square text-blue-500 dark:text-blue-400"></i> Catat Makanan
-            </h2>
+        // Fetch Data
+        async function fetchData() {
+            try {
+                const res = await fetch(GAS_WEB_APP_URL);
+                const result = await res.json();
+                if (result.status === "success") {
+                    renderDashboard(result.dashboard);
+                    renderRiwayat(result.riwayat);
+                    
+                    if (result.motivation) {
+                        document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
+                        document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
+                        document.getElementById("aiRecipeText").innerText = result.recipe;
+                        
+                        // Ambil nama makanan rekomendasi
+                        currentRecommendedFood = result.food_name || result.recipe.split(":")[0];
+                        document.getElementById("aiInteractionBlock").classList.remove("hidden");
+                    }
+                }
+            } catch (e) { console.error("Sync Error", e); }
+        }
+
+        // Logic Tombol "Suka (Catat)"
+        document.getElementById("btnLikeRecipe").onclick = async () => {
+            if (!currentRecommendedFood) return;
+            currentRawInput = currentRecommendedFood;
+            const btn = document.getElementById("btnLikeRecipe");
+            // Memicu analisis nutrisi otomatis dari nama makanan yang disarankan
+            await postAction("analyze", { action: "analyze", input: currentRecommendedFood }, btn);
+        };
+
+        // Logic Tombol "Ganti Menu"
+        document.getElementById("btnDislikeRecipe").onclick = async () => {
+            const btn = document.getElementById("btnDislikeRecipe");
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Meracik Baru...`;
             
-            <div class="flex border-b border-slate-200 dark:border-slate-700 mb-6 gap-2">
-                <button id="tabCamera" class="flex-1 py-2.5 text-center border-b-2 border-blue-500 font-semibold text-sm text-blue-600 dark:text-blue-400 focus:outline-none transition-all">
-                    <i class="fa-solid fa-camera mr-1.5"></i> Ambil Foto
-                </button>
-                <button id="tabGallery" class="flex-1 py-2.5 text-center border-b-2 border-transparent font-semibold text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none transition-all">
-                    <i class="fa-solid fa-image mr-1.5"></i> Galeri
-                </button>
-                <button id="tabWrite" class="flex-1 py-2.5 text-center border-b-2 border-transparent font-semibold text-sm text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none transition-all">
-                    <i class="fa-solid fa-pen mr-1.5"></i> Tulis
-                </button>
-            </div>
-
-            <!-- Tab 1: Kamera -->
-            <div id="wrapperCamera" class="space-y-4">
-                <form id="cameraForm" class="space-y-4">
-                    <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 bg-slate-50 dark:bg-slate-950 relative min-h-[160px]">
-                        <input type="file" id="cameraFile" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <div class="text-center space-y-2 pointer-events-none" id="dropzoneContentCamera">
-                            <i class="fa-solid fa-camera text-3xl text-slate-400"></i>
-                            <p class="text-sm font-semibold">Ketuk Ambil Foto</p>
-                        </div>
-                        <img id="cameraPreview" class="hidden max-h-64 object-contain rounded-xl z-10">
-                    </div>
-                    <input type="text" id="cameraContext" class="w-full px-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm" placeholder="Tambahkan catatan (misal: porsi jumbo)...">
-                    <button type="submit" id="btnSubmitCamera" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/20">Analisis Foto AI</button>
-                </form>
-            </div>
-
-            <!-- Tab 2: Galeri -->
-            <div id="wrapperGallery" class="space-y-4 hidden">
-                <form id="galleryForm" class="space-y-4">
-                    <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 bg-slate-50 dark:bg-slate-950 relative min-h-[160px]">
-                        <input type="file" id="galleryFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <div class="text-center space-y-2 pointer-events-none" id="dropzoneContentGallery">
-                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400"></i>
-                            <p class="text-sm font-semibold">Pilih dari Galeri</p>
-                        </div>
-                        <img id="galleryPreview" class="hidden max-h-64 object-contain rounded-xl z-10">
-                    </div>
-                    <input type="text" id="galleryContext" class="w-full px-4 py-2.5 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-sm" placeholder="Tambahkan catatan...">
-                    <button type="submit" id="btnSubmitGallery" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/20">Analisis Gambar AI</button>
-                </form>
-            </div>
-
-            <!-- Tab 3: Tulis Manual -->
-            <div id="wrapperWrite" class="space-y-4 hidden">
-                <form id="writeForm" class="space-y-4">
-                    <textarea id="foodInput" rows="4" required class="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl" placeholder="Contoh: Makan siang nasi goreng telur porsi sedang..."></textarea>
-                    <button type="submit" id="btnSubmitWrite" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/20">Analisis Teks AI</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Ringkasan Nutrisi -->
-        <section class="mb-8">
-            <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                <i class="fa-solid fa-chart-pie text-blue-500 dark:text-blue-400"></i> Ringkasan Hari Ini
-            </h2>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-3" id="dashboardGrid">
-                <!-- Placeholder Loading -->
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-            </div>
-        </section>
-
-        <!-- Riwayat Makan -->
-        <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <h2 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Riwayat Terakhir
-                </h2>
-                <button onclick="fetchData()" class="text-blue-600 dark:text-blue-400 text-sm font-medium"><i class="fa-solid fa-rotate"></i> Refresh</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-slate-50 dark:bg-slate-850 text-[10px] uppercase font-bold border-b dark:border-slate-700">
-                            <th class="py-3 px-6">Waktu</th>
-                            <th class="py-3 px-6">Makanan</th>
-                            <th class="py-3 px-6 text-right">Kalori</th>
-                            <th class="py-3 px-6 text-right">Protein</th>
-                            <th class="py-3 px-6 text-right">Karbo</th>
-                            <th class="py-3 px-6 text-right">Lemak</th>
-                        </tr>
-                    </thead>
-                    <tbody id="riwayatTableBody" class="divide-y dark:divide-slate-700 text-sm">
-                        <tr><td colspan="6" class="text-center py-8 text-slate-400">Sinkronisasi data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
-
-    <!-- Modal Pop-up Analisis AI -->
-    <div id="nutritionModal" class="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-950 w-full max-w-md rounded-3xl p-6 text-center shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div class="text-amber-500 text-3xl mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-            <h3 class="text-xl font-bold mb-1">Hasil Analisis AI</h3>
-            <div id="modalFoodTitle" class="text-blue-600 font-black uppercase text-sm mb-6 tracking-wide">-</div>
-
-            <div class="grid grid-cols-3 gap-2 mb-6">
-                <div class="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl">
-                    <p class="text-[10px] text-blue-500 font-bold">KALORI</p>
-                    <p id="popKalori" class="font-bold text-sm">0</p>
-                </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/30 p-2 rounded-xl">
-                    <p class="text-[10px] text-emerald-500 font-bold">PROTEIN</p>
-                    <p id="popProtein" class="font-bold text-sm">0</p>
-                </div>
-                <div class="bg-rose-50 dark:bg-rose-900/30 p-2 rounded-xl">
-                    <p class="text-[10px] text-rose-500 font-bold">LEMAK</p>
-                    <p id="popLemak" class="font-bold text-sm">0</p>
-                </div>
-            </div>
-
-            <div class="text-left mb-6">
-                <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Analisis Kesehatan:</p>
-                <div id="modalConclusion" class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-sm leading-relaxed italic"></div>
-            </div>
-
-            <div class="space-y-2">
-                <button id="btnConfirmSave" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl">Simpan ke Jurnal</button>
-                <button onclick="closeModal()" class="w-full text-slate-500 text-sm font-semibold">Batal</button>
-            </div>
-        </div>
-    </div>
+            try {
+                // Panggil kembali doGet dengan parameter refresh=true untuk instruksi acak baru
+                const res = await fetch(`${GAS_WEB_APP_URL}?refresh=true`);
+                const result = await res.json();
+                if (result.status === "success") {
+                    renderDashboard(result.dashboard);
+                    renderRiwayat(result.riwayat);
+                    
+                    if (result.motivation) {
+                        document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
+                        document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
+                        document.getElementById("aiRecipeText").innerText = result.recipe;
+                        currentRecommendedFood = result.food_name || result.recipe.split(":")[0];
+                    }
+                }
+            } catch (e) { 
+                alert("Koneksi gagal saat mencoba mengganti menu."); 
+            }
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+        };
 
     <script>
         let temporaryAiData = null; 
