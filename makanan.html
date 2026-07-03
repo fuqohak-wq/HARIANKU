@@ -289,6 +289,7 @@
 
         // Fetch Data
 // Fetch Data
+// Fetch Data
 async function fetchData() {
     try {
         const res = await fetch(GAS_WEB_APP_URL);
@@ -297,7 +298,7 @@ async function fetchData() {
             renderDashboard(result.dashboard);
             renderRiwayat(result.riwayat);
             
-            // Render Saran AI Dinamis dari Server
+            // Render Saran AI Dinamis & Label Waktu dari Server
             if (result.motivation) {
                 document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
                 document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
