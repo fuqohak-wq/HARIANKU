@@ -124,46 +124,32 @@
             </div>
         </section>
 
-        <!-- Ringkasan Nutrisi -->
+        <!-- Ringkasan Nutrisi Hari Ini (Dengan Progress Bar) -->
         <section class="mb-8">
             <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-slate-200">
                 <i class="fa-solid fa-chart-pie text-blue-500 dark:text-blue-400"></i> Ringkasan Hari Ini
             </h2>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-3" id="dashboardGrid">
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3.5" id="dashboardGrid">
                 <!-- Placeholder Loading -->
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
-                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-20"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
+                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 animate-pulse h-24"></div>
             </div>
         </section>
 
-        <!-- Riwayat Makan -->
+        <!-- Riwayat Makan Berbasis Harian (Grouped) -->
         <section class="bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <h2 class="text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Riwayat Terakhir
+                    <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Riwayat Makan Harian
                 </h2>
                 <button onclick="fetchData()" class="text-blue-600 dark:text-blue-400 text-sm font-medium"><i class="fa-solid fa-rotate"></i> Refresh</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-slate-50 dark:bg-slate-850 text-[10px] uppercase font-bold border-b dark:border-slate-700">
-                            <th class="py-3 px-6">Waktu</th>
-                            <th class="py-3 px-6">Makanan</th>
-                            <th class="py-3 px-6 text-right">Kalori</th>
-                            <th class="py-3 px-6 text-right">Protein</th>
-                            <th class="py-3 px-6 text-right">Karbo</th>
-                            <th class="py-3 px-6 text-right">Lemak</th>
-                        </tr>
-                    </thead>
-                    <tbody id="riwayatTableBody" class="divide-y dark:divide-slate-700 text-sm">
-                        <tr><td colspan="6" class="text-center py-8 text-slate-400">Sinkronisasi data...</td></tr>
-                    </tbody>
-                </table>
+            <div id="riwayatGroupedContainer" class="p-6 space-y-6">
+                <div class="text-center py-8 text-slate-400">Menghubungkan ke jurnal makanan...</div>
             </div>
         </section>
     </main>
@@ -202,14 +188,14 @@
         </div>
     </div>
 
-    <!-- SEMUA CODE JAVASCRIPT DISATUKAN DI SINI AGAR BERJALAN SEMPURNA -->
+    <!-- CODE JAVASCRIPT UTAMA -->
     <script>
         // URL WEB APP ANDA
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyR-YR6cfWMYrvgZsavVqWCZVDh_FFIdyDDTWWIzM4SxibMkDAdNlOaA2T3pCa1SpA/exec"; 
 
         let temporaryAiData = null; 
         let currentRawInput = "";   
-        let currentRecommendedFood = ""; // Menyimpan nama menu yang disarankan secara global
+        let currentRecommendedFood = ""; 
 
         const modal = document.getElementById("nutritionModal");
 
@@ -308,7 +294,7 @@
                 const res = await fetch(GAS_WEB_APP_URL);
                 const result = await res.json();
                 if (result.status === "success") {
-                    renderDashboard(result.dashboard);
+                    renderDashboard(result.dashboard, result.targets);
                     renderRiwayat(result.riwayat);
                     
                     if (result.motivation) {
@@ -316,7 +302,6 @@
                         document.getElementById("aiMotivationText").innerText = `"${result.motivation}"`;
                         document.getElementById("aiRecipeText").innerText = result.recipe;
                         
-                        // Menyimpan nama masakan yang direkomendasikan
                         currentRecommendedFood = result.food_name || result.recipe.split(":")[0];
                         document.getElementById("aiInteractionBlock").classList.remove("hidden");
                     }
@@ -329,11 +314,10 @@
             if (!currentRecommendedFood) return;
             currentRawInput = currentRecommendedFood;
             const btn = document.getElementById("btnLikeRecipe");
-            // Mengirim nama makanan rekomendasi ke sistem analisis AI
             await postAction("analyze", { action: "analyze", input: currentRecommendedFood }, btn);
         };
 
-        // Logic Tombol "Ganti Menu" (Tidak Suka)
+        // Logic Tombol "Ganti Menu"
         document.getElementById("btnDislikeRecipe").onclick = async () => {
             const btn = document.getElementById("btnDislikeRecipe");
             const oldHtml = btn.innerHTML;
@@ -344,7 +328,7 @@
                 const res = await fetch(`${GAS_WEB_APP_URL}?refresh=true`);
                 const result = await res.json();
                 if (result.status === "success") {
-                    renderDashboard(result.dashboard);
+                    renderDashboard(result.dashboard, result.targets);
                     renderRiwayat(result.riwayat);
                     
                     if (result.motivation) {
@@ -418,45 +402,176 @@
 
         function closeModal() { modal.classList.add("hidden"); }
 
-        function renderDashboard(db) {
+        // MENGHASILKAN DASHBOARD YANG LEBIH BERWARNA & BERPROGRESS
+        function renderDashboard(db, targets = {}) {
+            const tg = {
+                kalori: targets.kalori || 2000,
+                protein: targets.protein || 60,
+                karbohidrat: targets.karbohidrat || 250,
+                lemak: targets.lemak || 65,
+                serat: targets.serat || 30,
+                air: targets.air || 2000
+            };
+
             const metrics = [
-                { t: "Kalori", v: db.kalori_hari_ini || 0, u: "kkal", i: "fa-fire", c: "text-orange-500" },
-                { t: "Protein", v: db.protein || 0, u: "g", i: "fa-egg", c: "text-blue-400" },
-                { t: "Karbo", v: db.karbohidrat || 0, u: "g", i: "fa-wheat-awn", c: "text-amber-500" },
-                { t: "Lemak", v: db.lemak || 0, u: "g", i: "fa-droplet", c: "text-red-400" },
-                { t: "Serat", v: db.serat || 0, u: "g", i: "fa-seedling", c: "text-green-500" },
-                { t: "Air", v: db.air || 0, u: "ml", i: "fa-glass-water", c: "text-cyan-500" }
+                { t: "Kalori", v: db.kalori_hari_ini || 0, targetKey: "kalori", u: "kkal", i: "fa-fire", bg: "bg-orange-500/10 dark:bg-orange-500/20", border: "border-orange-500/20", bar: "bg-orange-500", text: "text-orange-600 dark:text-orange-400" },
+                { t: "Protein", v: db.protein || 0, targetKey: "protein", u: "g", i: "fa-egg", bg: "bg-blue-500/10 dark:bg-blue-500/20", border: "border-blue-500/20", bar: "bg-blue-500", text: "text-blue-600 dark:text-blue-400" },
+                { t: "Karbo", v: db.karbohidrat || 0, targetKey: "karbohidrat", u: "g", i: "fa-wheat-awn", bg: "bg-amber-500/10 dark:bg-amber-500/20", border: "border-amber-500/20", bar: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
+                { t: "Lemak", v: db.lemak || 0, targetKey: "lemak", u: "g", i: "fa-droplet", bg: "bg-rose-500/10 dark:bg-rose-500/20", border: "border-rose-500/20", bar: "bg-rose-500", text: "text-rose-600 dark:text-rose-400" },
+                { t: "Serat", v: db.serat || 0, targetKey: "serat", u: "g", i: "fa-seedling", bg: "bg-emerald-500/10 dark:bg-emerald-500/20", border: "border-emerald-500/20", bar: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
+                { t: "Air", v: db.air || 0, targetKey: "air", u: "ml", i: "fa-glass-water", bg: "bg-cyan-500/10 dark:bg-cyan-500/20", border: "border-cyan-500/20", bar: "bg-cyan-500", text: "text-cyan-600 dark:text-cyan-400" }
             ];
-            document.getElementById("dashboardGrid").innerHTML = metrics.map(m => `
-                <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tight">${m.t}</span>
-                        <i class="fa-solid ${m.i} ${m.c} text-xs"></i>
+
+            document.getElementById("dashboardGrid").innerHTML = metrics.map(m => {
+                const targetVal = tg[m.targetKey] || 1;
+                const percentage = Math.round((m.v / targetVal) * 100);
+                const barWidth = Math.min(percentage, 100);
+                return `
+                    <div class="${m.bg} ${m.border} border p-4 rounded-2xl shadow-sm flex flex-col justify-between h-28">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">${m.t}</span>
+                                <i class="fa-solid ${m.i} ${m.text} text-xs"></i>
+                            </div>
+                            <div class="flex items-baseline gap-0.5">
+                                <span class="text-lg font-black">${m.v}</span>
+                                <span class="text-[8px] text-slate-400 font-bold">${m.u}</span>
+                            </div>
+                            <div class="text-[8px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                                Target: ${targetVal}${m.u} (${percentage}%)
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
+                            <div class="${m.bar} h-full transition-all duration-500" style="width: ${barWidth}%"></div>
+                        </div>
                     </div>
-                    <div class="flex items-baseline gap-0.5">
-                        <span class="text-base font-black">${m.v}</span>
-                        <span class="text-[8px] text-slate-400 font-bold">${m.u}</span>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
+        // FORMAT JAM CADANGAN BUG GOOGLE SHEETS
+        function formatJam(timeStr) {
+            if (!timeStr) return "-";
+            const timeString = timeStr.toString();
+            if (timeString.includes("T")) {
+                const parts = timeString.split("T")[1];
+                return parts.substring(0, 5);
+            }
+            return timeString.substring(0, 5).replace(/\./g, ":");
+        }
+
+        // FORMAT TANGGAL BAHASA INDONESIA
+        function formatIndoDate(dateStr) {
+            if (!dateStr) return "-";
+            let dateStrClean = dateStr.toString().split("T")[0];
+            const parts = dateStrClean.split("-");
+            if (parts.length === 3) {
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                const dateObj = new Date(year, month, day);
+                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                return dateObj.toLocaleDateString('id-ID', options);
+            }
+            return dateStr;
+        }
+
+        // EVALUASI ANALISIS STATUS KESEHATAN HARIAN
+        function evaluateHealthStatus(kcal, prot, fat) {
+            if (kcal === 0) return { label: "Belum Ada Data", color: "text-slate-400 bg-slate-100 dark:bg-slate-800" };
+            if (kcal > 2200) return { label: "Kalori Berlebih ⚠️", color: "text-rose-600 bg-rose-50 dark:bg-rose-950/30 border-rose-200" };
+            if (fat > 80) return { label: "Tinggi Lemak Jenuh ⚠️", color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30 border-amber-200" };
+            if (kcal < 1000) return { label: "Kalori Terlalu Rendah 💡", color: "text-blue-600 bg-blue-50 dark:bg-blue-950/30 border-blue-200" };
+            return { label: "Sangat Sehat & Seimbang ✨", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200" };
+        }
+
+        // MENGHASILKAN RIWAYAT MAKAN GRUP HARIAN
         function renderRiwayat(list) {
-            const body = document.getElementById("riwayatTableBody");
+            const container = document.getElementById("riwayatGroupedContainer");
             if (!list || list.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">Belum ada data hari ini.</td></tr>`;
+                container.innerHTML = `<div class="text-center py-8 text-slate-400">Belum ada riwayat makan tercatat hari ini.</div>`;
                 return;
             }
-            body.innerHTML = list.map(i => `
-                <tr class="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-850 transition">
-                    <td class="py-3 px-6 text-[10px] text-slate-400 font-mono">${i["Jam"] || '-'}</td>
-                    <td class="py-3 px-6 font-bold text-xs">${i["Nama Makanan"] || '-'}</td>
-                    <td class="py-3 px-6 text-right font-black text-orange-500">${i["Kalori (kkal)"] || 0}</td>
-                    <td class="py-3 px-6 text-right text-blue-500 font-bold">${i["Protein (g)"] || 0}g</td>
-                    <td class="py-3 px-6 text-right text-amber-500 font-bold">${i["Karbohidrat (g)"] || 0}g</td>
-                    <td class="py-3 px-6 text-right text-rose-500 font-bold">${i["Lemak Total (g)"] || 0}g</td>
-                </tr>
-            `).join('');
+
+            // Group data berdasarkan Tanggal
+            const grouped = {};
+            list.forEach(item => {
+                let tgl = item["Tanggal"];
+                if (!tgl) return;
+                
+                let rawDateStr = tgl.toString().split("T")[0]; // yyyy-MM-dd
+                let dateLabel = formatIndoDate(rawDateStr);
+                
+                if (!grouped[rawDateStr]) {
+                    grouped[rawDateStr] = {
+                        label: dateLabel,
+                        items: [],
+                        totalKcal: 0,
+                        totalProt: 0,
+                        totalCarb: 0,
+                        totalFat: 0
+                    };
+                }
+                grouped[rawDateStr].items.push(item);
+                grouped[rawDateStr].totalKcal += Number(item["Kalori (kkal)"]) || 0;
+                grouped[rawDateStr].totalProt += Number(item["Protein (g)"]) || 0;
+                grouped[rawDateStr].totalCarb += Number(item["Karbohidrat (g)"]) || 0;
+                grouped[rawDateStr].totalFat += Number(item["Lemak Total (g)"]) || 0;
+            });
+
+            // Urutkan tanggal terbaru paling atas
+            const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+            container.innerHTML = sortedKeys.map(dateKey => {
+                const dayData = grouped[dateKey];
+                const evalResult = evaluateHealthStatus(dayData.totalKcal, dayData.totalProt, dayData.totalFat);
+                
+                return `
+                    <div class="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm bg-slate-50/50 dark:bg-slate-900/10">
+                        <!-- HEADER HARI -->
+                        <div class="bg-slate-100 dark:bg-slate-850 p-4 flex flex-wrap justify-between items-center gap-3 border-b border-slate-200 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-calendar-day text-blue-500"></i>
+                                <span class="font-bold text-xs text-slate-700 dark:text-slate-200">${dayData.label}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold border ${evalResult.color}">${evalResult.label}</span>
+                                <span class="text-[10px] bg-orange-500/10 text-orange-600 dark:text-orange-400 font-black px-2.5 py-0.5 rounded-full border border-orange-500/20">
+                                    ${dayData.totalKcal.toFixed(0)} kkal
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- TABEL RINCIAN MAKANAN HARI INI -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="bg-white dark:bg-slate-800 text-[9px] text-slate-400 uppercase font-bold border-b dark:border-slate-700">
+                                        <th class="py-2.5 px-4 w-20">Waktu</th>
+                                        <th class="py-2.5 px-4">Menu Makanan</th>
+                                        <th class="py-2.5 px-4 text-right">Kalori</th>
+                                        <th class="py-2.5 px-4 text-right">Protein</th>
+                                        <th class="py-2.5 px-4 text-right">Karbo</th>
+                                        <th class="py-2.5 px-4 text-right">Lemak</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y dark:divide-slate-700 bg-white dark:bg-slate-800">
+                                    ${dayData.items.map(item => `
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-850 transition">
+                                            <td class="py-3 px-4 font-mono text-[9px] text-slate-400">${formatJam(item["Jam"])}</td>
+                                            <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">${item["Nama Makanan"] || '-'}</td>
+                                            <td class="py-3 px-4 text-right font-black text-orange-500">${item["Kalori (kkal)"] || 0} kkal</td>
+                                            <td class="py-3 px-4 text-right text-blue-500 font-bold">${item["Protein (g)"] || 0}g</td>
+                                            <td class="py-3 px-4 text-right text-amber-500 font-bold">${item["Karbohidrat (g)"] || 0}g</td>
+                                            <td class="py-3 px-4 text-right text-rose-500 font-bold">${item["Lemak Total (g)"] || 0}g</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
     </script>
 </body>
