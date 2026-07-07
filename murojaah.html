@@ -99,7 +99,7 @@
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-700">📊 Hasil Laporan Murojaah Terakhir</h2>
-                <button onclick="muatLaporan()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
+                <button onclick="muatLaporan(true)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
             </div>
             <div id="containerLaporan" class="space-y-4 text-sm text-gray-500">
                 Sedang memuat riwayat laporan...
@@ -149,6 +149,9 @@
     let isTestingMic = false;
     let pendingBlob = null; 
     let lastRecordedBlob = null; 
+
+    // Variable global untuk mendeteksi perubahan data baru
+    let lastDataString = "";
 
     // ==========================================
     // SYSTEM INI: INDEXEDDB UNTUK ANTI-HILANG AUDIO
@@ -447,11 +450,25 @@
         statusBox.classList.remove('hidden');
     }
 
-    async function muatLaporan() {
+    async function muatLaporan(isManual = false) {
         try {
-            containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data...</p>`;
+            // Tampilkan animasi pemuatan jika dipicu secara manual, atau jika container masih kosong/dalam status default
+            if (isManual || containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan...")) {
+                containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data...</p>`;
+            }
+            
             const res = await fetch(GSCRIPT_GET_URL);
             const data = await res.json();
+            
+            // Konversi data baru menjadi representasi string untuk dibandingkan dengan data sebelumnya
+            const currentDataString = JSON.stringify(data);
+            if (currentDataString === lastDataString) {
+                // Tidak ada perubahan data baru, lewati penulisan ulang DOM agar pembacaan tidak terganggu
+                return;
+            }
+            
+            // Simpan data terbaru jika ada perubahan
+            lastDataString = currentDataString;
             
             if (data.length === 0) {
                 containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Belum ada riwayat setoran hafalan.</p>`;
@@ -485,7 +502,10 @@
                 containerLaporan.appendChild(kartuLaporan);
             });
         } catch (err) {
-            containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets.</p>`;
+            // Hanya tampilkan pesan gagal jika layar memang kosong
+            if (containerLaporan.innerHTML.includes("Sedang menyegarkan data...") || containerLaporan.innerHTML.trim() === "") {
+                containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets.</p>`;
+            }
         }
     }
 
@@ -496,7 +516,7 @@
                 const response = await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
                 setTimeout(() => {
                     tampilkanStatus("🗑️ Baris berhasil dihapus dari sistem!", "bg-green-50 border-green-200 text-green-700");
-                    muatLaporan();
+                    muatLaporan(true);
                 }, 2000);
             } catch (err) {
                 alert("Gagal menghapus data: " + err.message);
@@ -531,9 +551,9 @@
 
     // SISTEM UTAMA SAAT HALAMAN DI-LOAD
     updateOnlineStatus();
-    muatLaporan();
+    muatLaporan(true); // Load pertama kali menampilkan layar loading
     cekRekamanTerselamatkan(); // Jalankan cek IndexedDB anti-hilang
-    setInterval(muatLaporan, 30000); 
+    setInterval(() => muatLaporan(false), 30000); // Sinkronisasi otomatis di latar belakang tanpa efek berkedip
 </script>
 </body>
 </html>
