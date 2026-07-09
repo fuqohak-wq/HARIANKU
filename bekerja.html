@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI MoneyMachine - Korporasi Mikro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-500 to-teal-500 text-slate-950 p-2 rounded-xl font-black text-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white">AI MoneyMachine</h1>
+                    <p class="text-xs text-slate-400">Sistem Korporasi Mikro & Mentor AI Interaktif</p>
+                </div>
+            </div>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> System Ready
+            </span>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                <label class="block text-xs font-semibold text-slate-400 mb-2 tracking-wider">GEMINI STUDIO API KEY</label>
+                <input type="password" id="geminiKey" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 tracking-wider">PROYEK AKTIF SAAT INI</h3>
+                <div id="activeProjectBox" class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400 italic">
+                    Belum ada proyek yang dikunci. Jalankan wawancara terlebih dahulu.
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+                <h3 class="text-xs font-bold text-slate-400 tracking-wider"><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> LOG FINANSIAL</h3>
+                <div class="space-y-3">
+                    <input type="number" id="quickAmount" placeholder="Nominal (Rp)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-sky-500">
+                    <select id="quickType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
+                        <option value="PEMASUKAN">PEMASUKAN (+)</option>
+                        <option value="PENGELUARAN">PENGELUARAN (-)</option>
+                    </select>
+                    <input type="text" id="quickNotes" placeholder="Keterangan transaksi" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-sky-500">
+                    <button onclick="simpanKeuanganCepat()" id="btnSaveFinance" class="w-full bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold py-2 rounded-xl text-sm transition">
+                        Catat ke Google Sheets
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 min-h-[550px] flex flex-col justify-between">
+                
+                <div class="border-b border-slate-800 pb-4 mb-4 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span id="flowBadge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">TAHAP 1: WAWANCARA</span>
+                    </div>
+                    <div id="loadingStatus" class="hidden text-xs text-emerald-400 items-center gap-2">
+                        <i class="fa-solid fa-circle-notch animate-spin"></i> AI sedang menganalisis pasar...
+                    </div>
+                </div>
+
+                <div id="mainWorkspace" class="flex-1 flex flex-col justify-center">
+                    <div id="wawancaraForm" class="space-y-6">
+                        <div class="text-center max-w-md mx-auto mb-4">
+                            <h2 class="text-xl font-bold text-white mb-1">Halo Calon Owner Bisnis!</h2>
+                            <p class="text-xs text-slate-400">Jawab 3 pertanyaan singkat ini agar AI bisa merancang sistem korporasi mikro (Desa maupun Internet) yang pas untukmu.</p>
+                        </div>
+                        <div class="space-y-4 max-w-xl mx-auto">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">1. APA YANG PALING MELIMPAH / ADA DI SEKITARMU?</label>
+                                <input type="text" id="ans1" placeholder="Misal: Banyak anak muda nganggur, dekat sekolah, hasil tani kelapa, atau sinyal internet lancar" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">2. BERAPA MODAL TUNAI MAKSIMAL KAMU SAAT INI?</label>
+                                <input type="number" id="ans2" value="100000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">3. KEAHLIAN / MINAT APA YANG INGIN KAMU JADIKAN SISTEM?</label>
+                                <input type="text" id="ans3" placeholder="Misal: Menulis, dagang, mengelola orang, atau ketik bebas (ketik 'apapun' jika bingung)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                            </div>
+                            <button onclick="submitWawancara()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl shadow-lg transition">
+                                Cari Peluang Sistem Bisnis <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tinderControls" class="hidden border-t border-slate-800 pt-4 mt-4 grid grid-cols-2 gap-4">
+                    <button onclick="tolakIde()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Gak Cocok, Ganti Ide Lain
+                    </button>
+                    <button onclick="terimaIde()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-check"></i> Cocok, Saya Suka! Eksekusi
+                    </button>
+                </div>
+
+                <div id="evalControls" class="hidden border-t border-slate-800 pt-4 mt-4 space-y-3">
+                    <div class="flex gap-2">
+                        <input type="text" id="evalInput" placeholder="Ketik laporan atau jawaban kamu ke AI di sini..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500">
+                        <button onclick="kirimEvaluasiHarian()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 rounded-xl transition">
+                            Kirim <i class="fa-solid fa-paper-plane ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFtPge1Q14hGryBzYTGtAnf7BZrvx0D8qtq-XX2h8ruHlaBLSMiagWDHQAoh7jDgeMNg/exec";
+        
+        let userContext = {};
+        let rejectedIdeas = [];
+        let currentProposedProject = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedKey = localStorage.getItem("gemini_api_key");
+            if (savedKey) document.getElementById("geminiKey").value = savedKey;
+        });
+
+        document.getElementById("geminiKey").addEventListener("input", (e) => {
+            localStorage.setItem("gemini_api_key", e.target.value.trim());
+        });
+
+        function getApiKey() {
+            return document.getElementById("geminiKey").value.trim();
+        }
+
+        // ================= TAHAP 1: KIRIM WAWANCARA =================
+        function submitWawancara() {
+            if (!getApiKey()) { alert("Masukkan API Key Gemini dulu!"); return; }
+            
+            userContext = {
+                sekitar: document.getElementById("ans1").value || "Umum",
+                modal: document.getElementById("ans2").value || "100000",
+                keahlian: document.getElementById("ans3").value || "Apapun"
+            };
+
+            mintaIdeDariGemini();
+        }
+
+        // ================= TAHAP 2: ENGINE MENCARI IDE (TINDER MODE) =================
+        async function mintaIdeDariGemini() {
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            const flowBadge = document.getElementById("flowBadge");
+            const tinderControls = document.getElementById("tinderControls");
+
+            loader.classList.remove("hidden");
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Sedang memutar otak mencari ribuan opsi sistem korporasi...</p></div>`;
+            flowBadge.innerText = "TAHAP 2: COCOK ATAU GANTI";
+            tinderControls.classList.add("hidden");
+
+            const prompt = `Anda adalah Direktur Pengembangan Bisnis AI yang bertugas membangun sistem Korporasi Mikro/Agensi berskala lokal maupun berbasis INTERNET. 
+            Profil Owner:
+            - Aset/Kondisi Sekitar: ${userContext.sekitar}
+            - Modal Uang Tunai: Rp ${userContext.modal}
+            - Keahlian/Minat khusus: ${userContext.keahlian}
+            - Daftar ide yang sudah DITOLAK sebelumnya oleh owner (Jangan disarankan lagi!): [${rejectedIdeas.join(", ")}]
+
+            TUGAS ANDA:
+            Rumuskan 1 Ide Bisnis Riil (Bisa fisik di desa atau agensi digital di internet) yang logis dijalankan dengan modal Rp ${userContext.modal}. Buat agar OWNER TIDAK HARUS BEKERJA SENDIRI (Gunakan sistem korporasi: delegasi, otomatisasi, makelar, kerja sama aset orang lain, atau bagi hasil).
+
+            Output WAJIB berupa HTML murni, rapi, tanpa bungkus markdown (\`\`\`html). Gunakan padding, list, atau b (bold) Tailwind CSS yang serasi dengan tema gelap. Format struktur:
+            <h2 class="text-xl font-bold text-emerald-400 mb-2" id="tempTitle">[NAMA IDE SISTEM BISNIS]</h2>
+            <p class="text-xs text-slate-400 mb-4"><b>Kategori:</b> Lokal Desa / Full Internet (Sebutkan jenisnya)</p>
+            <div class="space-y-3 text-sm text-slate-200">
+                <p><b>🏢 Logika Korporasinya (Cara Kerja Sistem):</b> Penjelasan bagaimana sistem berjalan tanpa owner harus capek mengetik/bekerja kasar sendiri (sistem bagi hasil/delegasi).</p>
+                <p><b>💰 Matematika Perputaran Cuan:</b> Hitungan sederhana bagaimana modal Rp ${userContext.modal} bisa berputar menghasilkan keuntungan berlipat.</p>
+                <p class="text-amber-400 mt-4 font-semibold">Tanyakan di akhir kalimat: Apakah Anda tertarik untuk mengunci sistem ini dan membuka instruksi Hari Pertama?</p>
+            </div>`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const json = await response.json();
+                const rawText = json.candidates[0].content.parts[0].text;
+                const cleanHtml = rawText.replace(/```html/g, "").replace(/```/g, "").trim();
+
+                workspace.innerHTML = cleanHtml;
+                tinderControls.classList.remove("hidden");
+
+                // Ambil judul proposal untuk pelacakan
+                const titleEl = document.getElementById("tempTitle");
+                currentProposedProject = titleEl ? titleEl.innerText : "Sistem Bisnis Pilihan AI";
+
+            } catch (err) {
+                workspace.innerHTML = `<div class="text-red-400 p-4">Error: ${err.message}</div>`;
+            } finally {
+                loader.classList.add("hidden");
+            }
+        }
+
+        function tolakIde() {
+            rejectedIdeas.push(currentProposedProject);
+            mintaIdeDariGemini();
+        }
+
+        // ================= TAHAP 3: LOCK IDE & MASUK EVALUASI MASUK HARI 1 =================
+        function terimaIde() {
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.remove("hidden");
+            document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            
+            document.getElementById("activeProjectBox").innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
+
+            // Mulai interaksi evaluasi hari pertama
+            memulaiHariPertama();
+        }
+
+        async function memulaiHariPertama() {
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            loader.classList.remove("hidden");
+
+            const prompt = `Pemilik telah MENYETUJUI untuk membangun sistem bisnis: "${currentProposedProject}".
+            Tindak lanjuti sebagai Mentor Bisnis Lapangan/Operasional. 
+            Berikan Instruksi Taktis untuk HARI PERTAMA saja (jangan berikan hari ke-2 dulu). Fokus pada pencarian mitra kerja, penyiapan alat gratisan, atau penyebaran info pasar.
+            Di akhir instruksi, ajukan 1 pertanyaan wawancara evaluasi spesifik untuk nanti malam dijawab oleh owner mengenai progres mereka hari ini.
+            Output berformat HTML murni tanpa markdown.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await response.json();
+                workspace.innerHTML = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
+            } catch (e) {
+                workspace.innerHTML = "Gagal memuat panduan hari pertama.";
+            } finally {
+                loader.classList.add("hidden");
+            }
+        }
+
+        // ================= TAHAP 4: TANYA JAWAB EVALUASI MALAM & LAPORAN =================
+        async function kirimEvaluasiHarian() {
+            const input = document.getElementById("evalInput");
+            const reportText = input.value.trim();
+            if (!reportText) return;
+
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            
+            loader.classList.remove("hidden");
+            const userHistory = workspace.innerHTML; // Ambil konteks pertanyaan terakhir dari layar
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Mentor AI sedang mengetik laporan evaluasi & menghitung mitigasi risiko...</p></div>`;
+            input.value = "";
+
+            const prompt = `Anda adalah Mentor Bisnis Lapangan. Proyek yang berjalan: "${currentProposedProject}".
+            Riwayat instruksi dan pertanyaan terakhir Anda: 
+            ---
+            ${userHistory}
+            ---
+            Jawaban/Laporan Progres dari Owner: "${reportText}"
+
+            TUGAS ANDA:
+            1. Analisis laporan tersebut. Berikan pujian jika ada progres, berikan SOLUSI konkret jika owner mengeluh atau menemui kendala di lapangan.
+            2. Hitung risiko terbarunya dan petakan dalam bentuk ringkasan pendek.
+            3. Berikan instruksi langkah taktis untuk HARI BERIKUTNYA.
+            4. Ajukan kembali 1 pertanyaan pancingan evaluasi baru untuk esok hari.
+            Output dalam HTML murni tanpa markdown \`\`\`.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await response.json();
+                workspace.innerHTML = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
+            } catch (e) {
+                workspace.innerHTML = "Gagal memproses laporan evaluasi harian.";
+            } finally {
+                loader.classList.add("hidden");
+            }
+        }
+
+        // ================= UTILITY: MENCATAT KEUANGAN KE GOOGLE SHEETS =================
+        async function simpanKeuanganCepat() {
+            const amount = document.getElementById("quickAmount").value.trim();
+            const type = document.getElementById("quickType").value;
+            const notes = document.getElementById("quickNotes").value.trim();
+            const btn = document.getElementById("btnSaveFinance");
+
+            if (!amount) { alert("Isi nominal!"); return; }
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            const payload = {
+                action: "insertRow",
+                targetSheet: "Tab_Keuangan",
+                rowData: [new Date().toLocaleDateString('id-ID'), currentProposedProject || "Sistem Korporasi Umum", type, parseInt(amount), notes]
+            };
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    body: JSON.stringify(payload),
+                    headers: { "Content-Type": "application/json" }
+                });
+                alert("Data keuangan berhasil dikirim ke Google Sheets!");
+                document.getElementById("quickAmount").value = "";
+                document.getElementById("quickNotes").value = "";
+            } catch (err) {
+                alert("Error menyimpan data: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Catat ke Google Sheets";
+            }
+        }
+    </script>
+</body>
+</html>
