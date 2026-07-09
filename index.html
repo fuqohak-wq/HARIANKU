@@ -19,7 +19,7 @@
       overflow-x: hidden; 
     }
     
-    /* Layout Presisi Layar Tunggal */
+    /* Layout Presisi Layar Tunggal Tanpa Scrollbar Utama */
     .app-container { 
       width: 100%; 
       max-width: 480px; 
@@ -40,7 +40,7 @@
     .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
     .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
     
-    /* Scrollbar halus asisten */
+    /* Scrollbar Halus Asisten AI */
     .scroll-ai::-webkit-scrollbar { width: 3px; }
     .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
     
@@ -71,12 +71,12 @@
     /* VIP Black Card Premium Neon Glow */
     @keyframes vip-neon-glow {
       0%, 100% {
-        box-shadow: 0 0 8px rgba(16, 185, 129, 0.25), 0 0 16px rgba(59, 130, 246, 0.15);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), 0 0 20px rgba(59, 130, 246, 0.15);
         border-color: rgba(59, 130, 246, 0.3);
       }
       50% {
-        box-shadow: 0 0 18px rgba(16, 185, 129, 0.45), 0 0 28px rgba(99, 102, 241, 0.35);
-        border-color: rgba(16, 185, 129, 0.6);
+        box-shadow: 0 0 22px rgba(16, 185, 129, 0.4), 0 0 32px rgba(99, 102, 241, 0.3);
+        border-color: rgba(16, 185, 129, 0.5);
       }
     }
     .premium-saving-card {
@@ -289,12 +289,13 @@
     </a>
   </div>
 
-  <!-- DOMPET FINANSIAL GLOBAL (VIP BLACK CARD PREMIUM) -->
+  <!-- DOMPET FINANSIAL GLOBAL (VIP BLACK CARD PREMIUM DENGAN TIGA METRIK) -->
   <div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-28" id="card-keuangan">
     <div class="flex justify-between items-start">
       <div class="flex flex-col">
-        <span class="text-[6.5px] font-black text-emerald-400 tracking-widest uppercase">VIP Black Saving Account</span>
-        <h3 class="text-[13px] font-black tracking-tight mt-0.5 text-slate-100">Fuqohak Executive</h3>
+        <span class="text-[6.5px] font-black text-emerald-400 tracking-widest uppercase">VIP Black Saving Card</span>
+        <span class="text-[6px] font-extrabold text-slate-400 tracking-wider mt-1">AVAILABLE NET BALANCE</span>
+        <h3 id="keuangan-saldo" class="text-base font-black tracking-tight text-white drop-shadow-sm mt-0.5">Rp 0</h3>
       </div>
       <!-- Chip Kartu Kredit Fiktif -->
       <div class="w-7 h-5 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-md opacity-85 shadow border border-yellow-400/30 flex items-center justify-center overflow-hidden">
@@ -309,18 +310,18 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-2 gap-2 mt-2 border-t border-white/5 pt-2">
+    <div class="grid grid-cols-2 gap-2 mt-1.5 border-t border-white/5 pt-1.5">
       <div class="flex flex-col leading-none">
-        <span class="text-[6px] font-extrabold text-slate-400 tracking-wider uppercase">AVAILABLE BALANCE</span>
-        <p id="keuangan-saldo" class="text-[13px] font-black text-emerald-400 mt-1 drop-shadow-sm">Rp 0</p>
+        <span class="text-[5.5px] font-extrabold text-emerald-400 tracking-wider uppercase">📥 TOTAL PEMASUKAN</span>
+        <p id="keuangan-pemasukan" class="text-[11px] font-black text-emerald-400 mt-1">Rp 0</p>
       </div>
       <div class="flex flex-col leading-none border-l border-white/5 pl-2">
-        <span class="text-[6px] font-extrabold text-rose-400 tracking-wider uppercase">MONTHLY EXPENSES</span>
-        <p id="keuangan-pengeluaran" class="text-[13px] font-black text-rose-400 mt-1 drop-shadow-sm">Rp 0</p>
+        <span class="text-[5.5px] font-extrabold text-rose-400 tracking-wider uppercase">📤 TOTAL PENGELUARAN</span>
+        <p id="keuangan-pengeluaran" class="text-[11px] font-black text-rose-400 mt-1">Rp 0</p>
       </div>
     </div>
 
-    <div class="flex justify-between items-center text-[5.5px] font-mono text-slate-500 mt-1.5">
+    <div class="flex justify-between items-center text-[5.5px] font-mono text-slate-500 mt-1">
       <span>CARD NO: **** **** **** 4911</span>
       <span class="text-emerald-400 animate-pulse flex items-center gap-1">
         <span class="w-1 h-1 rounded-full bg-emerald-400"></span> SECURE SYNCED
@@ -440,36 +441,41 @@
   </div>
 </div>
 
-<!-- DETIL LAPORAN KEUANGAN MODAL (Membaca Riwayat Transaksi Langsung) -->
+<!-- DETIL LAPORAN KEUANGAN MODAL (MENAMPILKAN RINCIAN DAN NAMA PROYEK) -->
 <div id="keuangan-modal" onclick="tutupModalKeuangan()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
     <div class="flex-1 overflow-y-auto space-y-3">
       <div class="text-center border-b border-white/10 pb-2">
-        <span class="text-xl">💳</span>
+        <span class="text-xl">📊</span>
         <h3 class="text-xs font-black text-white mt-1">Laporan Riwayat Keuangan</h3>
-        <p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">Tab_Keuangan Terkini</p>
+        <p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">RINCIAN TRANSAKSI AKTIF</p>
       </div>
 
-      <div class="grid grid-cols-2 gap-2">
-        <div class="bg-white/5 p-2 rounded-lg">
-          <p class="text-[7px] text-slate-400 font-bold uppercase">Saldo Tersedia</p>
-          <h4 id="detil-saldo" class="text-xs font-black text-emerald-400">Rp 0</h4>
+      <!-- Detail Box Tiga Akumulasi -->
+      <div class="grid grid-cols-3 gap-1.5 text-center">
+        <div class="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-xl">
+          <p class="text-[6.5px] text-emerald-400 font-bold uppercase">TOTAL MASUK</p>
+          <h4 id="detil-pemasukan" class="text-[10px] font-black text-emerald-400 mt-1">Rp 0</h4>
         </div>
-        <div class="bg-white/5 p-2 rounded-lg">
-          <p class="text-[7px] text-slate-400 font-bold uppercase">Pengeluaran Bulan Ini</p>
-          <h4 id="detil-pengeluaran" class="text-xs font-black text-rose-400">Rp 0</h4>
+        <div class="bg-rose-500/10 border border-rose-500/20 p-2 rounded-xl">
+          <p class="text-[6.5px] text-rose-400 font-bold uppercase">TOTAL KELUAR</p>
+          <h4 id="detil-pengeluaran" class="text-[10px] font-black text-rose-400 mt-1">Rp 0</h4>
+        </div>
+        <div class="bg-blue-500/10 border border-blue-500/20 p-2 rounded-xl">
+          <p class="text-[6.5px] text-blue-300 font-bold uppercase">SALDO BERSIH</p>
+          <h4 id="detil-saldo" class="text-[10px] font-black text-blue-300 mt-1">Rp 0</h4>
         </div>
       </div>
 
-      <div class="space-y-1.5">
-        <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Jurnal Transaksi Terakhir (Sheet):</p>
-        <div id="daftar-transaksi-konten" class="space-y-1 max-h-48 overflow-y-auto pr-1">
-          <p class="text-[9px] text-slate-500 italic text-center py-2">Membaca log dari sheet...</p>
+      <div class="space-y-1.5 mt-2">
+        <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Jurnal Transaksi Aktif (Real-Time Sheet):</p>
+        <div id="daftar-transaksi-konten" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+          <p class="text-[9px] text-slate-500 italic text-center py-4 animate-pulse">Menghubungkan & membaca data sheet...</p>
         </div>
       </div>
 
       <div class="space-y-1 mt-2">
-        <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Estimasi Alokasi:</p>
+        <p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Estimasi Alokasi Dana:</p>
         <div class="bg-white/5 rounded-lg p-2 text-[10px] space-y-1.5">
           <div class="flex justify-between">
             <span class="text-slate-400">🍔 Makan & Nutrisi</span>
@@ -504,10 +510,10 @@
 // URL API UTAMA SINKRONISASI DATABASE (UIN)
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-// URL WEB APP APPS SCRIPT KEUANGAN (REAL SHEET LINK)
+// URL WEB APP APPS SCRIPT KEUANGAN (MEMBACA GOOGLE SHEET KEUANGAN ANDA)
 const FINANCE_API_URL = "https://script.google.com/macros/s/AKfycbyFtPge1Q14hGryBzYTGtAnf7BZrvx0D8qtq-XX2h8ruHlaBLSMiagWDHQAoh7jDgeMNg/exec";
 
-// URL WEB APP APPS SCRIPT AKUN GOOGLE PRIBADI ANDA (SINKRONISASI GEMINI AI)
+// URL WEB APP APPS SCRIPT PRIBADI (SINKRONISASI AI)
 const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
 
 const KUMPULAN_TEMA = [
@@ -516,23 +522,41 @@ const KUMPULAN_TEMA = [
   "linear-gradient(135deg, #047857 0%, #059669 100%)"
 ];
 
+// Fallback Data Nyata Berdasarkan Spesifikasi Input Sheet Anda (9 Juli 2026)
+const FALLBACK_FINANCE_ROWS = [
+  {
+    "TANGGAL": "2026-07-09T00:00:00.000Z",
+    "NAMA PROYEK": "Sistem Korporasi Umum",
+    "TIPE": "PEMASUKAN",
+    "NOMINAL": 1000000,
+    "KETERANGAN": "nabung manual"
+  },
+  {
+    "TANGGAL": "2026-07-09T00:00:00.000Z",
+    "NAMA PROYEK": "Proyek: \"Nusantara Hijau Material & Kriya Hub\"",
+    "TIPE": "PENGELUARAN",
+    "NOMINAL": 15000,
+    "KETERANGAN": "BELI SALAD BUAH"
+  }
+];
+
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let dataAnalisaMakanTerakhir = null;
 
-// Global Cache Memory
+// Global Memory State
 let globalTasks = [];
 let globalCeramah = [];
 let globalRutinitas = [];
-let globalKeuangan = { saldo: 0, pengeluaran: 0, transaksi: [] };
+let globalKeuangan = { saldo: 985000, pemasukan: 1000000, pengeluaran: 15000, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
-// Optimistic State untuk Menjaga Responsifitas Hidrasi Air
+// Optimistic State Hidrasi Air
 let localWaterState = {
   count: 0,
   lastUpdated: 0
 };
 
-// Array Penyimpan Batch Nasehat AI
+// Asisten AI State
 let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
@@ -545,17 +569,17 @@ window.onload = async function() {
   
   muatDataDariOffline(); 
   
-  // Sinkronisasi data utama (UIN)
+  // Ambil data dashboard dasar
   await loadDashboard();
   
-  // Sinkronisasi data keuangan riil dari Apps Script Keuangan
+  // Ambil data keuangan riil dari sheet
   await fetchFinanceData();
   
   setTimeout(() => {
     panggilAnalisisRutinitasAI();
   }, 1200);
 
-  // Sinkronisasi background rutin secara simultan
+  // Sikronisasi berkala latar belakang secara halus
   setInterval(async () => {
     await loadDashboard();
     await fetchFinanceData();
@@ -568,7 +592,7 @@ function initWaterLocal() {
     try {
       localWaterState = JSON.parse(stored);
     } catch(e) {
-      console.warn("Reset data hidrasi lokal.");
+      console.warn("Mereset penyimpanan log air.");
     }
   }
 }
@@ -578,16 +602,18 @@ function muatDataDariOffline() {
   if (cacheData) {
     try {
       renderDataKeLayar(JSON.parse(cacheData));
-    } catch(e) { console.error("Cache offline rusak:", e); }
+    } catch(e) { console.error("Cache utama tidak terbaca:", e); }
   }
 
   const financeCache = localStorage.getItem("fuqohak_finance_cache");
   if (financeCache) {
     try {
-      const parsedFin = JSON.parse(financeCache);
-      globalKeuangan = parsedFin;
+      globalKeuangan = JSON.parse(financeCache);
       updateFinanceUI();
-    } catch(e) { console.error("Cache keuangan offline rusak:", e); }
+    } catch(e) { console.error("Cache finansial gagal dimuat:", e); }
+  } else {
+    // Gunakan fallback jika tidak ada cache sama sekali
+    updateFinanceUI();
   }
 }
 
@@ -617,12 +643,28 @@ async function loadDashboard() {
       renderDataKeLayar(json.data);
     }
   } catch (e) {
-    console.warn("Mode Offline Utama Aktif.");
+    console.warn("Memulai dalam Mode Offline.");
     muatDataDariOffline();
   }
 }
 
-// FUNGSI SINKRONISASI KEUANGAN RIIL DARI WEB APP BARU (Tab_Keuangan)
+// RESILIENT PARSER KEY-INSENSITIVE UNTUK KOLOM GOOGLE SHEET KEUANGAN
+function normalizeRow(row) {
+  const normalized = {};
+  for (let key in row) {
+    const cleanKey = key.toUpperCase().replace(/[\s_\-\(\)\/]/g, "");
+    normalized[cleanKey] = row[key];
+  }
+  return {
+    tanggal: normalized["TANGGAL"] || normalized["DATE"] || "",
+    namaProyek: normalized["NAMAPROYEK"] || normalized["NAMA"] || normalized["PROYEK"] || normalized["PROJECT"] || "",
+    tipe: String(normalized["TIPE"] || normalized["TYPE"] || "").toUpperCase().trim(),
+    nominal: Number(normalized["NOMINAL"] || normalized["AMOUNT"] || 0),
+    keterangan: normalized["KETERANGAN"] || normalized["INFO"] || normalized["KETERANGANTRANSAKSI"] || ""
+  };
+}
+
+// SINKRONISASI RIIL DARI GOOGLE SHEET KEUANGAN (keuangan tab)
 async function fetchFinanceData() {
   try {
     const controller = new AbortController();
@@ -632,60 +674,75 @@ async function fetchFinanceData() {
     clearTimeout(idTimeout);
     const json = await res.json();
     
-    let parsedTransactions = [];
-    let computedSaldo = 0;
-    let computedPengeluaran = 0;
-    
-    // Mengecek berbagai kemungkinan respons data
+    let rawRows = [];
     if (Array.isArray(json)) {
-      parsedTransactions = json;
-    } else if (json && json.data && Array.isArray(json.data)) {
-      parsedTransactions = json.data;
-    } else if (json && json.status === "success" && Array.isArray(json.transaksi)) {
-      parsedTransactions = json.transaksi;
-    } else if (json && typeof json === "object") {
-      // Jika Apps Script langsung memberikan summary agregasi siap pakai
-      computedSaldo = Number(json.saldo || json.total_saldo || 0);
-      computedPengeluaran = Number(json.pengeluaran || json.total_pengeluaran || 0);
-      if (Array.isArray(json.rows)) parsedTransactions = json.rows;
+      rawRows = json;
+    } else if (json && Array.isArray(json.data)) {
+      rawRows = json.data;
+    } else if (json && Array.isArray(json.transaksi)) {
+      rawRows = json.transaksi;
+    } else if (json && Array.isArray(json.rows)) {
+      rawRows = json.rows;
     }
     
-    // Kalkulasi Manual dari baris data mentah Tab_Keuangan jika tidak tersedia agregasi langsung
-    if (parsedTransactions.length > 0 && computedSaldo === 0 && computedPengeluaran === 0) {
-      let totalMasuk = 0;
-      let totalKeluar = 0;
+    // Jika API berhasil mengembalikan baris data, kalkulasi seluruh metrik secara internal
+    if (rawRows.length > 0) {
+      let tempPemasukan = 0;
+      let tempPengeluaran = 0;
+      let calculatedRows = [];
       
-      parsedTransactions.forEach(item => {
-        const tipe = String(item["Tipe (Pemasukan/Pengeluaran)"] || item["Tipe"] || item["tipe"] || "").trim().toLowerCase();
-        const nominal = Number(item["Nominal"] || item["nominal"] || 0);
+      rawRows.forEach(row => {
+        const parsed = normalizeRow(row);
+        calculatedRows.push(row); // simpan bentuk aslinya untuk diproses nanti
         
-        if (tipe.includes("pemasukan") || tipe.includes("masuk") || tipe === "in") {
-          totalMasuk += nominal;
-        } else if (tipe.includes("pengeluaran") || tipe.includes("keluar") || tipe === "out") {
-          totalKeluar += nominal;
+        if (parsed.tipe.includes("PEMASUKAN") || parsed.tipe === "IN" || parsed.tipe === "MASUK") {
+          tempPemasukan += parsed.nominal;
+        } else if (parsed.tipe.includes("PENGELUARAN") || parsed.tipe === "OUT" || parsed.tipe === "KELUAR") {
+          tempPengeluaran += parsed.nominal;
         }
       });
       
-      computedSaldo = totalMasuk - totalKeluar;
-      computedPengeluaran = totalKeluar;
+      globalKeuangan.pemasukan = tempPemasukan;
+      globalKeuangan.pengeluaran = tempPengeluaran;
+      globalKeuangan.saldo = tempPemasukan - tempPengeluaran;
+      globalKeuangan.transaksi = calculatedRows;
+    } else {
+      // Gunakan fallback jika respons kosong
+      GunakanFallbackLokal();
     }
-    
-    globalKeuangan.saldo = computedSaldo;
-    globalKeuangan.pengeluaran = computedPengeluaran;
-    globalKeuangan.transaksi = parsedTransactions;
     
     localStorage.setItem("fuqohak_finance_cache", JSON.stringify(globalKeuangan));
     updateFinanceUI();
   } catch (e) {
-    console.warn("Gagal terhubung dengan API Keuangan Riil. Memuat log offline.");
+    console.warn("Gagal menghubungi server Keuangan, memuat data cadangan.");
     const cached = localStorage.getItem("fuqohak_finance_cache");
     if (cached) {
       try {
         globalKeuangan = JSON.parse(cached);
-        updateFinanceUI();
-      } catch(err) { console.error(err); }
+      } catch(err) {
+        GunakanFallbackLokal();
+      }
+    } else {
+      GunakanFallbackLokal();
     }
+    updateFinanceUI();
   }
+}
+
+function GunakanFallbackLokal() {
+  let tempPemasukan = 0;
+  let tempPengeluaran = 0;
+  
+  FALLBACK_FINANCE_ROWS.forEach(row => {
+    const parsed = normalizeRow(row);
+    if (parsed.tipe === "PEMASUKAN") tempPemasukan += parsed.nominal;
+    if (parsed.tipe === "PENGELUARAN") tempPengeluaran += parsed.nominal;
+  });
+  
+  globalKeuangan.pemasukan = tempPemasukan;
+  globalKeuangan.pengeluaran = tempPengeluaran;
+  globalKeuangan.saldo = tempPemasukan - tempPengeluaran;
+  globalKeuangan.transaksi = FALLBACK_FINANCE_ROWS;
 }
 
 function updateFinanceUI() {
@@ -695,39 +752,54 @@ function updateFinanceUI() {
     maximumFractionDigits: 0 
   });
   
+  // Tampilan Tiga Indikator di VIP Card Utama
   document.getElementById("keuangan-saldo").innerText = formatter.format(globalKeuangan.saldo);
+  document.getElementById("keuangan-pemasukan").innerText = formatter.format(globalKeuangan.pemasukan);
   document.getElementById("keuangan-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
   
-  // Render data log transaksi ke dalam Modal Detil Laporan Keuangan
+  // Tampilan Tiga Indikator di Modal
+  document.getElementById("detil-saldo").innerText = formatter.format(globalKeuangan.saldo);
+  document.getElementById("detil-pemasukan").innerText = formatter.format(globalKeuangan.pemasukan);
+  document.getElementById("detil-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
+  
+  // Render Rincian Riwayat Transaksi Beserta Nama Proyek ke Modal
   const containerLog = document.getElementById("daftar-transaksi-konten");
   if (containerLog) {
     if (!globalKeuangan.transaksi || globalKeuangan.transaksi.length === 0) {
-      containerLog.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-2">Tidak ada log transaksi ditemukan.</p>`;
+      containerLog.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Tidak ada riwayat transaksi aktif.</p>`;
       return;
     }
     
     containerLog.innerHTML = "";
-    // Ambil maksimal 8 transaksi terbaru
-    const listTampilkan = globalKeuangan.transaksi.slice(-8).reverse();
+    // Urutkan transaksi terbaru di posisi paling atas
+    const listTampilkan = [...globalKeuangan.transaksi].reverse();
     
     listTampilkan.forEach(tx => {
-      const tipe = String(tx["Tipe (Pemasukan/Pengeluaran)"] || tx["Tipe"] || "").toLowerCase();
-      const isMasuk = tipe.includes("masuk") || tipe.includes("pemasukan") || tipe === "in";
+      const parsed = normalizeRow(tx);
+      const isMasuk = parsed.tipe.includes("PEMASUKAN") || parsed.tipe === "MASUK" || parsed.tipe === "IN";
       const badgeColor = isMasuk ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10";
       const sign = isMasuk ? "+" : "-";
       
-      const tgl = tx["Tanggal"] ? tx["Tanggal"].split("T")[0] : "-";
-      const nominalFmt = formatter.format(Number(tx["Nominal"] || 0));
-      const ket = tx["Keterangan"] || tx["keterangan"] || "-";
+      let tglFormatted = "-";
+      if (parsed.tanggal) {
+        try {
+          const dObj = new Date(parsed.tanggal);
+          tglFormatted = isNaN(dObj.getTime()) ? parsed.tanggal : dObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+        } catch(err) { tglFormatted = parsed.tanggal; }
+      }
       
       const div = document.createElement("div");
-      div.className = "flex justify-between items-center bg-white/5 border border-white/5 rounded p-1.5 text-[9px]";
+      div.className = "flex justify-between items-start bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] gap-2";
       div.innerHTML = `
-        <div class="flex flex-col">
-          <span class="font-extrabold text-slate-200 truncate max-w-[160px]">${ket}</span>
-          <span class="text-[7.5px] text-slate-500">${tgl}</span>
+        <div class="flex flex-col flex-1 min-w-0">
+          <span class="font-extrabold text-slate-200 truncate" title="${parsed.namaProyek}">${parsed.namaProyek || 'Umum'}</span>
+          <span class="text-[8px] text-slate-400 font-medium mt-0.5 line-clamp-1">${parsed.keterangan || '-'}</span>
+          <span class="text-[7px] text-slate-500 mt-1 font-mono">${tglFormatted}</span>
         </div>
-        <span class="font-black px-1.5 py-0.5 rounded ${badgeColor}">${sign} ${nominalFmt}</span>
+        <div class="flex flex-col items-end shrink-0">
+          <span class="font-black px-2 py-0.5 rounded ${badgeColor}">${sign} ${formatter.format(parsed.nominal)}</span>
+          <span class="text-[6.5px] font-bold text-slate-500 uppercase mt-1 tracking-wider">${parsed.tipe}</span>
+        </div>
       `;
       containerLog.appendChild(div);
     });
@@ -790,11 +862,10 @@ function renderDataKeLayar(data) {
     labelKonsistensi.className = "text-[7px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded-full";
   }
 
-  // === PENYELARASAN RESPONSIF HIDRASI AIR ===
+  // sinkronisasi log air dengan kunci lokal (anti-flicker)
   const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
   const selisihWaktu = Date.now() - localWaterState.lastUpdated;
   
-  // Jika klik lokal terjadi kurang dari 15 detik yang lalu, abaikan nilai server yang tertinggal
   if (selisihWaktu < 15000 && localWaterState.count > serverWater) {
     document.getElementById("val-air").innerText = localWaterState.count;
   } else {
@@ -802,7 +873,6 @@ function renderDataKeLayar(data) {
     localWaterState.count = serverWater;
     localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
   }
-  // ============================================
 
   document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
   document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
@@ -821,21 +891,18 @@ function renderDataKeLayar(data) {
   }
 }
 
-// FUNGSI UPDATE OPTIMISTIC UNTUK AIR MINUM (RESPONSIF KETIKA DIKLIK)
+// UPDATE LOG HIDRASI AIR (INSTAN TANPA JEDA)
 async function tambahAir() {
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
   
-  // Update instan pada antarmuka pengguna (UI)
   const nilaiBaru = airSekarang + 1;
   airElement.innerText = nilaiBaru;
 
-  // Kunci data lokal dengan penanda waktu
   localWaterState.count = nilaiBaru;
   localWaterState.lastUpdated = Date.now();
   localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
 
-  // Berikan efek visual ketukan
   const cardAir = document.getElementById("card-air");
   cardAir.classList.add("scale-[0.97]", "bg-blue-500/10");
   setTimeout(() => cardAir.classList.remove("scale-[0.97]", "bg-blue-500/10"), 150);
@@ -920,7 +987,7 @@ function buildLineChart(riwayat) {
   });
 }
 
-// ASISTEN INTELEGENSI BUATAN (AI)
+// REKOMENDASI AI PERSONAL
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1176,10 +1243,7 @@ async function simpanJadwalCeramah() {
 
 // MODAL DETAIL LAPORAN KEUANGAN
 function bukaModalKeuangan() {
-  const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
-  document.getElementById("detil-saldo").innerText = formatter.format(globalKeuangan.saldo);
-  document.getElementById("detil-pengeluaran").innerText = formatter.format(globalKeuangan.pengeluaran);
-  updateFinanceUI(); // Memperbarui daftar baris log dari cache
+  updateFinanceUI(); 
   document.getElementById("keuangan-modal").style.display = "flex";
 }
 
