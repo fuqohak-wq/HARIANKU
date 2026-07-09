@@ -13,6 +13,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
 
+    <!-- Navbar -->
     <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -32,12 +33,15 @@
 
     <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
+        <!-- Kolom Kiri: Kontrol & Kunci API -->
         <div class="lg:col-span-1 space-y-6">
+            <!-- API Key -->
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
                 <label class="block text-xs font-semibold text-slate-400 mb-2 tracking-wider">GEMINI STUDIO API KEY</label>
                 <input type="password" id="geminiKey" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition">
             </div>
 
+            <!-- Status Proyek Terkunci -->
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
                 <h3 class="text-xs font-bold text-slate-400 tracking-wider">PROYEK AKTIF SAAT INI</h3>
                 <div id="activeProjectBox" class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-sm text-slate-400 italic">
@@ -45,6 +49,7 @@
                 </div>
             </div>
 
+            <!-- Jurnal Keuangan Cepat -->
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
                 <h3 class="text-xs font-bold text-slate-400 tracking-wider"><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> LOG FINANSIAL</h3>
                 <div class="space-y-3">
@@ -61,9 +66,11 @@
             </div>
         </div>
 
+        <!-- Kolom Kanan: Workspace Interaktif -->
         <div class="lg:col-span-2 space-y-6">
             <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 min-h-[550px] flex flex-col justify-between">
                 
+                <!-- Header Status Alur -->
                 <div class="border-b border-slate-800 pb-4 mb-4 flex justify-between items-center">
                     <div class="flex items-center gap-2">
                         <span id="flowBadge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">TAHAP 1: WAWANCARA</span>
@@ -73,6 +80,7 @@
                     </div>
                 </div>
 
+                <!-- Konten Dinamis -->
                 <div id="mainWorkspace" class="flex-1 flex flex-col justify-center">
                     <div id="wawancaraForm" class="space-y-6">
                         <div class="text-center max-w-md mx-auto mb-4">
@@ -99,6 +107,7 @@
                     </div>
                 </div>
 
+                <!-- Footer Navigasi / Kontrol Tinder -->
                 <div id="tinderControls" class="hidden border-t border-slate-800 pt-4 mt-4 grid grid-cols-2 gap-4">
                     <button onclick="tolakIde()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
                         <i class="fa-solid fa-xmark"></i> Gak Cocok, Ganti Ide Lain
@@ -108,6 +117,7 @@
                     </button>
                 </div>
 
+                <!-- Kontrol Evaluasi -->
                 <div id="evalControls" class="hidden border-t border-slate-800 pt-4 mt-4 space-y-3">
                     <div class="flex gap-2">
                         <input type="text" id="evalInput" placeholder="Ketik laporan atau jawaban kamu ke AI di sini..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500">
@@ -128,10 +138,63 @@
         let rejectedIdeas = [];
         let currentProposedProject = "";
 
-        document.addEventListener("DOMContentLoaded", () => {
+        // Load data otomatis saat halaman dimuat pertama kali oleh browser
+        document.addEventListener("DOMContentLoaded", async () => {
             const savedKey = localStorage.getItem("gemini_api_key");
             if (savedKey) document.getElementById("geminiKey").value = savedKey;
+
+            // CEK APAKAH ADA PROYEK YANG SEDANG BERJALAN DI GOOGLE SHEETS
+            await cekProyekBerjalan();
         });
+
+        // Fungsi mendeteksi proyek aktif dari Google Sheets jika dibuka keesokan harinya
+        async function cekProyekBerjalan() {
+            const workspace = document.getElementById("mainWorkspace");
+            const flowBadge = document.getElementById("flowBadge");
+            const activeProjectBox = document.getElementById("activeProjectBox");
+            const evalControls = document.getElementById("evalControls");
+            const wawancaraForm = document.getElementById("wawancaraForm");
+
+            try {
+                // Memanggil fungsi readData dari Code.gs dengan mengaktifkan redirect: follow
+                const response = await fetch(`${APPS_SCRIPT_URL}?action=readData&sheet=Tab_Ide`, {
+                    method: "GET",
+                    redirect: "follow"
+                });
+                const result = await response.json();
+                
+                if (result.status === "success" && result.data.length > 0) {
+                    // Ambil baris data paling terakhir yang statusnya "BERJALAN"
+                    const proyekAktif = result.data.reverse().find(row => {
+                        const status = row["Status"] || Object.values(row)[2];
+                        return status === "BERJALAN";
+                    });
+
+                    if (proyekAktif) {
+                        const namaProyek = proyekAktif["Nama Proyek"] || Object.values(proyekAktif)[1];
+                        currentProposedProject = namaProyek;
+
+                        // Lompat langsung ke menu Evaluasi
+                        wawancaraForm.classList.add("hidden");
+                        evalControls.classList.remove("hidden");
+                        
+                        flowBadge.innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+                        flowBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                        activeProjectBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
+
+                        workspace.innerHTML = `
+                            <div class="space-y-4 text-center py-6">
+                                <div class="text-5xl text-emerald-400"><i class="fa-solid fa-business-time"></i></div>
+                                <h2 class="text-lg font-bold text-white">Selamat datang kembali, Bos!</h2>
+                                <p class="text-sm text-slate-300 max-w-md mx-auto">Sistem mendeteksi proyek <b>"${currentProposedProject}"</b> sedang Anda kawal. Tulis laporan perkembangan atau kendala Anda di kolom bawah untuk dievaluasi oleh Mentor AI.</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.log("Belum ada proyek aktif atau koneksi sheet bermasalah: " + err.message);
+            }
+        }
 
         document.getElementById("geminiKey").addEventListener("input", (e) => {
             localStorage.setItem("gemini_api_key", e.target.value.trim());
@@ -199,7 +262,6 @@
                 workspace.innerHTML = cleanHtml;
                 tinderControls.classList.remove("hidden");
 
-                // Ambil judul proposal untuk pelacakan
                 const titleEl = document.getElementById("tempTitle");
                 currentProposedProject = titleEl ? titleEl.innerText : "Sistem Bisnis Pilihan AI";
 
@@ -215,47 +277,43 @@
             mintaIdeDariGemini();
         }
 
-// ================= TAHAP 3: LOCK IDE, SIMPAN KE SHEET, & MASUK HARI 1 =================
-async function terimaIde() {
-    const tinderControls = document.getElementById("tinderControls");
-    const evalControls = document.getElementById("evalControls");
-    const flowBadge = document.getElementById("flowBadge");
-    const activeProjectBox = document.getElementById("activeProjectBox");
+        // ================= TAHAP 3: LOCK IDE, SIMPAN KE SHEET, & MASUK HARI 1 =================
+        async function terimaIde() {
+            const tinderControls = document.getElementById("tinderControls");
+            const evalControls = document.getElementById("evalControls");
+            const flowBadge = document.getElementById("flowBadge");
+            const activeProjectBox = document.getElementById("activeProjectBox");
 
-    // 1. Kunci tampilan UI terlebih dahulu
-    tinderControls.classList.add("hidden");
-    evalControls.classList.remove("hidden");
-    flowBadge.innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
-    flowBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-    activeProjectBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
+            tinderControls.classList.add("hidden");
+            evalControls.classList.remove("hidden");
+            flowBadge.innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+            flowBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            activeProjectBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
 
-    // 2. OTOMATIS KIRIM/SIMPAN PROYEK YANG DISUKAI KE GOOGLE SHEETS
-    const tanggal = new Date().toLocaleDateString('id-ID');
-    
-    // Payload disesuaikan dengan struktur Code.gs kamu (insertRow)
-    // Asumsi urutan kolom di Tab_Ide kamu: [Tanggal, Nama Proyek, Status]
-    const payload = {
-        action: "insertRow",
-        targetSheet: "Tab_Ide", // Pastikan nama tab ini ada di Google Sheets kamu!
-        rowData: [tanggal, currentProposedProject, "BERJALAN"]
-    };
+            // Kirim data nama proyek baru ke Sheets Tab_Ide
+            const tanggal = new Date().toLocaleDateString('id-ID');
+            const payload = {
+                action: "insertRow",
+                targetSheet: "Tab_Ide",
+                rowData: [tanggal, currentProposedProject, "BERJALAN"]
+            };
 
-    try {
-        // Mengirim data ke Google Sheets secara background tanpa mengganggu kenyamanan user
-        await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors", 
-            body: JSON.stringify(payload),
-            headers: { "Content-Type": "application/json" }
-        });
-        console.log("Proyek berhasil dikunci dan dicatat di Google Sheets Tab_Ide!");
-    } catch (err) {
-        console.error("Gagal mencatat ide ke Google Sheets: " + err.message);
-    }
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors", 
+                    body: JSON.stringify(payload),
+                    headers: { "Content-Type": "application/json" }
+                });
+                console.log("Proyek dikunci ke Google Sheets Tab_Ide.");
+            } catch (err) {
+                console.error("Gagal mencatat ke Sheets: " + err.message);
+            }
 
-    // 3. Lanjutkan memanggil panduan hari pertama dari Gemini
-    memulaiHariPertama();
-}
+            memulaiHariPertama();
+        }
+
+        async functionGrid memuat panduan hari pertama() {}
         async function memulaiHariPertama() {
             const workspace = document.getElementById("mainWorkspace");
             const loader = document.getElementById("loadingStatus");
@@ -292,7 +350,7 @@ async function terimaIde() {
             const loader = document.getElementById("loadingStatus");
             
             loader.classList.remove("hidden");
-            const userHistory = workspace.innerHTML; // Ambil konteks pertanyaan terakhir dari layar
+            const userHistory = workspace.innerHTML;
             workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Mentor AI sedang mengetik laporan evaluasi & menghitung mitigasi risiko...</p></div>`;
             input.value = "";
 
