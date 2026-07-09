@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI MoneyMachine - Korporasi Mikro</title>
+    <title>AI MoneyMachine - Zuhurul Fuqohak Corporation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -51,7 +51,7 @@
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
                 <h3 class="text-xs font-bold text-slate-400 tracking-wider"><i class="fa-solid fa-wallet text-sky-400 mr-1"></i> LOG FINANSIAL (<span id="financeProjectName" class="text-slate-300">Umum</span>)</h3>
                 <div class="space-y-3">
-                    <input type="number" id="quickAmount" placeholder="Nominal (Rp)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-sky-500">
+                    <input type="text" id="quickAmount" placeholder="Nominal (Rp)" oninput="formatInputRibuan(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-sky-500">
                     <select id="quickType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500">
                         <option value="PEMASUKAN">PEMASUKAN (+)</option>
                         <option value="PENGELUARAN">PENGELUARAN (-)</option>
@@ -89,7 +89,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">2. BERAPA MODAL TUNAI MAKSIMAL KAMU SAAT INI?</label>
-                                <input type="number" id="ans2" value="100000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
+                                <input type="text" id="ans2" value="100.000" oninput="formatInputRibuan(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">3. KEAHLIAN / MINAT APA YANG INGIN KAMU JADIKAN SISTEM?</label>
@@ -125,7 +125,6 @@
     </div>
 
     <script>
-        // MASUKKAN URL GOOGLE SCRIPT DEPLOYMENT TERBARUMU DI SINI
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFtPge1Q14hGryBzYTGtAnf7BZrvx0D8qtq-XX2h8ruHlaBLSMiagWDHQAoh7jDgeMNg/exec";
         
         let userContext = {};
@@ -145,7 +144,24 @@
 
         function getApiKey() { return document.getElementById("geminiKey").value.trim(); }
 
-        // ================= DOWNLOAD DATA & AMBIL DAFTAR PROYEK (VERSI POST BEBAS CORS) =================
+        // ================= UTILITY: FUNGSI STRUKTUR FORMAT TITIK RIBUAN =================
+        function formatInputRibuan(input) {
+            // Hilangkan semua karakter kecuali angka
+            let value = input.value.replace(/[^0-9]/g, "");
+            // Tambahkan titik sebagai pemisah ribuan
+            if (value !== "") {
+                input.value = Number(value).toLocaleString('id-ID');
+            } else {
+                input.value = "";
+            }
+        }
+
+        function bersihkanTitik(teksAngka) {
+            // Mengubah format "100.000" kembali menjadi angka mentah murni 100000 agar aman di database
+            return parseInt(teksAngka.toString().replace(/[^0-9]/g, '')) || 0;
+        }
+
+        // ================= DOWNLOAD DATA & AMBIL DAFTAR PROYEK =================
         async function muatDaftarProyek() {
             const container = document.getElementById("projectListContainer");
             container.innerHTML = `<div class="text-xs text-slate-500 italic p-3 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Sinkronisasi sheet...</div>`;
@@ -153,10 +169,7 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({
-                        action: "readData",
-                        targetSheet: "Tab_Ide"
-                    }),
+                    body: JSON.stringify({ action: "readData", targetSheet: "Tab_Ide" }),
                     headers: { "Content-Type": "text/plain" }
                 });
                 const result = await response.json();
@@ -172,11 +185,9 @@
                         const status = row["Status"] || Object.values(row)[2] || "BERJALAN";
                         const originalIndex = result.data.length - 1 - index;
 
-                        // Pembungkus Card Proyek
                         const itemCard = document.createElement("div");
                         itemCard.className = "w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-emerald-500/30 transition group";
 
-                        // Tombol Utama (Klik untuk Pilih/Buka Proyek)
                         const selectBtn = document.createElement("button");
                         selectBtn.className = "flex-1 text-left truncate pr-2 flex items-center justify-between text-xs";
                         selectBtn.onclick = () => muatDiskusiProyek(originalIndex);
@@ -188,12 +199,10 @@
                             <span class="px-2 py-0.5 rounded text-[9px] font-extrabold flex-shrink-0 ${status === 'BERJALAN' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'}">${status}</span>
                         `;
 
-                        // Tombol Hapus Proyek (Tong Sampah Merah)
                         const deleteBtn = document.createElement("button");
                         deleteBtn.className = "text-slate-600 hover:text-rose-500 p-2 text-xs transition ml-2 flex-shrink-0";
-                        deleteBtn.title = "Hapus proyek permanen";
                         deleteBtn.onclick = (e) => {
-                            e.stopPropagation(); // Mencegah terpicunya klik tombol buka proyek
+                            e.stopPropagation(); 
                             hapusProyekPermanen(namaProyek);
                         };
                         deleteBtn.innerHTML = `<i class="fa-solid fa-trash-can"></i>`;
@@ -206,14 +215,13 @@
                     container.innerHTML = `<div class="text-xs text-slate-500 italic p-3 text-center">Belum ada proyek tersimpan</div>`;
                 }
             } catch (err) {
-                console.error(err);
                 container.innerHTML = `<div class="text-xs text-rose-400 p-3 text-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Gagal koneksi database</div>`;
             }
         }
 
-        // ================= FUNGSI EKSEKUSI HAPUS PROYEK PERMANEN =================
+        // ================= HAPUS PROYEK PERMANEN =================
         async function hapusProyekPermanen(namaProyek) {
-            const tanya = confirm(`PERINGATAN!\n\nApakah Anda yakin ingin menghapus proyek "${namaProyek}" secara permanen dari Google Sheets? Tindakan ini tidak bisa dibatalkan.`);
+            const tanya = confirm(`PERINGATAN!\n\nApakah Anda yakin ingin menghapus proyek "${namaProyek}" secara permanen dari Google Sheets?`);
             if (!tanya) return;
 
             const container = document.getElementById("projectListContainer");
@@ -222,32 +230,22 @@
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({
-                        action: "deleteRow",
-                        targetSheet: "Tab_Ide",
-                        namaProyek: namaProyek
-                    }),
+                    body: JSON.stringify({ action: "deleteRow", targetSheet: "Tab_Ide", namaProyek: namaProyek }),
                     headers: { "Content-Type": "text/plain" }
                 });
                 const result = await response.json();
-
                 if (result.status === "success") {
                     alert(`Sukses: Proyek "${namaProyek}" telah dihapus!`);
-                    // Jika proyek yang dihapus kebetulan sedang dibuka di layar kanan, reset layarnya
-                    if (currentProposedProject === namaProyek) {
-                        bukaWawancaraBaru();
-                    }
-                } else {
-                    alert("Gagal: " + result.message);
+                    if (currentProposedProject === namaProyek) bukaWawancaraBaru();
                 }
             } catch (err) {
-                alert("Koneksi gagal saat menghapus proyek: " + err.message);
+                alert("Koneksi gagal saat menghapus: " + err.message);
             } finally {
-                muatDaftarProyek(); // Refresh list panel kiri
+                muatDaftarProyek();
             }
         }
 
-        // ================= MELANJUTKAN PROYEK YANG DIKLIK DARI KIRI =================
+        // ================= AMBIL DISKUSI PROYEK DARI KIRI =================
         function muatDiskusiProyek(index) {
             const dataProyek = globalProjectList[index];
             currentProposedProject = dataProyek["Nama Proyek"] || Object.values(dataProyek)[1];
@@ -257,26 +255,15 @@
             document.getElementById("tinderControls").classList.add("hidden");
             document.getElementById("evalControls").classList.remove("hidden");
             
-            const flowBadge = document.getElementById("flowBadge");
-            flowBadge.innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
-            flowBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-            
+            document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
             document.getElementById("financeProjectName").innerText = currentProposedProject;
 
             const workspace = document.getElementById("mainWorkspace");
-            if (riwayatHtml && riwayatHtml.trim() !== "") {
-                workspace.innerHTML = riwayatHtml;
-            } else {
-                workspace.innerHTML = `
-                    <div class="p-4 border border-slate-800 rounded-2xl bg-slate-900/40">
-                        <h3 class="text-lg font-bold text-white mb-2">🏢 ${currentProposedProject}</h3>
-                        <p class="text-slate-400 text-xs mb-4">Proyek berhasil dibuka dari database. Teks riwayat awal kosong di cloud.</p>
-                        <p class="text-amber-400 font-medium">Tulis laporan aktivitas tokomu di kolom bawah untuk memicu respon mentor AI.</p>
-                    </div>`;
-            }
+            workspace.innerHTML = (riwayatHtml && riwayatHtml.trim() !== "") ? riwayatHtml : `<div class="p-4 border border-slate-800 rounded-2xl bg-slate-900/40"><h3 class="text-lg font-bold text-white mb-2">🏢 ${currentProposedProject}</h3><p class="text-amber-400 font-medium">Tulis laporan aktivitas tokomu di kolom bawah.</p></div>`;
         }
 
-        // ================= ALUR WAWANCARA BARU =================
+        // ================= ALUR SEPERTI BIASA =================
         function bukaWawancaraBaru() {
             document.getElementById("wawancaraForm").classList.remove("hidden");
             document.getElementById("tinderControls").classList.add("hidden");
@@ -291,9 +278,13 @@
 
         function submitWawancara() {
             if (!getApiKey()) { alert("Masukkan API Key Gemini dulu!"); return; }
+            
+            // Konversi nilai modal bertitik ke nilai angka bersih untuk dibaca AI
+            const modalBersih = bersihkanTitik(document.getElementById("ans2").value);
+            
             userContext = {
                 sekitar: document.getElementById("ans1").value || "Umum",
-                modal: document.getElementById("ans2").value || "100000",
+                modal: modalBersih || "100000",
                 keahlian: document.getElementById("ans3").value || "Apapun"
             };
             mintaIdeDariGemini();
@@ -308,17 +299,10 @@
             workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Mencari peluang sistem bisnis...</p></div>`;
             tinderControls.classList.add("hidden");
 
-            const prompt = `Anda Direktur Bisnis AI. Rumuskan 1 Ide Bisnis Riil berskala Korporasi Mikro berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${userContext.modal}, keahlian: ${userContext.keahlian}. Jangan gunakan ide yang ditolak: [${rejectedIdeas.join(", ")}]. Bisnis harus menggunakan sistem delegasi/kemitraan agar owner tidak kerja kasar sendiri. Output HTML murni tanpa markdown (\`\`\`html). Gunakan class Tailwind CSS gelap. Wajib pasang tag h2 id="tempTitle" untuk judul proyek.`;
+            // Meminta AI menuliskan angka ribuan berformat titik pada hasil jawaban proposalnya
+            const prompt = `Anda Direktur Bisnis AI. Rumuskan 1 Ide Bisnis Riil berskala Korporasi Mikro berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide yang ditolak: [${rejectedIdeas.join(", ")}]. Bisnis harus menggunakan sistem delegasi/kemitraan agar owner tidak kerja kasar sendiri. Seluruh penyebutan nominal uang angka rupiah di dalam teks penjelasan wajib diberi pemisah titik (Contoh: Rp 500.000, Rp 2.500.000). Output HTML murni tanpa markdown (\`\`\`html). Gunakan class Tailwind CSS gelap. Wajib pasang tag h2 id="tempTitle" untuk judul proyek.`;
 
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        action: "readData",
-                        targetSheet: "Tab_Ide"
-                    }),
-                    headers: { "Content-Type": "text/plain" }
-                });
                 const responseAI = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -343,7 +327,6 @@
             mintaIdeDariGemini();
         }
 
-        // ================= MENERIMA IDE & MENULIS DATA AWAL KE GOOGLE SHEET =================
         async function terimaIde() {
             document.getElementById("tinderControls").classList.add("hidden");
             document.getElementById("evalControls").classList.remove("hidden");
@@ -353,7 +336,7 @@
             const loader = document.getElementById("loadingStatus");
             loader.classList.remove("hidden");
 
-            const prompt = `Pemilik menyetujui proyek: "${currentProposedProject}". Buat panduan instruksi taktis mendalam untuk HARI PERTAMA (fokus pada pondasi jaringan, rekrutmen mitra, pencarian supply). Diakhiri dengan 1 pertanyaan laporan untuk malam nanti. Output HTML murni tanpa markdown.`;
+            const prompt = `Pemilik menyetujui proyek: "${currentProposedProject}". Buat panduan instruksi taktis mendalam untuk HARI PERTAMA (fokus pada pondasi jaringan, rekrutmen mitra, pencarian supply). Diakhiri dengan 1 pertanyaan laporan untuk malam nanti. Semua nominal mata uang wajib ditulis rapi berformat titik pemisah ribuan (contoh: Rp 75.000). Output HTML murni tanpa markdown.`;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -366,7 +349,6 @@
                 
                 workspace.innerHTML = isiHtmlHariPertama;
 
-                // POST KE SHEET: Kolom A-D
                 const tanggal = new Date().toLocaleDateString('id-ID');
                 const payload = {
                     action: "insertRow",
@@ -391,7 +373,6 @@
             }
         }
 
-        // ================= KIRIM OBROLAN BARU + AUTO UPDATE KE SHEET JALAN YANG SAMA =================
         async function kirimEvaluasiHarian() {
             const input = document.getElementById("evalInput");
             const reportText = input.value.trim();
@@ -405,7 +386,7 @@
             workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Menganalisis perkembangan lapangan...</p></div>`;
             input.value = "";
 
-            const prompt = `Anda Mentor Bisnis Lapangan. Proyek: "${currentProposedProject}". Riwayat instruksi sebelumnya:\n${userHistory}\nJawaban/Laporan Owner: "${reportText}". Berikan evaluasi taktis harian berikutnya, perhitungan risiko terbaru, serta langkah esok hari dalam format HTML murni tanpa markdown.`;
+            const prompt = `Anda Mentor Bisnis Lapangan. Proyek: "${currentProposedProject}". Riwayat instruksi sebelumnya:\n${userHistory}\nJawaban/Laporan Owner: "${reportText}". Berikan evaluasi taktis harian berikutnya, perhitungan risiko terbaru, serta langkah esok hari dalam format HTML murni tanpa markdown. Pastikan penulisan nominal keuangan berformat titik pemisah ribuan agar jelas angka nolnya.`;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -441,14 +422,17 @@
             }
         }
 
-        // ================= SIMPAN KEUANGAN SESUAI PROYEK YANG DIPILIH =================
+        // ================= SIMPAN KEUANGAN (AUTO BERSIHKAN TITIK SEBELUM MASUK SHEET) =================
         async function simpanKeuanganCepat() {
-            const amount = document.getElementById("quickAmount").value.trim();
+            const rawAmount = document.getElementById("quickAmount").value.trim();
             const type = document.getElementById("quickType").value;
             const notes = document.getElementById("quickNotes").value.trim();
             const btn = document.getElementById("btnSaveFinance");
 
-            if (!amount) { alert("Isi nominal!"); return; }
+            if (!rawAmount) { alert("Isi nominal!"); return; }
+
+            // Bersihkan format titik agar menjadi angka integer murni di Google Sheets
+            const amountBersih = bersihkanTitik(rawAmount);
 
             btn.disabled = true;
             btn.innerText = "Menyimpan...";
@@ -456,7 +440,7 @@
             const payload = {
                 action: "insertRow",
                 targetSheet: "Tab_Keuangan",
-                rowData: [new Date().toLocaleDateString('id-ID'), currentProposedProject || "Sistem Korporasi Umum", type, parseInt(amount), notes]
+                rowData: [new Date().toLocaleDateString('id-ID'), currentProposedProject || "Sistem Korporasi Umum", type, amountBersih, notes]
             };
 
             try {
