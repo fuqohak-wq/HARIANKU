@@ -510,7 +510,7 @@
 // URL API UTAMA SINKRONISASI DATABASE (UIN)
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-// URL WEB APP APPS SCRIPT KEUANGAN (MEMBACA GOOGLE SHEET KEUANGAN ANDA)
+// URL WEB APP APPS SCRIPT KEUANGAN (REAL-TIME SINKRONISASI SHEET INDEPENDEN)
 const FINANCE_API_URL = "https://script.google.com/macros/s/AKfycbyFtPge1Q14hGryBzYTGtAnf7BZrvx0D8qtq-XX2h8ruHlaBLSMiagWDHQAoh7jDgeMNg/exec";
 
 // URL WEB APP APPS SCRIPT PRIBADI (SINKRONISASI AI)
@@ -522,7 +522,7 @@ const KUMPULAN_TEMA = [
   "linear-gradient(135deg, #047857 0%, #059669 100%)"
 ];
 
-// Fallback Data Nyata Berdasarkan Spesifikasi Input Sheet Anda (9 Juli 2026)
+// Data cadangan berdasarkan isi tabel Google Sheet KEUANGAN terbaru Anda
 const FALLBACK_FINANCE_ROWS = [
   {
     "TANGGAL": "2026-07-09T00:00:00.000Z",
@@ -537,6 +537,13 @@ const FALLBACK_FINANCE_ROWS = [
     "TIPE": "PENGELUARAN",
     "NOMINAL": 15000,
     "KETERANGAN": "BELI SALAD BUAH"
+  },
+  {
+    "TANGGAL": "2026-07-09T00:00:00.000Z",
+    "NAMA PROYEK": "Proyek: \"Nusantara Hijau Material & Kriya Hub\"",
+    "TIPE": "PENGELUARAN",
+    "NOMINAL": 1000,
+    "KETERANGAN": "parkir"
   }
 ];
 
@@ -547,7 +554,7 @@ let dataAnalisaMakanTerakhir = null;
 let globalTasks = [];
 let globalCeramah = [];
 let globalRutinitas = [];
-let globalKeuangan = { saldo: 985000, pemasukan: 1000000, pengeluaran: 15000, transaksi: FALLBACK_FINANCE_ROWS };
+let globalKeuangan = { saldo: 984000, pemasukan: 1000000, pengeluaran: 16000, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
 // Optimistic State Hidrasi Air
@@ -612,7 +619,6 @@ function muatDataDariOffline() {
       updateFinanceUI();
     } catch(e) { console.error("Cache finansial gagal dimuat:", e); }
   } else {
-    // Gunakan fallback jika tidak ada cache sama sekali
     updateFinanceUI();
   }
 }
@@ -685,7 +691,6 @@ async function fetchFinanceData() {
       rawRows = json.rows;
     }
     
-    // Jika API berhasil mengembalikan baris data, kalkulasi seluruh metrik secara internal
     if (rawRows.length > 0) {
       let tempPemasukan = 0;
       let tempPengeluaran = 0;
@@ -693,11 +698,11 @@ async function fetchFinanceData() {
       
       rawRows.forEach(row => {
         const parsed = normalizeRow(row);
-        calculatedRows.push(row); // simpan bentuk aslinya untuk diproses nanti
+        calculatedRows.push(row); 
         
-        if (parsed.tipe.includes("PEMASUKAN") || parsed.tipe === "IN" || parsed.tipe === "MASUK") {
+        if (parsed.tipe === "PEMASUKAN") {
           tempPemasukan += parsed.nominal;
-        } else if (parsed.tipe.includes("PENGELUARAN") || parsed.tipe === "OUT" || parsed.tipe === "KELUAR") {
+        } else if (parsed.tipe === "PENGELUARAN") {
           tempPengeluaran += parsed.nominal;
         }
       });
@@ -707,7 +712,6 @@ async function fetchFinanceData() {
       globalKeuangan.saldo = tempPemasukan - tempPengeluaran;
       globalKeuangan.transaksi = calculatedRows;
     } else {
-      // Gunakan fallback jika respons kosong
       GunakanFallbackLokal();
     }
     
@@ -776,7 +780,7 @@ function updateFinanceUI() {
     
     listTampilkan.forEach(tx => {
       const parsed = normalizeRow(tx);
-      const isMasuk = parsed.tipe.includes("PEMASUKAN") || parsed.tipe === "MASUK" || parsed.tipe === "IN";
+      const isMasuk = parsed.tipe === "PEMASUKAN";
       const badgeColor = isMasuk ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10";
       const sign = isMasuk ? "+" : "-";
       
@@ -792,7 +796,7 @@ function updateFinanceUI() {
       div.className = "flex justify-between items-start bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] gap-2";
       div.innerHTML = `
         <div class="flex flex-col flex-1 min-w-0">
-          <span class="font-extrabold text-slate-200 truncate" title="${parsed.namaProyek}">${parsed.namaProyek || 'Umum'}</span>
+          <span class="font-extrabold text-slate-200 truncate text-[10px]" title="${parsed.namaProyek}">${parsed.namaProyek || 'Umum'}</span>
           <span class="text-[8px] text-slate-400 font-medium mt-0.5 line-clamp-1">${parsed.keterangan || '-'}</span>
           <span class="text-[7px] text-slate-500 mt-1 font-mono">${tglFormatted}</span>
         </div>
@@ -862,7 +866,16 @@ function renderDataKeLayar(data) {
     labelKonsistensi.className = "text-[7px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded-full";
   }
 
-  // sinkronisasi log air dengan kunci lokal (anti-flicker)
+  // Jika respon utama (UIN) mengirimkan tab keuangan terintegrasi, lakukan rendering langsung
+  if (data["KEUANGAN"] && Array.isArray(data["KEUANGAN"].transaksi) && data["KEUANGAN"].transaksi.length > 0) {
+    globalKeuangan.pemasukan = Number(data["KEUANGAN"].pemasukan || 0);
+    globalKeuangan.pengeluaran = Number(data["KEUANGAN"].pengeluaran || 0);
+    globalKeuangan.saldo = Number(data["KEUANGAN"].saldo || 0);
+    globalKeuangan.transaksi = data["KEUANGAN"].transaksi;
+    updateFinanceUI();
+  }
+
+  // Sinkronisasi log air dengan kunci lokal (anti-flicker)
   const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
   const selisihWaktu = Date.now() - localWaterState.lastUpdated;
   
