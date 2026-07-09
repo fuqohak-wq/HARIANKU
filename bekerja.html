@@ -215,19 +215,47 @@
             mintaIdeDariGemini();
         }
 
-        // ================= TAHAP 3: LOCK IDE & MASUK EVALUASI MASUK HARI 1 =================
-        function terimaIde() {
-            document.getElementById("tinderControls").classList.add("hidden");
-            document.getElementById("evalControls").classList.remove("hidden");
-            document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
-            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-            
-            document.getElementById("activeProjectBox").innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
+// ================= TAHAP 3: LOCK IDE, SIMPAN KE SHEET, & MASUK HARI 1 =================
+async function terimaIde() {
+    const tinderControls = document.getElementById("tinderControls");
+    const evalControls = document.getElementById("evalControls");
+    const flowBadge = document.getElementById("flowBadge");
+    const activeProjectBox = document.getElementById("activeProjectBox");
 
-            // Mulai interaksi evaluasi hari pertama
-            memulaiHariPertama();
-        }
+    // 1. Kunci tampilan UI terlebih dahulu
+    tinderControls.classList.add("hidden");
+    evalControls.classList.remove("hidden");
+    flowBadge.innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+    flowBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+    activeProjectBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check"></i> ${currentProposedProject}</span>`;
 
+    // 2. OTOMATIS KIRIM/SIMPAN PROYEK YANG DISUKAI KE GOOGLE SHEETS
+    const tanggal = new Date().toLocaleDateString('id-ID');
+    
+    // Payload disesuaikan dengan struktur Code.gs kamu (insertRow)
+    // Asumsi urutan kolom di Tab_Ide kamu: [Tanggal, Nama Proyek, Status]
+    const payload = {
+        action: "insertRow",
+        targetSheet: "Tab_Ide", // Pastikan nama tab ini ada di Google Sheets kamu!
+        rowData: [tanggal, currentProposedProject, "BERJALAN"]
+    };
+
+    try {
+        // Mengirim data ke Google Sheets secara background tanpa mengganggu kenyamanan user
+        await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", 
+            body: JSON.stringify(payload),
+            headers: { "Content-Type": "application/json" }
+        });
+        console.log("Proyek berhasil dikunci dan dicatat di Google Sheets Tab_Ide!");
+    } catch (err) {
+        console.error("Gagal mencatat ide ke Google Sheets: " + err.message);
+    }
+
+    // 3. Lanjutkan memanggil panduan hari pertama dari Gemini
+    memulaiHariPertama();
+}
         async function memulaiHariPertama() {
             const workspace = document.getElementById("mainWorkspace");
             const loader = document.getElementById("loadingStatus");
