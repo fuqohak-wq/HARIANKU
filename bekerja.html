@@ -71,7 +71,6 @@
                             <div id="total-pengeluaran" class="text-xs font-bold text-rose-400 mt-0.5">Rp 0</div>
                         </div>
                     </div>
-                    
                     <div id="daftar-mutasi-kas" class="text-[11px] space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
                         Memuat riwayat keuangan...
                     </div>
@@ -87,39 +86,65 @@
                     <button class="bg-teal-950/80 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
                         Daftar Ringkasan Proyek
                     </button>
-                    <button class="bg-gray-800/40 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition">
-                        Mode Explorer
+                    <button onclick="bukaModalProyek()" class="bg-emerald-600 hover:bg-emerald-500 text-[#0b0f19] text-xs font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        + Proyek Baru
                     </button>
                 </div>
                 <button class="bg-gray-800 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-700 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
                     Menu Awal
                 </button>
             </div>
 
             <div id="workspace-konten">
                 <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800 text-center text-gray-400">
-                    Silahkan pilih proyek di sebelah kiri atau klik "Lanjutkan" untuk melihat isi berkas HTML.
+                    Silahkan pilih proyek di sebelah kiri atau klik "+ Proyek Baru" di atas untuk menambahkan data.
                 </div>
             </div>
 
         </div>
     </div>
 
+    <div id="modal-proyek" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider">Tambah Proyek Baru ke Sheet</h3>
+                <button onclick="tutupModalProyek()" class="text-gray-400 hover:text-gray-200 text-lg">&times;</button>
+            </div>
+            <form id="form-proyek-baru" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1 font-medium">Nama Proyek</label>
+                    <input type="text" id="input-nama-proyek" required placeholder="Contoh: Pondok Digital Nusantara" 
+                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1 font-medium">Konten/Template HTML Proyek</label>
+                    <textarea id="input-html-proyek" rows="8" required placeholder="Masukkan struktur kode HTML atau deskripsi di sini..."
+                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 font-mono focus:outline-none focus:border-teal-500 custom-scrollbar"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="tutupModalProyek()" class="bg-gray-800 hover:bg-gray-750 text-gray-300 px-4 py-2 rounded-lg">Batal</button>
+                    <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] font-bold px-4 py-2 rounded-lg shadow-lg">Simpan ke Sheet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Formatter Mata Uang Rupiah
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
         }
 
-        // Formatter Tanggal agar rapi
         function formatTanggal(tglStr) {
             if(!tglStr) return "-";
             const d = new Date(tglStr);
             return isNaN(d.getTime()) ? tglStr : `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
         }
 
-        // 1. Ambil Data Keuangan (Tab_Keuangan)
+        // Fungsi Kendali Modal UI
+        function bukaModalProyek() { document.getElementById('modal-proyek').classList.remove('hidden'); }
+        function tutupModalProyek() { document.getElementById('modal-proyek').classList.add('hidden'); }
+
+        // 1. Ambil Data Keuangan
         async function loadKeuangan() {
             try {
                 const response = await fetch(WEB_APP_URL, {
@@ -127,45 +152,32 @@
                     body: JSON.stringify({ action: "readData", targetSheet: "Tab_Keuangan" })
                 });
                 const res = await response.json();
-                
                 if (res.status === "success") {
-                    let totalMasuk = 0;
-                    let totalKeluar = 0;
-                    let htmlMutasi = "";
-
+                    let totalMasuk = 0, totalKeluar = 0, htmlMutasi = "";
                     res.data.reverse().forEach(item => {
                         const nominal = parseFloat(item.NOMINAL) || 0;
                         const tipe = item.TIPE ? item.TIPE.toUpperCase() : '';
+                        const ket = item.KETERANGAN || item['NAMA PROYEK'] || 'Tanpa Keterangan';
                         
                         if (tipe === "PEMASUKAN" || tipe === "MASUK") {
                             totalMasuk += nominal;
-                            htmlMutasi += `
-                                <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
-                                    <span class="text-gray-400 truncate max-w-[120px]" title="${item.KETERANGAN || item['NAMA PROYEK']}">${item.KETERANGAN || item['NAMA PROYEK']}</span>
-                                    <span class="text-emerald-400 font-medium">+${nominal.toLocaleString('id-ID')}</span>
-                                </div>`;
+                            htmlMutasi += `<div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900"><span class="text-gray-400 truncate max-w-[120px]">${ket}</span><span class="text-emerald-400 font-medium">+${nominal.toLocaleString('id-ID')}</span></div>`;
                         } else if (tipe === "PENGELUARAN" || tipe === "KELUAR") {
                             totalKeluar += nominal;
-                            htmlMutasi += `
-                                <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
-                                    <span class="text-gray-400 truncate max-w-[120px]" title="${item.KETERANGAN || item['NAMA PROYEK']}">${item.KETERANGAN || item['NAMA PROYEK']}</span>
-                                    <span class="text-rose-400 font-medium">-${nominal.toLocaleString('id-ID')}</span>
-                                </div>`;
+                            htmlMutasi += `<div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900"><span class="text-gray-400 truncate max-w-[120px]">${ket}</span><span class="text-rose-400 font-medium">-${nominal.toLocaleString('id-ID')}</span></div>`;
                         }
                     });
-
                     document.getElementById('saldo-global').innerText = formatRupiah(totalMasuk - totalKeluar);
                     document.getElementById('total-pemasukan').innerText = "+ " + formatRupiah(totalMasuk);
                     document.getElementById('total-pengeluaran').innerText = "- " + formatRupiah(totalKeluar);
-                    document.getElementById('daftar-mutasi-kas').innerHTML = htmlMutasi || '<div class="text-gray-500">Belum ada mutasi keuangan.</div>';
+                    document.getElementById('daftar-mutasi-kas').innerHTML = htmlMutasi || '<div class="text-gray-500">Belum ada mutasi.</div>';
                 }
             } catch (error) {
-                console.error("Gagal memuat data keuangan:", error);
+                console.error(error);
                 document.getElementById('daftar-mutasi-kas').innerHTML = '<div class="text-rose-400">Gagal sinkronisasi keuangan.</div>';
             }
         }
 
-        // Global Cache untuk menyimpan data Ide/Proyek dari sheet
         let listProyekGlobal = [];
 
         // 2. Ambil Data Proyek (Tab_Ide)
@@ -176,98 +188,107 @@
                     body: JSON.stringify({ action: "readData", targetSheet: "Tab_Ide" })
                 });
                 const res = await response.json();
-                
                 if (res.status === "success") {
                     listProyekGlobal = res.data;
-                    
-                    // Asumsi baris terakhir atau status tertentu adalah PROYEK AKTIF
-                    // Di sini kita buat baris paling bawah/terakhir sebagai Proyek Aktif Utama
                     if(listProyekGlobal.length > 0) {
                         const proyekAktif = listProyekGlobal[listProyekGlobal.length - 1]; 
-                        
+                        const namaP = proyekAktif['NAMA PROYEK'] || proyekAktif.Nama_Proyek || 'Proyek Tanpa Nama';
+                        const tglP = proyekAktif.TANGGAL || proyekAktif.Tanggal || new Date().toISOString();
+
                         document.getElementById('container-proyek-aktif').innerHTML = `
-                            <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative overflow-hidden group">
+                            <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative">
                                 <div class="flex items-start gap-2.5 mb-2">
-                                    <span class="text-amber-500 mt-0.5">
-                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
-                                    </span>
+                                    <span class="text-amber-500 mt-0.5">📂</span>
                                     <div>
-                                        <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">${formatTanggal(proyekAktif.TANGGAL || proyekAktif.Tanggal)}</h4>
-                                        <h3 class="text-xs font-bold text-gray-200 leading-snug mb-3">
-                                            ${proyekAktif['NAMA PROYEK'] || proyekAktif.Nama_Proyek || proyekAktif.Nama || 'Proyek Tanpa Nama'}
-                                        </h3>
+                                        <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">${formatTanggal(tglP)}</h4>
+                                        <h3 class="text-xs font-bold text-gray-200 leading-snug mb-3">${namaP}</h3>
                                     </div>
                                 </div>
                                 <div class="mt-3 flex justify-between items-center border-t border-gray-800/80 pt-3">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">
-                                        BERJALAN
-                                    </span>
-                                    <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 1})" class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg shadow-teal-500/10 transition flex items-center gap-1">
-                                        Lanjutkan
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </button>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">BERJALAN</span>
+                                    <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 1})" class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg">Lanjutkan</button>
                                 </div>
                             </div>
                         `;
 
-                        // Mengisi Menu "Tawaran Proyek Baru" dari baris cadangan (jika ada proyek lain di baris sebelumnya)
                         if(listProyekGlobal.length > 1) {
                             const proyekLain = listProyekGlobal[listProyekGlobal.length - 2];
                             document.getElementById('container-tawaran-baru').innerHTML = `
-                                <div class="text-xs font-bold text-blue-400 leading-tight">${proyekLain['NAMA PROYEK'] || proyekLain.Nama_Proyek || 'Ide Alternatif'}</div>
-                                <p class="text-[11px] text-gray-400 leading-relaxed">Klik tombol di bawah untuk beralih atau mencoba mengeksplorasi dokumentasi proyek ini.</p>
-                                <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 2})" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-200 text-xs font-semibold py-2 rounded-lg transition border border-gray-700/50 flex items-center justify-center gap-1.5">
-                                    Coba Proyek Lain
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                    </svg>
-                                </button>
+                                <div class="text-xs font-bold text-blue-400 leading-tight">${proyekLain['NAMA PROYEK'] || 'Ide Alternatif'}</div>
+                                <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 2})" class="w-full mt-2 bg-gray-800 hover:bg-gray-750 text-gray-200 text-xs font-semibold py-2 rounded-lg transition border border-gray-700/50">Coba Proyek Lain</button>
                             `;
                         } else {
-                            document.getElementById('container-tawaran-baru').innerHTML = `<div class="text-gray-500 text-[11px]">Belum ada tawaran ide proyek lain di dalam Sheet.</div>`;
+                            document.getElementById('container-tawaran-baru').innerHTML = `<div class="text-gray-500 text-[11px]">Tidak ada tawaran proyek lain.</div>`;
                         }
-
                     } else {
                         document.getElementById('container-proyek-aktif').innerHTML = '<div class="text-gray-500">Tidak ada proyek ditemukan di Tab_Ide.</div>';
+                        document.getElementById('container-tawaran-baru').innerHTML = '<div class="text-gray-500">Kosong.</div>';
                     }
                 }
             } catch (error) {
-                console.error("Gagal memuat data proyek:", error);
+                console.error(error);
                 document.getElementById('container-proyek-aktif').innerHTML = '<div class="text-rose-400">Gagal sinkronisasi data proyek.</div>';
             }
         }
 
-        // 3. Render isi HTML proyek ke Workspace Utama saat tombol diklik
+        // 3. Render Isi HTML Ke Tengah Layar
         function renderKontenWorkspace(index) {
             const proyek = listProyekGlobal[index];
             if(!proyek) return;
-
-            // Mencari kolom yang berisi teks HTML (bisa bernama 'KETERANGAN', 'HTML', 'ISI', dll sesuai isi header di Tab_Ide Anda)
-            // Di sini kita cek properti yang bernilai string panjang html atau properti kunci target Anda
             let kontenHtml = proyek.KETERANGAN || proyek.HTML || proyek.Isi || "";
-            
-            // Jika kolom kosong, buat template default agar halaman tidak blank
             if(!kontenHtml || !kontenHtml.includes('<')) {
                 kontenHtml = `
-                    <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 border border-gray-800">
+                    <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 border border-gray-800">
                         <h1 class="text-2xl font-black text-blue-400 mb-2">${proyek['NAMA PROYEK'] || 'Proyek AI'}</h1>
-                        <p class="text-gray-400 text-sm mb-4">Data HTML mentah tidak ditemukan di sheet. Menampilkan deskripsi default:</p>
-                        <div class="p-4 bg-[#0f172a] rounded-xl border border-gray-800 text-gray-300 text-sm">
-                            ${kontenHtml || "Tidak ada deskripsi tambahan untuk proyek ini."}
-                        </div>
-                    </div>
-                `;
+                        <div class="p-4 bg-[#0f172a] rounded-xl border border-gray-800 text-gray-300 text-sm">${kontenHtml || "Tidak ada deskripsi."}</div>
+                    </div>`;
             }
-
             document.getElementById('workspace-konten').innerHTML = kontenHtml;
         }
 
-        // Jalankan sinkronisasi otomatis saat halaman pertama kali dibuka
+        // 4. LOGIKA KIRIM/TAMBAH DATA BARU (insertRow)
+        document.getElementById('form-proyek-baru').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const namaProyek = document.getElementById('input-nama-proyek').value;
+            const htmlProyek = document.getElementById('input-html-proyek').value;
+            const tanggalSekarang = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+
+            // Susun data array sesuai urutan kolom pada Tab_Ide Anda (Contoh: TANGGAL, NAMA PROYEK, STATUS, KETERANGAN/HTML)
+            // Sesuaikan urutan array di bawah ini dengan urutan kolom sebenarnya di spreadsheet Anda!
+            const rowDataBaru = [tanggalSekarang, namaProyek, "BERJALAN", htmlProyek];
+
+            try {
+                document.getElementById('workspace-konten').innerHTML = '<div class="text-center text-teal-400">Sedang mengirim data ke Google Sheets...</div>';
+                tutupModalProyek();
+
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "insertRow",
+                        targetSheet: "Tab_Ide",
+                        rowData: rowDataBaru
+                    })
+                });
+
+                const res = await response.json();
+                if (res.status === "success") {
+                    alert("Proyek Berhasil Ditambahkan!");
+                    document.getElementById('form-proyek-baru').reset();
+                    // Segera refresh data setelah berhasil memasukkan baris baru
+                    loadProyekAktif(); 
+                } else {
+                    alert("Gagal: " + res.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Terjadi kesalahan jaringan atau Apps Script!");
+            }
+        });
+
         window.onload = function() {
             if(WEB_APP_URL === "Masukkan_URL_Web_App_Apps_Script_Anda_Di_Sini") {
-                alert("Perhatian: Harap isi WEB_APP_URL Anda di dalam kode HTML agar fitur sinkronisasi Google Sheets berfungsi!");
+                alert("Harap isi variabel WEB_APP_URL di baris atas kode HTML ini!");
             } else {
                 loadKeuangan();
                 loadProyekAktif();
