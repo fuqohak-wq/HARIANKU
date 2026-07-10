@@ -3,221 +3,643 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pondok Digital Nusantara - Dashboard Proyek AI</title>
+    <title>AI MoneyMachine - Enterprise Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar khusus untuk daftar proyek aktif agar rapi seperti di gambar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0f172a;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0f19; }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        /* Penjinak Visual Output HTML AI */
+        .premium-ai-text h1 { font-size: 1.8rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem; text-align: center; }
+        .premium-ai-text h2 { font-size: 1.4rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem; border-left: 4px solid #38bdf8; padding-left: 0.75rem; margin-top: 1.5rem; }
+        .premium-ai-text h3 { font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-top: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid #334155; padding-bottom: 0.25rem; }
+        .premium-ai-text p { color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.6; }
+        .premium-ai-text ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; space-y: 0.5rem; }
+        .premium-ai-text ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; space-y: 0.5rem; }
+        .premium-ai-text li { color: #e2e8f0; margin-bottom: 0.375rem; }
+        .premium-ai-text strong { color: #f59e0b; font-weight: 600; }
+        .premium-ai-text section { margin-bottom: 2rem; }
     </style>
 </head>
-<body class="bg-[#0b0f19] text-gray-100 min-h-screen p-4 md:p-6 lg:p-8">
+<body class="text-slate-100 min-h-screen pb-12">
 
-    <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-sky-500 to-teal-500 text-slate-950 p-2 rounded-xl font-black text-xl shadow-lg">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white">AI MoneyMachine</h1>
+                    <p class="text-xs text-slate-400">Sistem Korporasi Mikro Finansial Multi-Proyek</p>
+                </div>
+            </div>
+            <button onclick="bukaWawancaraBaru()" class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-slate-950 shadow transition">
+                <i class="fa-solid fa-plus mr-2"></i> Buat Proyek Baru
+            </button>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
         
         <div class="lg:col-span-1 space-y-5">
             
-            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl">
-                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">GEMINI STUDIO API KEY</span>
-                <input type="password" value="••••••••••••••••••••••••••••••••••••••••••••••••" disabled 
-                    class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-xs text-gray-500 tracking-widest focus:outline-none">
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <label class="block text-[10px] font-bold text-slate-400 mb-2 tracking-wider uppercase">GEMINI STUDIO API KEY</label>
+                <input type="password" id="geminiKey" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
             </div>
 
-            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl flex flex-col max-h-[420px]">
-                <div class="flex justify-between items-center mb-4 flex-shrink-0">
-                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">PILIH PROYEK AKTIF</span>
-                    <button class="text-xs text-teal-400 flex items-center gap-1.5 hover:text-teal-300 transition">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path>
-                        </svg>
-                        Refresh
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col max-h-[350px]">
+                <div class="flex justify-between items-center mb-3 flex-shrink-0">
+                    <h3 class="text-[10px] font-bold text-slate-400 tracking-wider uppercase">PILIH PROYEK AKTIF</h3>
+                    <button onclick="muatDaftarProyek()" class="text-xs text-sky-400 hover:underline"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                </div>
+                <div id="projectListContainer" class="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-grow">
+                    <div class="text-xs text-slate-500 italic p-2 text-center">Mengambil data database...</div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-1">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SALDO GLOBAL (TOTAL KAS)</p>
+                <p id="globalWalletBalance" class="text-2xl font-black text-emerald-400 tracking-wide">Rp 0</p>
+            </div>
+
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                <h3 class="text-[10px] font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-wallet text-amber-400 mr-1"></i> LOG FINANSIAL</h3>
+                <div class="space-y-2.5">
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Target Alokasi Dana</label>
+                        <select id="financeProjectTarget" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                            <option value="LUAR PROYEK (UMUM)">LUAR PROYEK / UMUM PRIVAT</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Jenis Transaksi</label>
+                        <select id="quickType" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+                            <option value="PEMASUKAN">PEMASUKAN (+)</option>
+                            <option value="PENGELUARAN">PENGELUARAN (-)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Nominal</label>
+                        <input type="text" id="quickAmount" placeholder="Rp 0" oninput="formatInputRibuan(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs font-bold text-slate-200 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-slate-400 uppercase mb-1">Keterangan / Notes</label>
+                        <input type="text" id="quickNotes" placeholder="Beli salad buah, parkir, dsb..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs focus:outline-none">
+                    </div>
+                    <button onclick="simpanKeuanganCepat()" id="btnSaveFinance" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded-xl text-xs transition shadow-md">
+                        Catat ke Google Sheets
                     </button>
                 </div>
-                
-                <div class="overflow-y-auto pr-1 space-y-3 custom-scrollbar flex-grow">
-                    <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative overflow-hidden group">
-                        <div class="flex items-start gap-2.5 mb-2">
-                            <span class="text-amber-500 mt-0.5">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">10/7/2026</h4>
-                                <h3 class="text-xs font-bold text-gray-200 leading-snug">
-                                    Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
-                                </h3>
-                            </div>
-                        </div>
-                        <div class="mt-3 flex justify-between items-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">
-                                BERJALAN
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </div>
-
-            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl">
-                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">SALDO GLOBAL (TOTAL KAS)</span>
-                <div class="text-2xl font-black text-emerald-400 tracking-wide">Rp 984.000</div>
-            </div>
-
         </div>
 
         <div class="lg:col-span-3 space-y-6">
             
-            <div class="flex flex-wrap items-center justify-between gap-4 bg-[#111827]/50 border border-gray-800 px-4 py-3 rounded-xl">
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-[#111827]/60 border border-slate-800 px-4 py-3 rounded-xl shadow-md">
                 <div class="flex items-center gap-2">
-                    <button class="bg-teal-950/80 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
+                    <button onclick="kembaliKeDashboard()" id="btnTabSummary" class="bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition">
                         Daftar Ringkasan Proyek
                     </button>
-                    <button class="bg-gray-800/40 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition">
-                        Mode Explorer
+                    <span id="activeProjectIndicator" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 uppercase tracking-wide">Mode Explorer</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="loadingStatus" class="hidden text-xs text-emerald-400 items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-400"></i> Memproses Otak Bisnis...
+                    </div>
+                    <button onclick="kembaliKeDashboard()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center gap-1">
+                        <i class="fa-solid0 fa-layer-group"><i class="fa-solid fa-house"></i></i> Menu Awal
                     </button>
                 </div>
-                <button class="bg-gray-800 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-700 transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-                    Menu Awal
-                </button>
             </div>
 
-            <div class="flex">
-                <span class="bg-teal-950/60 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm">
-                    Tahap 3: Kawal &amp; Evaluasi Harian
-                </span>
-            </div>
-
-            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
-                <header class="mb-8 border-b border-gray-800 pb-6 text-center lg:text-left">
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-400 tracking-tight mb-2">
-                        Direktur Bisnis AI: Ide Inovatif
-                    </h1>
-                    <p class="text-base sm:text-lg text-gray-400 font-medium">
-                        Memanfaatkan Potensi Santri, Membangun Ekosistem Digital
-                    </p>
-                </header>
-
-                <section class="mb-8 border-l-4 border-amber-500 pl-4 sm:pl-5">
-                    <h2 id="tempTitle" class="text-xl sm:text-2xl font-extrabold text-gray-100 mb-3 tracking-tight leading-snug">
-                        Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
-                    </h2>
-                    <p class="text-sm sm:text-base text-gray-300 leading-relaxed font-light">
-                        Ide bisnis ini bertujuan untuk menciptakan sebuah platform edukasi online yang menghubungkan santri senior yang menganggur dengan para pelajar dari berbagai kalangan yang ingin mendalami ilmu agama (Al-Qur'an, Nahwu, Shorof, Fiqih, baca kitab dasar). Dengan memanfaatkan modal yang sangat terbatas, Rp 100.000, serta keahlian pengajaran yang spesifik, proyek ini akan beroperasi dengan model kemitraan dan delegasi yang kuat, memungkinkan skalabilitas dan dampak sosial yang signifikan.
-                    </p>
-                </section>
-
-                <section class="mb-8 bg-[#0f172a]/50 p-5 rounded-xl border border-gray-800/60">
-                    <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                        <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
-                        Latar Belakang &amp; Potensi
-                    </h3>
-                    <ul class="space-y-3 text-sm sm:text-base text-gray-300">
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Ketersediaan SDM Unggul:</strong> Banyak santri senior yang memiliki kapabilitas mumpuni dalam ilmu agama, namun terkendala lapangan pekerjaan. Mereka adalah aset berharga yang siap diberdayakan.</span>
-                        </li>
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Kebutuhan Pasar:</strong> Permintaan pendidikan agama personal sangat tinggi dari kalangan Muslim perkotaan, diaspora, hingga orang tua yang menginginkan pengajar kompeten.</span>
-                        </li>
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Modal Minim, Dampak Maksimal:</strong> Alokasi modal Rp 100.000 difokuskan penuh pada optimalisasi alat digital gratis dan manajemen pemasaran organik secara cerdas.</span>
-                        </li>
-                    </ul>
-                </section>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
-                        <h3 class="text-md font-bold text-teal-400 mb-3 uppercase tracking-wider">Visi &amp; Misi</h3>
-                        <p class="text-sm text-gray-300 italic mb-3">"Menjadi jembatan digital utama bagi santri untuk menyalurkan ilmu agama secara global."</p>
-                        <ol class="list-decimal pl-4 text-xs sm:text-sm text-gray-400 space-y-1.5">
-                            <li>Pemberdayaan ekonomi santri sistem kemitraan adil.</li>
-                            <li>Akses mudah pendidikan Al-Qur'an &amp; Kitab Kuning.</li>
-                            <li>Efisiensi platform digital berkelanjutan.</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
-                        <h3 class="text-md font-bold text-blue-400 mb-3 uppercase tracking-wider">Sistem Bagi Hasil</h3>
-                        <div class="space-y-2 text-xs sm:text-sm">
-                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
-                                <span class="text-gray-400">Mitra Pengajar (Santri)</span>
-                                <span class="font-bold text-emerald-400">70% - 80%</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
-                                <span class="text-gray-400">Pengelola (Kas Utama)</span>
-                                <span class="font-bold text-blue-400">20% - 30%</span>
-                            </div>
-                            <p class="text-[11px] text-gray-500 pt-1">Digunakan kembali untuk operasional, promosi, dan keberlangsungan sistem aplikasi.</p>
+            <div class="bg-[#111827]/40 border border-slate-800 rounded-3xl p-6 lg:p-8 min-h-[550px] flex flex-col justify-between shadow-2xl relative">
+                
+                <div id="mainWorkspace" class="flex-grow overflow-y-auto mb-4 pr-1 text-sm leading-relaxed text-slate-200 premium-ai-text">
+                    
+                    <div id="multiProjectDashboard" class="space-y-4">
                         </div>
+
+                    <div id="wawancaraForm" class="space-y-6 py-4 hidden">
+                        <div class="text-center max-w-md mx-auto mb-4">
+                            <h2 class="text-xl font-bold text-white mb-1 border-none p-0">Mulai Proyek Korporasi Baru</h2>
+                            <p class="text-xs text-slate-400">Isi parameter inkubasi di bawah agar AI merumuskan mesin uang otomatis Anda.</p>
+                        </div>
+                        <div class="space-y-4 max-w-xl mx-auto bg-slate-950/60 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">1. APA POTENSI / ASET SEKITARMU YANG MELIMPAH?</label>
+                                <input type="text" id="ans1" placeholder="Banyak anak muda nganggur, dekat pesantren, dsb" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">2. BERAPA MODAL TUNAI MAKSIMAL KAMU SAAT INI?</label>
+                                <input type="text" id="ans2" value="100.000" oninput="formatInputRibuan(this)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition font-mono text-emerald-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-400 mb-1">3. MINAT / KEAHLIAN SPESIFIK YANG INGIN DI-SISTEMKAN?</label>
+                                <input type="text" id="ans3" placeholder="Mengajar kitab kuning, kriya kayu, dagang dll" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
+                            </div>
+                            <button onclick="submitWawancara()" class="w-full bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg transition">
+                                ANALISIS SEKARANG <i class="fa-solid fa-wand-magic-sparkles ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tinderControls" class="hidden border-t border-slate-800 pt-4 grid grid-cols-2 gap-4 bg-slate-950/80 p-3 rounded-xl flex-shrink-0">
+                    <button onclick="tolakIde()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Cari Alternatif Lain
+                    </button>
+                    <button onclick="terimaIde()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-check"></i> Ambil & Eksekusi Hari #1
+                    </button>
+                </div>
+
+                <div id="evalControls" class="hidden border-t border-slate-800 pt-4 space-y-4 bg-slate-950/90 p-4 rounded-2xl flex-shrink-0">
+                    <div class="flex gap-2">
+                        <input type="text" id="evalInput" placeholder="Ketik perkembangan atau hasil tindakan lapangan ke Mentor AI..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none text-slate-200">
+                        <button onclick="kirimEvaluasiHarian()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 rounded-xl transition shadow-md">
+                            Kirim <i class="fa-solid fa-paper-plane ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-slate-800">
+                        <button onclick="mintaLangkahLanjutan()" class="text-xs bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold px-4 py-2 rounded-lg transition">
+                            <i class="fa-solid fa-forward-step mr-1"></i> Lompat ke Langkah / Hari Esok
+                        </button>
+                        <button onclick="kembaliKeDashboard()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg transition border border-slate-700">
+                            <i class="fa-solid fa-circle-left mr-1"></i> Tutup & Kembali ke Dashboard
+                        </button>
                     </div>
                 </div>
 
             </div>
 
-            <div class="p-4 border-l-4 border-teal-500 bg-[#111827] rounded-r-xl shadow-md flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-bold text-teal-400 uppercase tracking-widest block mb-0.5">Respons/Laporan Anda:</span>
-                    <p class="text-sm text-gray-200 font-medium">"sudah, lanjut"</p>
-                </div>
-                <span class="px-2 py-0.5 text-[10px] bg-teal-500/10 text-teal-400 rounded font-semibold border border-teal-500/20">Diterima</span>
-            </div>
-
-            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
-                <header class="mb-6 border-b border-gray-800 pb-5">
-                    <div class="text-xs text-amber-500 font-bold uppercase tracking-widest mb-1">Evaluasi Hasil Lapangan</div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-gray-100 tracking-tight">Laporan Mentor Bisnis</h2>
-                    <p class="text-xs sm:text-sm text-gray-400 mt-1">Status Proyek: Fase Implementasi Awal — <span class="text-teal-400 font-semibold">Hari Ke-2</span></p>
-                </header>
-
-                <p class="text-sm sm:text-base text-gray-300 leading-relaxed mb-6 bg-[#1a2333]/30 p-4 rounded-xl border border-blue-900/30">
-                    Luar biasa! Respons <span class="text-teal-400 font-semibold">"sudah, lanjut"</span> dari Anda menunjukkan kecepatan eksekusi yang tinggi. Selamat, Anda telah berhasil menyelesaikan fondasi infrastruktur digital minimalis pada Hari 1. Ini adalah capaian krusial penentu komitmen proyek!
-                </p>
-
-                <h3 class="text-md font-bold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    Langkah Esok Hari (Hari 2 Implementasi)
-                </h3>
-
-                <div class="space-y-4">
-                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
-                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">1</div>
-                        <div>
-                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Aktivasi Saluran Rekrutmen Pengajar</h4>
-                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
-                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Hubungi 3-5 kontak awal dari pengurus alumni pesantren. Bagikan formulir pendaftaran digital pengajar menggunakan database gratis.</p>
-                        </div>
-                    </div>
-
-                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
-                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">2</div>
-                        <div>
-                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Peluncuran Promosi Murid Awal</h4>
-                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
-                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Sebarkan materi kreatif pamflet promosi digital berkala ke grup komunitas wali murid, media sosial, dan ekosistem terdekat.</p>
-                        </div>
-                    </div>
+            <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-chart-line text-teal-400 mr-1"></i> MONITOR ARUS KAS INTERNAL PROYEK INI</h3>
+                <div id="projectFinanceLogContainer" class="text-xs text-slate-400 max-h-[200px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    <div class="text-slate-500 italic p-2 text-center">Silakan buka/pilih salah satu proyek dari panel navigasi untuk melacak histori keuangannya.</div>
                 </div>
             </div>
 
         </div>
     </div>
 
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKIhi5xoOj-VWlD2keUsqcbs3gObA1cc4XtdRtTDr1EvTYbxgMwUiAJkhRTGHW4-q7sw/exec";
+        
+        let userContext = {};
+        let rejectedIdeas = [];
+        let currentProposedProject = "Umum";
+        let globalProjectList = []; 
+        let globalFinanceData = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedKey = localStorage.getItem("gemini_api_key");
+            if (savedKey) document.getElementById("geminiKey").value = savedKey;
+            sinkronisasiSistemUtama();
+        });
+
+        document.getElementById("geminiKey").addEventListener("input", (e) => {
+            localStorage.setItem("gemini_api_key", e.target.value.trim());
+        });
+
+        function getApiKey() { return document.getElementById("geminiKey").value.trim(); }
+
+        function formatInputRibuan(input) {
+            let value = input.value.replace(/[^0-9]/g, "");
+            input.value = value !== "" ? Number(value).toLocaleString('id-ID') : "";
+        }
+
+        function bersihkanTitik(teksAngka) {
+            return parseInt(teksAngka.toString().replace(/[^0-9]/g, '')) || 0;
+        }
+
+        async function sinkronisasiSistemUtama() {
+            await muatDaftarProyek();
+            await hitungDompetGlobal();
+        }
+
+        // ================= DOWNLOAD DATA DAN RENDERING DUA SISI YANG BENAR =================
+        async function muatDaftarProyek() {
+            const containerLeft = document.getElementById("projectListContainer");
+            const dashboardRight = document.getElementById("multiProjectDashboard");
+            
+            containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Menyinkronkan...</div>`;
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "readData", targetSheet: "Tab_Ide" }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                const result = await response.json();
+                
+                const selectTarget = document.getElementById("financeProjectTarget");
+                selectTarget.innerHTML = `<option value="LUAR PROYEK (UMUM)">LUAR PROYEK / UMUM PRIVAT</option>`;
+
+                // Bersihkan dashboard kanan hanya jika tidak sedang di form wawancara atau sedang membaca proyek penuh
+                const isFormHidden = document.getElementById("wawancaraForm").classList.contains("hidden");
+                const isEvalHidden = document.getElementById("evalControls").classList.contains("hidden");
+                
+                if (isFormHidden && isEvalHidden) {
+                    dashboardRight.innerHTML = "";
+                }
+
+                if (result.status === "success" && result.data.length > 0) {
+                    globalProjectList = result.data; 
+                    containerLeft.innerHTML = "";
+                    
+                    const listTerbalik = result.data.slice().reverse();
+                    
+                    listTerbalik.forEach((row, index) => {
+                        const namaProyek = row["Nama Proyek"] || Object.values(row)[1];
+                        const status = row["Status"] || Object.values(row)[2] || "BERJALAN";
+                        const riwayatHtml = row["Riwayat_Diskusi"] || Object.values(row)[3] || "";
+                        const tanggal = row["Tanggal"] || Object.values(row)[0] || "Baru";
+                        const originalIndex = result.data.length - 1 - index;
+
+                        // Tambah ke dropdown logger keuangan
+                        const opt = document.createElement("option");
+                        opt.value = namaProyek;
+                        opt.innerText = namaProyek;
+                        selectTarget.appendChild(opt);
+
+                        // 1. RENDER NAVIGASI KIRI: Baris teks murni judul, tanggal, status (MURNI BERSIH!)
+                        const itemCard = document.createElement("div");
+                        itemCard.className = "w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500 transition group cursor-pointer flex items-center justify-between";
+                        itemCard.onclick = () => muatDiskusiProyek(originalIndex);
+                        itemCard.innerHTML = `
+                            <div class="truncate pr-2 flex-1">
+                                <p class="text-xs font-bold text-slate-300 truncate group-hover:text-sky-400 transition"><i class="fa-solid fa-folder text-amber-500 mr-1"></i> ${namaProyek}</p>
+                                <p class="text-[9px] text-slate-500 mt-0.5">${tanggal} | <span class="text-emerald-400 font-semibold">${status}</span></p>
+                            </div>
+                            <button onclick="event.stopPropagation(); hapusProyekPermanen('${namaProyek}')" class="text-slate-600 hover:text-rose-500 p-1.5 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        `;
+                        containerLeft.appendChild(itemCard);
+
+                        // 2. RENDER WORKSPACE KANAN (MODE EXPLORER): List ringkasan proyek komplit terpotong
+                        if (dashboardRight && isFormHidden && isEvalHidden) {
+                            // Ekstrak teks bersih murni tanpa markup tag HTML agar tidak merusak tata letak web
+                            let teksMurni = riwayatHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                            let ringkasanTeks = teksMurni.substring(0, 180) + "...";
+
+                            const previewCard = document.createElement("div");
+                            previewCard.className = "bg-[#111827] border border-slate-800 rounded-2xl p-5 space-y-3 shadow-md hover:border-slate-700 transition";
+                            previewCard.innerHTML = `
+                                <div class="flex justify-between items-start border-b border-slate-800 pb-2">
+                                    <div>
+                                        <h3 class="text-base font-extrabold text-white tracking-tight leading-tight"><i class="fa-solid fa-briefcase text-sky-400 mr-1.5"></i> ${namaProyek}</h3>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">Dibuat: ${tanggal}</p>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${status}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">${ringkasanTeks}</p>
+                                <div class="pt-1">
+                                    <button onclick="muatDiskusiProyek(${originalIndex})" class="inline-flex items-center text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 px-3 py-1.5 rounded-xl border border-sky-500/20 hover:border-sky-500 transition">
+                                        Lanjut Membaca &amp; Kelola Proyek <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                                    </button>
+                                </div>
+                            `;
+                            dashboardRight.appendChild(previewCard);
+                        }
+                    });
+                } else {
+                    containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center">Belum ada proyek.</div>`;
+                    if (dashboardRight) dashboardRight.innerHTML = "";
+                    bukaWawancaraBaru();
+                }
+            } catch (err) {
+                containerLeft.innerHTML = `<div class="text-xs text-rose-400 p-2 text-center">Database offline</div>`;
+            }
+        }
+
+        // ================= CASHFLOW CALCULATION DOMPET MULTI-PROYEK =================
+        async function hitungDompetGlobal() {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "readData", targetSheet: "Tab_Keuangan" }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                const result = await response.json();
+                
+                if (result.status === "success") {
+                    globalFinanceData = result.data;
+                    let totalPemasukan = 0;
+                    let totalPengeluaran = 0;
+
+                    globalFinanceData.forEach(row => {
+                        const tipe = row["Jenis"] || Object.values(row)[2];
+                        const nominal = parseInt(row["Nominal"] || Object.values(row)[3]) || 0;
+                        if (tipe === "PEMASUKAN") totalPemasukan += nominal;
+                        else if (tipe === "PENGELUARAN") totalPengeluaran += nominal;
+                    });
+
+                    document.getElementById("globalWalletBalance").innerText = "Rp " + (totalPemasukan - totalPengeluaran).toLocaleString('id-ID');
+                    renderArusKasProyekAktif();
+                }
+            } catch (e) { console.log("Gagal menyinkronkan data kas global."); }
+        }
+
+        function renderArusKasProyekAktif() {
+            const container = document.getElementById("projectFinanceLogContainer");
+            container.innerHTML = "";
+
+            let filterTarget = currentProposedProject;
+            if (!filterTarget || filterTarget === "Umum") {
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Pilih atau klik salah satu proyek di sebelah kanan/kiri untuk memuat riwayat cashflow internalnya.</div>`;
+                return;
+            }
+
+            let filteredLog = globalFinanceData.filter(row => (row["Nama Proyek"] || Object.values(row)[1]) === filterTarget);
+
+            if (filteredLog.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Belum ada transaksi terekam untuk proyek internal:<br><span class="text-slate-400 font-mono">${filterTarget}</span></div>`;
+                return;
+            }
+
+            let inc = 0, exp = 0;
+            let listHtml = `<div class="space-y-1 max-h-[110px] overflow-y-auto border-b border-slate-800 pb-2 mb-2 custom-scrollbar">`;
+            filteredLog.forEach(row => {
+                const tipe = row["Jenis"] || Object.values(row)[2];
+                const nominal = parseInt(row["Nominal"] || Object.values(row)[3]) || 0;
+                const ket = row["Keterangan"] || Object.values(row)[4] || "-";
+                const tgl = (row["Tanggal"] || Object.values(row)[0] || "").split("/").slice(0,2).join("/");
+                
+                if (tipe === "PEMASUKAN") inc += nominal; else exp += nominal;
+                listHtml += `
+                    <div class="flex justify-between items-center bg-slate-950 p-1.5 rounded border border-slate-900 text-[11px]">
+                        <span class="truncate max-w-[140px] text-slate-400">[${tgl}] ${ket}</span>
+                        <span class="${tipe === 'PEMASUKAN' ? 'text-emerald-400' : 'text-rose-400'} font-bold">
+                            ${tipe === 'PEMASUKAN' ? '+' : '-'} Rp ${nominal.toLocaleString('id-ID')}
+                        </span>
+                    </div>`;
+            });
+            listHtml += `</div>`;
+
+            container.innerHTML = listHtml + `
+                <div class="p-2 rounded bg-slate-950 text-[11px] space-y-0.5 border border-slate-900">
+                    <div class="flex justify-between"><span class="text-slate-500">In (Masuk):</span><span class="text-emerald-400 font-semibold">Rp ${inc.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Out (Keluar):</span><span class="text-rose-400 font-semibold">Rp ${exp.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between pt-1 mt-1 border-t border-slate-800 font-bold"><span class="text-slate-300">Sisa Saldo Proyek:</span><span class="text-sky-400">Rp ${(inc - exp).toLocaleString('id-ID')}</span></div>
+                </div>`;
+        }
+
+        // ================= WORKSPACE INTERACTION MANAGER =================
+        function muatDiskusiProyek(index) {
+            const dataProyek = globalProjectList[index];
+            currentProposedProject = dataProyek["Nama Proyek"] || Object.values(dataProyek)[1];
+            const riwayatHtml = dataProyek["Riwayat_Diskusi"] || Object.values(dataProyek)[3] || "";
+
+            document.getElementById("wawancaraForm").classList.add("hidden");
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.remove("hidden");
+            
+            document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            
+            document.getElementById("activeProjectIndicator").innerText = "Proyek: " + currentProposedProject;
+            document.getElementById("financeProjectTarget").value = currentProposedProject;
+
+            document.getElementById("btnTabSummary").className = "bg-gray-800/40 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition";
+
+            // Tampilkan isi HTML asli penuh
+            const workspace = document.getElementById("mainWorkspace");
+            workspace.innerHTML = riwayatHtml;
+            renderArusKasProyekAktif();
+        }
+
+        function kembaliKeDashboard() {
+            document.getElementById("wawancaraForm").classList.add("hidden");
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.add("hidden");
+            
+            document.getElementById("flowBadge").innerText = "DAFTAR RINGKASAN PROYEK";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20";
+            document.getElementById("activeProjectIndicator").innerText = "Mode Explorer";
+            
+            document.getElementById("btnTabSummary").className = "bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition";
+
+            const workspace = document.getElementById("mainWorkspace");
+            workspace.innerHTML = `<div id="multiProjectDashboard" class="space-y-4"></div>`;
+            muatDaftarProyek();
+        }
+
+        function bukaWawancaraBaru() {
+            document.getElementById("wawancaraForm").classList.remove("hidden");
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.add("hidden");
+            
+            const workspace = document.getElementById("mainWorkspace");
+            workspace.innerHTML = "";
+            workspace.appendChild(document.getElementById("wawancaraForm"));
+            
+            document.getElementById("flowBadge").innerText = "TAHAP 1: WAWANCARA BARU";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20";
+            document.getElementById("activeProjectIndicator").innerText = "Proyek: Umum";
+            document.getElementById("financeProjectTarget").value = "LUAR PROYEK (UMUM)";
+            currentProposedProject = "Umum";
+            renderArusKasProyekAktif();
+        }
+
+        // ================= OPERASIONAL ENGINE AI CORE OMNI =================
+        function submitWawancara() {
+            if (!getApiKey()) { alert("Masukkan API Key Gemini Anda!"); return; }
+            const modalBersih = bersihkanTitik(document.getElementById("ans2").value);
+            userContext = {
+                sekitar: document.getElementById("ans1").value || "Umum",
+                modal: modalBersih || "100000",
+                keahlian: document.getElementById("ans3").value || "Apapun"
+            };
+            mintaIdeDariGemini();
+        }
+
+        async function mintaIdeDariGemini() {
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            const tinderControls = document.getElementById("tinderControls");
+
+            loader.classList.remove("hidden");
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-sky-400"></i><p>AI sedang merumuskan blueprint sistem otomasi korporasimu...</p></div>`;
+            tinderControls.classList.add("hidden");
+
+            const prompt = `Anda Direktur Bisnis AI Korporasi Mikro. Rumuskan 1 Ide Bisnis Riil berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide: [${rejectedIdeas.join(", ")}]. Sistem wajib berbasis kemitraan / bagi hasil tanpa kerja fisik kasar dari owner. Gunakan format ribuan titik. Output HTML murni tanpa bungkus markdown (\`\`\`html). Wajib sertakan tag <h2 id="tempTitle">Judul Proyek Karismatik</h2> di posisi paling atas konten.`;
+
+            try {
+                const responseAI = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await responseAI.json();
+                const rawText = json.candidates[0].content.parts[0].text;
+                workspace.innerHTML = rawText.replace(/```html/g, "").replace(/```/g, "").trim();
+                tinderControls.classList.remove("hidden");
+                
+                const titleEl = document.getElementById("tempTitle");
+                currentProposedProject = titleEl ? titleEl.innerText : "Sistem Korporasi Pilihan AI";
+            } catch (err) { workspace.innerHTML = `<div class="text-rose-400 p-4">Koneksi Terputus / API Key Limit.</div>`; }
+            finally { loader.classList.add("hidden"); }
+        }
+
+        function tolakIde() { rejectedIdeas.push(currentProposedProject); mintaIdeDariGemini(); }
+
+        async function terimaIde() {
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.remove("hidden");
+            document.getElementById("activeProjectIndicator").innerText = "Proyek: " + currentProposedProject;
+
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            loader.classList.remove("hidden");
+
+            const prompt = `Pemilik menyetujui proyek: "${currentProposedProject}". Susun instruksi kerja lapangan yang premium untuk HARI PERTAMA (rekrutmen supply, broadcast media, setup channel koordinasi). Tulis langsung dalam HTML murni tanpa markdown wrapper.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await response.json();
+                const isiHtmlHariPertama = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
+                workspace.innerHTML = isiHtmlHariPertama;
+
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "insertRow",
+                        targetSheet: "Tab_Ide",
+                        rowData: [new Date().toLocaleDateString('id-ID'), currentProposedProject, "BERJALAN", isiHtmlHariPertama]
+                    }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                await sinkronisasiSistemUtama();
+            } catch (e) { workspace.innerHTML = "Gagal mengunci proyek ke Google Sheets."; }
+            finally { 
+                loader.classList.add("hidden");
+                document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
+                document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            }
+        }
+
+        // ================= MENTORSHIP EVALUATION & JUMP SYSTEM =================
+        async function kirimEvaluasiHarian() {
+            const input = document.getElementById("evalInput");
+            const reportText = input.value.trim();
+            if (!reportText) return;
+
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            
+            loader.classList.remove("hidden");
+            const userHistory = workspace.innerHTML;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-400 mb-2"></i><p>AI sedang menyusun analisis risiko & perbaikan lapangan...</p></div>`;
+            input.value = "";
+
+            const prompt = `Anda Mentor Bisnis. Proyek: "${currentProposedProject}". Histori:\n${userHistory}\nLaporan Owner: "${reportText}". Berikan ulasan perbaikan strategi operasional esok hari dalam HTML murni tanpa markdown wrapper.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await response.json();
+                const hasilHtmlBaru = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
+                
+                const akumulasiHtml = userHistory + `<div class="my-5 p-3.5 border-l-4 border-sky-500 bg-slate-900/90 text-xs rounded-r-xl"><b>Laporan Lapangan Terkirim:</b> ${reportText}</div>` + hasilHtmlBaru;
+                workspace.innerHTML = akumulasiHtml;
+
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "updateDiskusi", targetSheet: "Tab_Ide", namaProyek: currentProposedProject, htmlBaru: akumulasiHtml }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                await sinkronisasiSistemUtama();
+            } catch (e) { workspace.innerHTML = "Gagal memproses pengiriman data."; }
+            finally { loader.classList.add("hidden"); }
+        }
+
+        async function mintaLangkahLanjutan() {
+            const workspace = document.getElementById("mainWorkspace");
+            const loader = document.getElementById("loadingStatus");
+            
+            loader.classList.remove("hidden");
+            const userHistory = workspace.innerHTML;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-sky-400 mb-2"></i><p>Menyiapkan langkah lanjutan esok hari...</p></div>`;
+
+            const prompt = `Proyek: "${currentProposedProject}". Histori:\n${userHistory}\n\nBerikan kelanjutan modul instruksi langkah/hari berikutnya secara otomatis dalam format HTML murni tanpa markdown wrapper.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await response.json();
+                const hasilLanjutanHtml = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
+                
+                const akumulasiHtml = userHistory + `<div class="my-4 p-2 bg-sky-950/50 border border-sky-800 text-center font-bold rounded-xl text-xs text-sky-400">⏩ ALUR STRATEGI OPERASIONAL BERLANJUT</div>` + hasilLanjutanHtml;
+                workspace.innerHTML = akumulasiHtml;
+
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "updateDiskusi", targetSheet: "Tab_Ide", namaProyek: currentProposedProject, htmlBaru: akumulasiHtml }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                await sinkronisasiSistemUtama();
+            } catch (e) { workspace.innerHTML = "Gagal melompat ke fase lanjutan."; }
+            finally { loader.classList.add("hidden"); }
+        }
+
+        // ================= DATABASE SPREADSHEET KEUANGAN =================
+        async function simpanKeuanganCepat() {
+            const rawAmount = document.getElementById("quickAmount").value.trim();
+            const type = document.getElementById("quickType").value;
+            const notes = document.getElementById("quickNotes").value.trim();
+            const targetProyek = document.getElementById("financeProjectTarget").value;
+            const btn = document.getElementById("btnSaveFinance");
+
+            if (!rawAmount) { alert("Nominal wajib diisi!"); return; }
+            const amountBersih = bersihkanTitik(rawAmount);
+
+            btn.disabled = true;
+            btn.innerText = "Menyimpan...";
+
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "insertRow", targetSheet: "Tab_Keuangan", rowData: [new Date().toLocaleDateString('id-ID'), targetProyek, type, amountBersih, notes] }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                alert(`Catatan finansial sukses dikunci ke: ${targetProyek}`);
+                document.getElementById("quickAmount").value = "";
+                document.getElementById("quickNotes").value = "";
+                await sinkronisasiSistemUtama();
+            } catch (err) { alert("Gagal menyambung ke server Google Sheets."); }
+            finally { btn.disabled = false; btn.innerText = "Catat ke Google Sheets"; }
+        }
+
+        async function hapusProyekPermanen(namaProyek) {
+            if (!confirm(`Hapus permanen seluruh data proyek "${namaProyek}"?`)) return;
+            try {
+                await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "deleteRow", targetSheet: "Tab_Ide", namaProyek: namaProyek }),
+                    headers: { "Content-Type": "text/plain" }
+                });
+                if (currentProposedProject === namaProyek) kembaliKeDashboard();
+                else muatDaftarProyek();
+            } catch (err) { alert("Gagal memproses penghapusan."); }
+        }
+    </script>
 </body>
 </html>
