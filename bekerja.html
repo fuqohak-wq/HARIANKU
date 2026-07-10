@@ -10,22 +10,22 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0f19; }
         
-        /* Custom Scrollbar */
+        /* Custom Scrollbar for Project List Control */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
         
-        /* Penjinak Visual Output HTML AI */
-        .premium-ai-text h1 { font-size: 1.8rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem; text-align: center; }
-        .premium-ai-text h2 { font-size: 1.4rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem; border-left: 4px solid #38bdf8; padding-left: 0.75rem; margin-top: 1.5rem; }
-        .premium-ai-text h3 { font-size: 1.15rem; font-weight: 700; color: #f1f5f9; margin-top: 1.25rem; margin-bottom: 0.5rem; border-bottom: 1px solid #334155; padding-bottom: 0.25rem; }
+        /* Penjinak Elemen Grafis Output Mentor AI */
+        .premium-ai-text h1 { font-size: 1.75rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.75rem; text-align: center; leading: tight; }
+        .premium-ai-text h2 { font-size: 1.35rem; font-weight: 800; color: #2dd4bf; margin-bottom: 1rem; border-left: 4px solid #2dd4bf; padding-left: 0.75rem; margin-top: 1.5rem; }
+        .premium-ai-text h3 { font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin-top: 1.25rem; margin-bottom: 0.5rem; }
         .premium-ai-text p { color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.6; }
-        .premium-ai-text ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; space-y: 0.5rem; }
-        .premium-ai-text ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; space-y: 0.5rem; }
+        .premium-ai-text ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+        .premium-ai-text ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1rem; }
         .premium-ai-text li { color: #e2e8f0; margin-bottom: 0.375rem; }
         .premium-ai-text strong { color: #f59e0b; font-weight: 600; }
-        .premium-ai-text section { margin-bottom: 2rem; }
+        .premium-ai-text section { margin-bottom: 1.5rem; }
     </style>
 </head>
 <body class="text-slate-100 min-h-screen pb-12">
@@ -62,7 +62,7 @@
                     <button onclick="muatDaftarProyek()" class="text-xs text-sky-400 hover:underline"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
                 </div>
                 <div id="projectListContainer" class="space-y-2 overflow-y-auto pr-1 custom-scrollbar flex-grow">
-                    <div class="text-xs text-slate-500 italic p-2 text-center">Mengambil data database...</div>
+                    <div class="text-xs text-slate-500 italic p-2 text-center">Menghubungkan ke database...</div>
                 </div>
             </div>
 
@@ -106,7 +106,7 @@
             
             <div class="flex flex-wrap items-center justify-between gap-4 bg-[#111827]/60 border border-slate-800 px-4 py-3 rounded-xl shadow-md">
                 <div class="flex items-center gap-2">
-                    <button onclick="kembaliKeDashboard()" id="btnTabSummary" class="bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition">
+                    <button onclick="kembaliKeDashboard()" id="btnTabSummary" class="bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition shadow-inner">
                         Daftar Ringkasan Proyek
                     </button>
                     <span id="activeProjectIndicator" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-400 uppercase tracking-wide">Mode Explorer</span>
@@ -116,7 +116,7 @@
                         <i class="fa-solid fa-circle-notch animate-spin text-emerald-400"></i> Memproses Otak Bisnis...
                     </div>
                     <button onclick="kembaliKeDashboard()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center gap-1">
-                        <i class="fa-solid0 fa-layer-group"><i class="fa-solid fa-house"></i></i> Menu Awal
+                        <i class="fa-solid fa-house"></i> Menu Utama
                     </button>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                 
                 <div id="mainWorkspace" class="flex-grow overflow-y-auto mb-4 pr-1 text-sm leading-relaxed text-slate-200 premium-ai-text">
                     
-                    <div id="multiProjectDashboard" class="space-y-4">
+                    <div id="multiProjectDashboard" class="space-y-6">
                         </div>
 
                     <div id="wawancaraForm" class="space-y-6 py-4 hidden">
@@ -182,9 +182,9 @@
             </div>
 
             <div class="bg-[#111827] border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-chart-line text-teal-400 mr-1"></i> MONITOR ARUS KAS INTERNAL PROYEK INI</h3>
+                <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-chart-line text-teal-400 mr-1"></i> ARUS KAS INTERNAL PROYEK TERPILIH</h3>
                 <div id="projectFinanceLogContainer" class="text-xs text-slate-400 max-h-[200px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                    <div class="text-slate-500 italic p-2 text-center">Silakan buka/pilih salah satu proyek dari panel navigasi untuk melacak histori keuangannya.</div>
+                    <div class="text-slate-500 italic p-2 text-center">Silakan buka/pilih salah satu proyek untuk melacak histori keuangannya.</div>
                 </div>
             </div>
 
@@ -226,12 +226,12 @@
             await hitungDompetGlobal();
         }
 
-        // ================= DOWNLOAD DATA DAN RENDERING DUA SISI YANG BENAR =================
+        // ================= DOWNLOAD DATA SPREADSHEET & RENDER UTUH SISI KANAN =================
         async function muatDaftarProyek() {
             const containerLeft = document.getElementById("projectListContainer");
             const dashboardRight = document.getElementById("multiProjectDashboard");
             
-            containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Menyinkronkan...</div>`;
+            containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Sinkronisasi...</div>`;
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -244,7 +244,6 @@
                 const selectTarget = document.getElementById("financeProjectTarget");
                 selectTarget.innerHTML = `<option value="LUAR PROYEK (UMUM)">LUAR PROYEK / UMUM PRIVAT</option>`;
 
-                // Bersihkan dashboard kanan hanya jika tidak sedang di form wawancara atau sedang membaca proyek penuh
                 const isFormHidden = document.getElementById("wawancaraForm").classList.contains("hidden");
                 const isEvalHidden = document.getElementById("evalControls").classList.contains("hidden");
                 
@@ -265,13 +264,12 @@
                         const tanggal = row["Tanggal"] || Object.values(row)[0] || "Baru";
                         const originalIndex = result.data.length - 1 - index;
 
-                        // Tambah ke dropdown logger keuangan
                         const opt = document.createElement("option");
                         opt.value = namaProyek;
                         opt.innerText = namaProyek;
                         selectTarget.appendChild(opt);
 
-                        // 1. RENDER NAVIGASI KIRI: Baris teks murni judul, tanggal, status (MURNI BERSIH!)
+                        // 1. RENDER PANEL KIRI: Teks Baris Bersih Murni Judul Proyek Saja
                         const itemCard = document.createElement("div");
                         itemCard.className = "w-full p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500 transition group cursor-pointer flex items-center justify-between";
                         itemCard.onclick = () => muatDiskusiProyek(originalIndex);
@@ -284,30 +282,28 @@
                         `;
                         containerLeft.appendChild(itemCard);
 
-                        // 2. RENDER WORKSPACE KANAN (MODE EXPLORER): List ringkasan proyek komplit terpotong
+                        // 2. RENDER WORKSPACE KANAN (EXPLORER): Menampilkan Isi Proyek Secara Penuh & Utuh (600+ Baris Terjaga)
                         if (dashboardRight && isFormHidden && isEvalHidden) {
-                            // Ekstrak teks bersih murni tanpa markup tag HTML agar tidak merusak tata letak web
-                            let teksMurni = riwayatHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-                            let ringkasanTeks = teksMurni.substring(0, 180) + "...";
-
-                            const previewCard = document.createElement("div");
-                            previewCard.className = "bg-[#111827] border border-slate-800 rounded-2xl p-5 space-y-3 shadow-md hover:border-slate-700 transition";
-                            previewCard.innerHTML = `
-                                <div class="flex justify-between items-start border-b border-slate-800 pb-2">
+                            const fullContentBox = document.createElement("div");
+                            fullContentBox.className = "bg-[#111827] border border-slate-800 rounded-2xl p-6 shadow-md border-t-4 border-t-sky-500 relative space-y-4";
+                            fullContentBox.innerHTML = `
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
                                     <div>
-                                        <h3 class="text-base font-extrabold text-white tracking-tight leading-tight"><i class="fa-solid fa-briefcase text-sky-400 mr-1.5"></i> ${namaProyek}</h3>
-                                        <p class="text-[10px] text-slate-500 mt-0.5">Dibuat: ${tanggal}</p>
+                                        <span class="text-[10px] text-slate-500 block">Daftar Arsip Korporasi — ${tanggal}</span>
+                                        <h2 class="text-base font-extrabold text-white tracking-tight border-none p-0 m-0 mt-0.5">${namaProyek}</h2>
                                     </div>
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${status}</span>
                                 </div>
-                                <p class="text-xs text-slate-400 leading-relaxed">${ringkasanTeks}</p>
-                                <div class="pt-1">
-                                    <button onclick="muatDiskusiProyek(${originalIndex})" class="inline-flex items-center text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 px-3 py-1.5 rounded-xl border border-sky-500/20 hover:border-sky-500 transition">
-                                        Lanjut Membaca &amp; Kelola Proyek <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                                <div class="prose prose-invert text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                                    ${riwayatHtml}
+                                </div>
+                                <div class="pt-2 border-t border-slate-800 flex justify-end">
+                                    <button onclick="muatDiskusiProyek(${originalIndex})" class="inline-flex items-center text-xs font-bold text-teal-400 hover:text-teal-300 bg-teal-500/5 px-4 py-2 rounded-xl border border-teal-500/10 hover:border-teal-400/40 transition">
+                                        Buka &amp; Kelola Laporan Interaktif <i class="fa-solid fa-square-rss ml-2"></i>
                                     </button>
                                 </div>
                             `;
-                            dashboardRight.appendChild(previewCard);
+                            dashboardRight.appendChild(fullContentBox);
                         }
                     });
                 } else {
@@ -320,7 +316,7 @@
             }
         }
 
-        // ================= CASHFLOW CALCULATION DOMPET MULTI-PROYEK =================
+        // ================= ARUS KAS & FINANSIAL DATABASE METER =================
         async function hitungDompetGlobal() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -345,7 +341,7 @@
                     document.getElementById("globalWalletBalance").innerText = "Rp " + (totalPemasukan - totalPengeluaran).toLocaleString('id-ID');
                     renderArusKasProyekAktif();
                 }
-            } catch (e) { console.log("Gagal menyinkronkan data kas global."); }
+            } catch (e) { console.log("Gagal memuat keuangan."); }
         }
 
         function renderArusKasProyekAktif() {
@@ -354,14 +350,14 @@
 
             let filterTarget = currentProposedProject;
             if (!filterTarget || filterTarget === "Umum") {
-                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Pilih atau klik salah satu proyek di sebelah kanan/kiri untuk memuat riwayat cashflow internalnya.</div>`;
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Pilih proyek aktif untuk melihat log cashflow internal proyek terkait.</div>`;
                 return;
             }
 
             let filteredLog = globalFinanceData.filter(row => (row["Nama Proyek"] || Object.values(row)[1]) === filterTarget);
 
             if (filteredLog.length === 0) {
-                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Belum ada transaksi terekam untuk proyek internal:<br><span class="text-slate-400 font-mono">${filterTarget}</span></div>`;
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Belum ada transaksi terdaftar untuk proyek:<br><span class="text-slate-400 font-mono">${filterTarget}</span></div>`;
                 return;
             }
 
@@ -386,13 +382,13 @@
 
             container.innerHTML = listHtml + `
                 <div class="p-2 rounded bg-slate-950 text-[11px] space-y-0.5 border border-slate-900">
-                    <div class="flex justify-between"><span class="text-slate-500">In (Masuk):</span><span class="text-emerald-400 font-semibold">Rp ${inc.toLocaleString('id-ID')}</span></div>
-                    <div class="flex justify-between"><span class="text-slate-500">Out (Keluar):</span><span class="text-rose-400 font-semibold">Rp ${exp.toLocaleString('id-ID')}</span></div>
-                    <div class="flex justify-between pt-1 mt-1 border-t border-slate-800 font-bold"><span class="text-slate-300">Sisa Saldo Proyek:</span><span class="text-sky-400">Rp ${(inc - exp).toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Total Pemasukan:</span><span class="text-emerald-400 font-semibold">Rp ${inc.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Total Pengeluaran:</span><span class="text-rose-400 font-semibold">Rp ${exp.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between pt-1 mt-1 border-t border-slate-800 font-bold"><span class="text-slate-300">Saldo Internal Usaha:</span><span class="text-sky-400">Rp ${(inc - exp).toLocaleString('id-ID')}</span></div>
                 </div>`;
         }
 
-        // ================= WORKSPACE INTERACTION MANAGER =================
+        // ================= NAVIGATOR INTERACTION SYSTEM =================
         function muatDiskusiProyek(index) {
             const dataProyek = globalProjectList[index];
             currentProposedProject = dataProyek["Nama Proyek"] || Object.values(dataProyek)[1];
@@ -407,10 +403,8 @@
             
             document.getElementById("activeProjectIndicator").innerText = "Proyek: " + currentProposedProject;
             document.getElementById("financeProjectTarget").value = currentProposedProject;
-
             document.getElementById("btnTabSummary").className = "bg-gray-800/40 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition";
 
-            // Tampilkan isi HTML asli penuh
             const workspace = document.getElementById("mainWorkspace");
             workspace.innerHTML = riwayatHtml;
             renderArusKasProyekAktif();
@@ -424,8 +418,7 @@
             document.getElementById("flowBadge").innerText = "DAFTAR RINGKASAN PROYEK";
             document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20";
             document.getElementById("activeProjectIndicator").innerText = "Mode Explorer";
-            
-            document.getElementById("btnTabSummary").className = "bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition";
+            document.getElementById("btnTabSummary").className = "bg-teal-950 text-teal-400 border border-teal-800 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider transition shadow-inner";
 
             const workspace = document.getElementById("mainWorkspace");
             workspace.innerHTML = `<div id="multiProjectDashboard" class="space-y-4"></div>`;
@@ -449,9 +442,9 @@
             renderArusKasProyekAktif();
         }
 
-        // ================= OPERASIONAL ENGINE AI CORE OMNI =================
+        // ================= EXECUTION ENGINE AI CORE SYSTEM =================
         function submitWawancara() {
-            if (!getApiKey()) { alert("Masukkan API Key Gemini Anda!"); return; }
+            if (!getApiKey()) { alert("Input API Key Gemini Terlebih Dahulu!"); return; }
             const modalBersih = bersihkanTitik(document.getElementById("ans2").value);
             userContext = {
                 sekitar: document.getElementById("ans1").value || "Umum",
@@ -467,7 +460,7 @@
             const tinderControls = document.getElementById("tinderControls");
 
             loader.classList.remove("hidden");
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-sky-400"></i><p>AI sedang merumuskan blueprint sistem otomasi korporasimu...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-sky-400"></i><p>AI sedang menganalisis & menyusun formula korporasi mikro...</p></div>`;
             tinderControls.classList.add("hidden");
 
             const prompt = `Anda Direktur Bisnis AI Korporasi Mikro. Rumuskan 1 Ide Bisnis Riil berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide: [${rejectedIdeas.join(", ")}]. Sistem wajib berbasis kemitraan / bagi hasil tanpa kerja fisik kasar dari owner. Gunakan format ribuan titik. Output HTML murni tanpa bungkus markdown (\`\`\`html). Wajib sertakan tag <h2 id="tempTitle">Judul Proyek Karismatik</h2> di posisi paling atas konten.`;
@@ -484,8 +477,8 @@
                 tinderControls.classList.remove("hidden");
                 
                 const titleEl = document.getElementById("tempTitle");
-                currentProposedProject = titleEl ? titleEl.innerText : "Sistem Korporasi Pilihan AI";
-            } catch (err) { workspace.innerHTML = `<div class="text-rose-400 p-4">Koneksi Terputus / API Key Limit.</div>`; }
+                currentProposedProject = titleEl ? titleEl.innerText : "Sistem Bisnis Pilihan AI";
+            } catch (err) { workspace.innerHTML = `<div class="text-rose-400 p-4">Koneksi Timeout / Masalah API Key Gemini.</div>`; }
             finally { loader.classList.add("hidden"); }
         }
 
@@ -522,7 +515,7 @@
                     headers: { "Content-Type": "text/plain" }
                 });
                 await sinkronisasiSistemUtama();
-            } catch (e) { workspace.innerHTML = "Gagal mengunci proyek ke Google Sheets."; }
+            } catch (e) { workspace.innerHTML = "Gagal memproses penguncian data ide."; }
             finally { 
                 loader.classList.add("hidden");
                 document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
@@ -530,7 +523,7 @@
             }
         }
 
-        // ================= MENTORSHIP EVALUATION & JUMP SYSTEM =================
+        // ================= ACTION STRATEGY & REPORT INJECTION =================
         async function kirimEvaluasiHarian() {
             const input = document.getElementById("evalInput");
             const reportText = input.value.trim();
@@ -541,7 +534,7 @@
             
             loader.classList.remove("hidden");
             const userHistory = workspace.innerHTML;
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-400 mb-2"></i><p>AI sedang menyusun analisis risiko & perbaikan lapangan...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-400 mb-2"></i><p>Menyerahkan laporan ke sistem AI Mentor...</p></div>`;
             input.value = "";
 
             const prompt = `Anda Mentor Bisnis. Proyek: "${currentProposedProject}". Histori:\n${userHistory}\nLaporan Owner: "${reportText}". Berikan ulasan perbaikan strategi operasional esok hari dalam HTML murni tanpa markdown wrapper.`;
@@ -555,7 +548,7 @@
                 const json = await response.json();
                 const hasilHtmlBaru = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
                 
-                const akumulasiHtml = userHistory + `<div class="my-5 p-3.5 border-l-4 border-sky-500 bg-slate-900/90 text-xs rounded-r-xl"><b>Laporan Lapangan Terkirim:</b> ${reportText}</div>` + hasilHtmlBaru;
+                const akumulasiHtml = userHistory + `<div class="my-5 p-4 border-l-4 border-sky-500 bg-slate-900/90 text-xs rounded-r-xl"><b>Laporan Lapangan Terkirim:</b> ${reportText}</div>` + hasilHtmlBaru;
                 workspace.innerHTML = akumulasiHtml;
 
                 await fetch(APPS_SCRIPT_URL, {
@@ -564,7 +557,7 @@
                     headers: { "Content-Type": "text/plain" }
                 });
                 await sinkronisasiSistemUtama();
-            } catch (e) { workspace.innerHTML = "Gagal memproses pengiriman data."; }
+            } catch (e) { workspace.innerHTML = "Gagal memproses input evaluasi."; }
             finally { loader.classList.add("hidden"); }
         }
 
@@ -574,7 +567,7 @@
             
             loader.classList.remove("hidden");
             const userHistory = workspace.innerHTML;
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-sky-400 mb-2"></i><p>Menyiapkan langkah lanjutan esok hari...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-sky-400 mb-2"></i><p>Menghitung parameter kemajuan langkah esok hari...</p></div>`;
 
             const prompt = `Proyek: "${currentProposedProject}". Histori:\n${userHistory}\n\nBerikan kelanjutan modul instruksi langkah/hari berikutnya secara otomatis dalam format HTML murni tanpa markdown wrapper.`;
 
@@ -596,11 +589,11 @@
                     headers: { "Content-Type": "text/plain" }
                 });
                 await sinkronisasiSistemUtama();
-            } catch (e) { workspace.innerHTML = "Gagal melompat ke fase lanjutan."; }
+            } catch (e) { workspace.innerHTML = "Gagal melompati alur."; }
             finally { loader.classList.add("hidden"); }
         }
 
-        // ================= DATABASE SPREADSHEET KEUANGAN =================
+        // ================= FINANCIAL LOGGER SHEETS WRITER =================
         async function simpanKeuanganCepat() {
             const rawAmount = document.getElementById("quickAmount").value.trim();
             const type = document.getElementById("quickType").value;
@@ -608,11 +601,11 @@
             const targetProyek = document.getElementById("financeProjectTarget").value;
             const btn = document.getElementById("btnSaveFinance");
 
-            if (!rawAmount) { alert("Nominal wajib diisi!"); return; }
+            if (!rawAmount) { alert("Nominal transaksi harus terisi!"); return; }
             const amountBersih = bersihkanTitik(rawAmount);
 
             btn.disabled = true;
-            btn.innerText = "Menyimpan...";
+            btn.innerText = "Mengunci Kas...";
 
             try {
                 await fetch(APPS_SCRIPT_URL, {
@@ -620,16 +613,16 @@
                     body: JSON.stringify({ action: "insertRow", targetSheet: "Tab_Keuangan", rowData: [new Date().toLocaleDateString('id-ID'), targetProyek, type, amountBersih, notes] }),
                     headers: { "Content-Type": "text/plain" }
                 });
-                alert(`Catatan finansial sukses dikunci ke: ${targetProyek}`);
+                alert(`Finansial tercatat pada sub-proyek [${targetProyek}]`);
                 document.getElementById("quickAmount").value = "";
                 document.getElementById("quickNotes").value = "";
                 await sinkronisasiSistemUtama();
-            } catch (err) { alert("Gagal menyambung ke server Google Sheets."); }
+            } catch (err) { alert("Koneksi gagal sinkronisasi kas."); }
             finally { btn.disabled = false; btn.innerText = "Catat ke Google Sheets"; }
         }
 
         async function hapusProyekPermanen(namaProyek) {
-            if (!confirm(`Hapus permanen seluruh data proyek "${namaProyek}"?`)) return;
+            if (!confirm(`Hapus permanen seluruh riwayat proyek "${namaProyek}"?`)) return;
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
@@ -638,7 +631,7 @@
                 });
                 if (currentProposedProject === namaProyek) kembaliKeDashboard();
                 else muatDaftarProyek();
-            } catch (err) { alert("Gagal memproses penghapusan."); }
+            } catch (err) { alert("Gagal memproses."); }
         }
     </script>
 </body>
