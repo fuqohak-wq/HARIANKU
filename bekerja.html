@@ -7,17 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         
-        .premium-ai-text h2 { font-size: 1.3rem; font-weight: 800; color: #38bdf8; margin-bottom: 1rem; border-left: 4px solid #38bdf8; padding-left: 0.75rem; margin-top: 1.5rem;}
-        .premium-ai-text h3 { font-size: 1.1rem; font-weight: 700; color: #f1f5f9; margin-top: 1.25rem; margin-bottom: 0.5rem; }
-        .premium-ai-text p { color: #cbd5e1; margin-bottom: 0.75rem; line-height: 1.6; }
-        .premium-ai-text ul, .premium-ai-text ol { margin-left: 1.25rem; margin-bottom: 1rem; list-style-type: decimal; }
-        .premium-ai-text li { color: #e2e8f0; margin-bottom: 0.375rem; }
+        .premium-ai-text h2 { font-size: 1.25rem; font-weight: 800; color: #38bdf8; margin-bottom: 0.75rem; border-left: 4px solid #38bdf8; padding-left: 0.5rem; margin-top: 1rem;}
+        .premium-ai-text h3 { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; margin-top: 1rem; margin-bottom: 0.4rem; }
+        .premium-ai-text p { color: #cbd5e1; margin-bottom: 0.5rem; line-height: 1.5; }
+        .premium-ai-text ul, .premium-ai-text ol { margin-left: 1.25rem; margin-bottom: 0.75rem; list-style-type: decimal; }
+        .premium-ai-text li { color: #e2e8f0; margin-bottom: 0.25rem; }
         .premium-ai-text strong { color: #f59e0b; font-weight: 600; }
     </style>
 </head>
@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-white">AI MoneyMachine</h1>
-                    <p class="text-xs text-slate-400">Sistem Korporasi Mikro & Finansial Multi-Proyek</p>
+                    <p class="text-xs text-slate-400">Sistem Korporasi Mikro Finansial</p>
                 </div>
             </div>
             <button onclick="bukaWawancaraBaru()" class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-slate-950 shadow transition">
@@ -43,7 +43,6 @@
     <div class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         <div class="lg:col-span-1 space-y-6">
-            
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl">
                 <label class="block text-[10px] font-bold text-slate-400 mb-2 tracking-wider uppercase">GEMINI STUDIO API KEY</label>
                 <input type="password" id="geminiKey" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
@@ -60,9 +59,8 @@
             </div>
 
             <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-2">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SALDO GLOBAL (TOTAL SEMUA UANG)</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">SALDO GLOBAL (TOTAL KAS)</p>
                 <p id="globalWalletBalance" class="text-2xl font-black text-emerald-400">Rp 0</p>
-                <p class="text-[10px] text-slate-500 italic">Dihitung otomatis dari seluruh pemasukan & pengeluaran</p>
             </div>
 
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
@@ -98,34 +96,35 @@
 
         <div class="lg:col-span-3 space-y-6">
             
-            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 min-h-[600px] flex flex-col justify-between shadow-2xl relative">
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 min-h-[500px] flex flex-col justify-between shadow-2xl relative">
                 
                 <div class="border-b border-slate-800 pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span id="flowBadge" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">TAHAP 1: WAWANCARA</span>
-                        <span id="activeProjectIndicator" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">Proyek: Umum</span>
+                        <span id="flowBadge" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">DAFTAR RINGKASAN PROYEK</span>
+                        <span id="activeProjectIndicator" class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400">Mode Explorer</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div id="loadingStatus" class="hidden text-xs text-emerald-400 items-center gap-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 animate-pulse">
                             <i class="fa-solid fa-circle-notch animate-spin text-emerald-400"></i> Memproses Otak Bisnis...
                         </div>
                         <button onclick="bukaWawancaraBaru()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700 transition">
-                            <i class="fa-solid fa-house mr-1"></i> Kembali ke Awal
+                            <i class="fa-solid fa-house mr-1"></i> Menu Awal
                         </button>
                     </div>
                 </div>
 
                 <div id="mainWorkspace" class="flex-1 overflow-y-auto mb-4 pr-1 text-sm leading-relaxed text-slate-200 premium-ai-text">
-                    
-                    <div id="wawancaraForm" class="space-y-6 py-4">
+                    <div id="multiProjectDashboard" class="space-y-4">
+                        </div>
+
+                    <div id="wawancaraForm" class="space-y-6 py-4 hidden">
                         <div class="text-center max-w-md mx-auto mb-4">
-                            <h2 class="text-xl font-bold text-white mb-1 border-none p-0">Halo Solopreneur!</h2>
-                            <p class="text-xs text-slate-400">Rancang cetak biru sistem otomasi korporasi mikromu bersama AI Engine.</p>
+                            <h2 class="text-xl font-bold text-white mb-1 border-none p-0">Mulai Proyek Baru</h2>
                         </div>
                         <div class="space-y-4 max-w-xl mx-auto bg-slate-950/60 border border-slate-800 p-6 rounded-2xl shadow-xl">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">1. APA POTENSI / ASET SEKITARMU YANG MELIMPAH?</label>
-                                <input type="text" id="ans1" placeholder="Banyak anak muda nganggur, dekat pesantren, limbah kayu, dll" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
+                                <input type="text" id="ans1" placeholder="Banyak anak muda nganggur, dekat pesantren" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">2. BERAPA MODAL TUNAI MAKSIMAL KAMU SAAT INI?</label>
@@ -133,10 +132,10 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-400 mb-1">3. MINAT / KEAHLIAN SPESIFIK YANG INGIN DI-SISTEMKAN?</label>
-                                <input type="text" id="ans3" placeholder="Mengajar kitab, desain grafis, jualan makanan, ketik 'apapun'" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
+                                <input type="text" id="ans3" placeholder="Mengajar kitab kuning, kriya kayu, jualan dll" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition">
                             </div>
                             <button onclick="submitWawancara()" class="w-full bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-600 hover:to-teal-600 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg transition">
-                                ANALISIS PELUANG SISTEM BISNIS <i class="fa-solid fa-wand-magic-sparkles ml-1"></i>
+                                ANALISIS PELUANG BISNIS <i class="fa-solid fa-wand-magic-sparkles ml-1"></i>
                             </button>
                         </div>
                     </div>
@@ -144,47 +143,36 @@
 
                 <div id="tinderControls" class="hidden border-t border-slate-800 pt-4 grid grid-cols-2 gap-4 bg-slate-950/80 p-3 rounded-xl">
                     <button onclick="tolakIde()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-xmark"></i> Cari Alternatif Lain
+                        <i class="fa-solid fa-xmark"></i> Cari Alternatif
                     </button>
                     <button onclick="terimaIde()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
-                        <i class="fa-solid fa-check"></i> Ambil & Eksekusi Hari #1
+                        <i class="fa-solid fa-check"></i> Ambil & Eksekusi
                     </button>
                 </div>
 
-                <div id="evalControls" class="hidden border-t border-slate-800 pt-4 space-y-4 bg-slate-950/90 p-4 rounded-2xl border border-slate-800">
+                <div id="evalControls" class="hidden border-t border-slate-800 pt-4 space-y-4 bg-slate-950/90 p-4 rounded-2xl">
                     <div class="flex gap-2">
-                        <input type="text" id="evalInput" placeholder="Ketik laporan lapangan / hasil tindakan hari ini ke Mentor AI..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                        <input type="text" id="evalInput" placeholder="Ketik laporan lapangan hari ini ke Mentor AI..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none text-slate-200">
                         <button onclick="kirimEvaluasiHarian()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 rounded-xl transition shadow-md">
-                            Kirim Lapangan <i class="fa-solid fa-paper-plane ml-1"></i>
+                            Kirim <i class="fa-solid fa-paper-plane ml-1"></i>
                         </button>
                     </div>
                     <div class="flex flex-wrap gap-2 justify-between items-center pt-2 border-t border-slate-800">
                         <button onclick="mintaLangkahLanjutan()" class="text-xs bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold px-4 py-2 rounded-lg transition">
-                            <i class="fa-solid fa-forward-step mr-1"></i> Lanjut Hari/Langkah Berikutnya
+                            <i class="fa-solid fa-forward-step mr-1"></i> Lanjut Hari Berikutnya
                         </button>
-                        <button onclick="bukaWawancaraBaru()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg transition border border-slate-700">
-                            <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan & Keluar ke Menu Utama
+                        <button onclick="kembaliKeDashboard()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-lg transition border border-slate-700">
+                            <i class="fa-solid fa-folder-open mr-1"></i> Simpan & Tutup (Lihat Semua)
                         </button>
                     </div>
                 </div>
 
             </div>
 
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
-                <h4 class="text-xs font-bold text-slate-400 tracking-wider uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> INSTRUKSI &amp; CHECKLIST KHUSUS OPERASIONAL
-                </h4>
-                <ul class="text-xs text-slate-400 space-y-2 list-none pl-0">
-                    <li class="flex items-start gap-2"><i class="fa-solid fa-square-check text-sky-500 mt-0.5"></i> <span><b>Prinsip Korporasi Mikro:</b> Jangan lakukan pekerjaan manual kasar. Delegasikan sejak hari pertama ke mitra dengan sistem bagi hasil!</span></li>
-                    <li class="flex items-start gap-2"><i class="fa-solid fa-square-check text-sky-500 mt-0.5"></i> <span><b>Aturan Finansial:</b> Catat pengeluaran terkecil sekalipun (seperti parkir, beli minum lapangan) agar akurasi saldo global Anda terjaga stabil.</span></li>
-                    <li class="flex items-start gap-2"><i class="fa-solid fa-square-check text-sky-500 mt-0.5"></i> <span><b>Validasi Pasar Cepat:</b> AI merancang pondasi digital bebas biaya. Prioritaskan mendapatkan konsumen riil pertama dalam 48 jam.</span></li>
-                </ul>
-            </div>
-
             <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-chart-line text-teal-400 mr-1"></i> MONITOR ARUS KAS PROYEK INI</h3>
-                <div id="projectFinanceLogContainer" class="text-xs text-slate-400 max-h-[250px] overflow-y-auto space-y-2 pr-1">
-                    <div class="text-slate-500 italic p-2 text-center">Silakan pilih proyek aktif untuk menganalisis arus kas internal.</div>
+                <h3 class="text-xs font-bold text-slate-400 tracking-wider uppercase"><i class="fa-solid fa-chart-line text-teal-400 mr-1"></i> ARUS KAS INTERNAL PROYEK TERPILIH</h3>
+                <div id="projectFinanceLogContainer" class="text-xs text-slate-400 max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                    <div class="text-slate-500 italic p-2 text-center">Silakan pilih proyek aktif untuk menganalisis arus kas.</div>
                 </div>
             </div>
 
@@ -214,11 +202,7 @@
 
         function formatInputRibuan(input) {
             let value = input.value.replace(/[^0-9]/g, "");
-            if (value !== "") {
-                input.value = Number(value).toLocaleString('id-ID');
-            } else {
-                input.value = "";
-            }
+            input.value = value !== "" ? Number(value).toLocaleString('id-ID') : "";
         }
 
         function bersihkanTitik(teksAngka) {
@@ -230,10 +214,12 @@
             await hitungDompetGlobal();
         }
 
-        // ================= DOWNLOAD DATA & AMBIL DAFTAR PROYEK (SIMPEL - JUDUL ONLY) =================
+        // ================= DOWNLOAD DATA & AMBIL DAFTAR PROYEK (KIRI SIMPEL, KANAN RINGKASAN) =================
         async function muatDaftarProyek() {
-            const container = document.getElementById("projectListContainer");
-            container.innerHTML = `<div class="text-xs text-slate-500 italic p-3 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Sinkronisasi database...</div>`;
+            const containerLeft = document.getElementById("projectListContainer");
+            const dashboardRight = document.getElementById("multiProjectDashboard");
+            
+            containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Loading...</div>`;
             
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -243,52 +229,84 @@
                 });
                 const result = await response.json();
                 
-                // Set Selector Target Alokasi di Keuangan ke Default
                 const selectTarget = document.getElementById("financeProjectTarget");
                 selectTarget.innerHTML = `<option value="LUAR PROYEK (UMUM)">LUAR PROYEK / UMUM PRIVAT</option>`;
 
                 if (result.status === "success" && result.data.length > 0) {
                     globalProjectList = result.data; 
-                    container.innerHTML = "";
+                    containerLeft.innerHTML = "";
                     
+                    // Reset Dashboard Kanan jika sedang berada di mode explorer
+                    if (!document.getElementById("wawancaraForm").classList.contains("hidden") === false && document.getElementById("evalControls").classList.contains("hidden")) {
+                        dashboardRight.innerHTML = "";
+                    }
+
                     const listTerbalik = result.data.slice().reverse();
                     
                     listTerbalik.forEach((row, index) => {
                         const namaProyek = row["Nama Proyek"] || Object.values(row)[1];
                         const status = row["Status"] || Object.values(row)[2] || "BERJALAN";
+                        const riwayatHtml = row["Riwayat_Diskusi"] || Object.values(row)[3] || "";
+                        const tanggal = row["Tanggal"] || Object.values(row)[0] || "Baru";
                         const originalIndex = result.data.length - 1 - index;
 
-                        // Masukkan ke dropdown form keuangan
+                        // Tambahkan ke dropdown finansial
                         const opt = document.createElement("option");
                         opt.value = namaProyek;
                         opt.innerText = namaProyek;
                         selectTarget.appendChild(opt);
 
-                        // Buat element tampilan navigasi kiri yang super simpel (Hanya Judul)
+                        // 1. Render Menu Kiri (Simpel Judul Saja)
                         const itemCard = document.createElement("div");
-                        itemCard.className = "w-full flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500 transition group cursor-pointer";
+                        itemCard.className = "w-full p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500 transition group cursor-pointer flex items-center justify-between";
                         itemCard.onclick = () => muatDiskusiProyek(originalIndex);
-
                         itemCard.innerHTML = `
                             <div class="truncate pr-2 flex-1">
                                 <p class="text-xs font-bold text-slate-300 truncate group-hover:text-sky-400 transition"><i class="fa-solid fa-folder text-amber-500 mr-1"></i> ${namaProyek}</p>
-                                <p class="text-[9px] text-slate-500 mt-0.5">Status: <span class="text-emerald-400 font-semibold">${status}</span></p>
+                                <p class="text-[9px] text-slate-500 mt-0.5">${tanggal} | <span class="text-emerald-400">${status}</span></p>
                             </div>
-                            <button onclick="event.stopPropagation(); hapusProyekPermanen('${namaProyek}')" class="text-slate-600 hover:text-rose-500 p-1.5 text-xs transition flex-shrink-0">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                            <button onclick="event.stopPropagation(); hapusProyekPermanen('${namaProyek}')" class="text-slate-600 hover:text-rose-500 p-1 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         `;
-                        container.appendChild(itemCard);
+                        containerLeft.appendChild(itemCard);
+
+                        // 2. Render Tampilan Kanan Singkat (Preview Card dengan tombol Lanjut Membaca)
+                        if (dashboardRight && document.getElementById("wawancaraForm").classList.contains("hidden") && document.getElementById("evalControls").classList.contains("hidden")) {
+                            const previewCard = document.createElement("div");
+                            previewCard.className = "bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-md hover:border-slate-700 transition";
+                            
+                            // Ambil potongan teks bersih dari HTML riwayat untuk ringkasan singkat
+                            let divTmp = document.createElement("div");
+                            divTmp.innerHTML = riwayatHtml;
+                            let ringkasanTeks = divTmp.innerText.substring(0, 160) + "...";
+
+                            previewCard.innerHTML = `
+                                <div class="flex justify-between items-start border-b border-slate-800 pb-2">
+                                    <div>
+                                        <h3 class="text-base font-bold text-white leading-tight"><i class="fa-solid fa-briefcase text-sky-400 mr-1.5"></i> ${namaProyek}</h3>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">Dibuat tanggal: ${tanggal}</p>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${status}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 leading-relaxed">${ringkasanTeks}</p>
+                                <div class="pt-1">
+                                    <button onclick="muatDiskusiProyek(${originalIndex})" class="inline-flex items-center text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/5 px-3 py-1.5 rounded-lg border border-sky-500/10 hover:border-sky-500/30 transition">
+                                        Lanjut Membaca & Kelola Lapangan <i class="fa-solid fa-angle-right ml-1"></i>
+                                    </button>
+                                </div>
+                            `;
+                            dashboardRight.appendChild(previewCard);
+                        }
                     });
                 } else {
-                    container.innerHTML = `<div class="text-xs text-slate-500 italic p-3 text-center">Belum ada proyek aktif</div>`;
+                    containerLeft.innerHTML = `<div class="text-xs text-slate-500 italic p-2 text-center">Belum ada proyek</div>`;
+                    bukaWawancaraBaru();
                 }
             } catch (err) {
-                container.innerHTML = `<div class="text-xs text-rose-400 p-3 text-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Database offline</div>`;
+                containerLeft.innerHTML = `<div class="text-xs text-rose-400 p-2 text-center">Database offline</div>`;
             }
         }
 
-        // ================= HITUNG DOMPET & SALDO GLOBAL (TOTAL KESELURUHAN) =================
+        // ================= HITUNG SALDO GLOBAL & ARUS KAS PROYEK AKTIF =================
         async function hitungDompetGlobal() {
             try {
                 const response = await fetch(APPS_SCRIPT_URL, {
@@ -306,79 +324,58 @@
                     globalFinanceData.forEach(row => {
                         const tipe = row["Jenis"] || Object.values(row)[2];
                         const nominal = parseInt(row["Nominal"] || Object.values(row)[3]) || 0;
-
-                        if (tipe === "PEMASUKAN") {
-                            totalPemasukan += nominal;
-                        } else if (tipe === "PENGELUARAN") {
-                            totalPengeluaran += nominal;
-                        }
+                        if (tipe === "PEMASUKAN") totalPemasukan += nominal;
+                        else if (tipe === "PENGELUARAN") totalPengeluaran += nominal;
                     });
 
-                    const saldoGlobal = totalPemasukan - totalPengeluaran;
-                    document.getElementById("globalWalletBalance").innerText = "Rp " + saldoGlobal.toLocaleString('id-ID');
-                    
-                    // Render ulas kas internal proyek yang aktif saat ini
+                    document.getElementById("globalWalletBalance").innerText = "Rp " + (totalPemasukan - totalPengeluaran).toLocaleString('id-ID');
                     renderArusKasProyekAktif();
                 }
-            } catch (e) {
-                console.log("Gagal memuat agregasi finansial global.");
-            }
+            } catch (e) { console.log("Gagal memuat keuangan."); }
         }
 
-        // ================= RENDER LOG KEUANGAN KHUSUS PROYEK AKTIF =================
         function renderArusKasProyekAktif() {
             const container = document.getElementById("projectFinanceLogContainer");
             container.innerHTML = "";
 
             let filterTarget = currentProposedProject;
             if (!filterTarget || filterTarget === "Umum") {
-                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Pilih/buka proyek dari daftar kiri untuk memantau cashflow spesifiknya.</div>`;
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Pilih / buka proyek untuk melihat log cashflow internalnya di sini.</div>`;
                 return;
             }
 
-            let filteredLog = globalFinanceData.filter(row => {
-                const namaRow = row["Nama Proyek"] || Object.values(row)[1];
-                return namaRow === filterTarget;
-            });
+            let filteredLog = globalFinanceData.filter(row => (row["Nama Proyek"] || Object.values(row)[1]) === filterTarget);
 
             if (filteredLog.length === 0) {
-                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Belum ada catatan keuangan terdaftar untuk proyek: <br><span class="text-slate-400 font-mono">${filterTarget}</span></div>`;
+                container.innerHTML = `<div class="text-slate-500 italic text-center p-2">Belum ada transaksi internal proyek: <br><span class="text-slate-400 font-mono">${filterTarget}</span></div>`;
                 return;
             }
 
-            let internalIncome = 0;
-            let internalExpense = 0;
-            
-            let listHtml = `<div class="space-y-1.5 max-h-[180px] overflow-y-auto border-b border-slate-800 pb-2 mb-2">`;
+            let inc = 0, exp = 0;
+            let listHtml = `<div class="space-y-1 max-h-[120px] overflow-y-auto border-b border-slate-800 pb-2 mb-2">`;
             filteredLog.forEach(row => {
                 const tipe = row["Jenis"] || Object.values(row)[2];
                 const nominal = parseInt(row["Nominal"] || Object.values(row)[3]) || 0;
                 const ket = row["Keterangan"] || Object.values(row)[4] || "-";
-                
-                if (tipe === "PEMASUKAN") { internalIncome += nominal; } else { internalExpense += nominal; }
-                
-                listHtml += `
-                    <div class="flex justify-between items-center bg-slate-950 p-2 rounded-lg border border-slate-900">
-                        <span class="truncate max-w-[120px] text-slate-400">${ket}</span>
-                        <span class="${tipe === 'PEMASUKAN' ? 'text-emerald-400' : 'text-rose-400'} font-bold">
-                            ${tipe === 'PEMASUKAN' ? '+' : '-'} Rp ${nominal.toLocaleString('id-ID')}
-                        </span>
-                    </div>`;
+                if (tipe === "PEMASUKAN") inc += nominal; else exp += nominal;
+                listHtml += `<div class="flex justify-between bg-slate-950 p-1.5 rounded border border-slate-900">
+                    <span class="truncate max-w-[120px] text-slate-400">${getFormatTanggal(row)} - ${ket}</span>
+                    <span class="${tipe === 'PEMASUKAN' ? 'text-emerald-400' : 'text-rose-400'} font-bold">${tipe === 'PEMASUKAN' ? '+' : '-'} Rp ${nominal.toLocaleString('id-ID')}</span>
+                </div>`;
             });
             listHtml += `</div>`;
 
-            let sisaSaldoInternal = internalIncome - internalExpense;
-            
             container.innerHTML = listHtml + `
-                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                    <div class="flex justify-between text-[11px]"><span class="text-slate-500">Total Masuk:</span> <span class="text-emerald-400 font-bold">Rp ${internalIncome.toLocaleString('id-ID')}</span></div>
-                    <div class="flex justify-between text-[11px]"><span class="text-slate-500">Total Keluar:</span> <span class="text-rose-400 font-bold">Rp ${internalExpense.toLocaleString('id-ID')}</span></div>
-                    <div class="flex justify-between text-xs pt-1 border-t border-slate-800"><span class="text-slate-300 font-bold">Saldo Proyek:</span> <span class="text-sky-400 font-black">Rp ${sisaSaldoInternal.toLocaleString('id-ID')}</span></div>
-                </div>
-            `;
+                <div class="p-2 rounded bg-slate-950 text-[11px] space-y-0.5">
+                    <div class="flex justify-between"><span class="text-slate-500">In:</span><span class="text-emerald-400 font-bold">Rp ${inc.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Out:</span><span class="text-rose-400 font-bold">Rp ${exp.toLocaleString('id-ID')}</span></div>
+                    <div class="flex justify-between pt-0.5 border-t border-slate-800 font-bold"><span class="text-slate-300">Saldo Internal:</span><span class="text-sky-400">Rp ${(inc - exp).toLocaleString('id-ID')}</span></div>
+                </div>`;
         }
 
-        // ================= NAVIGASI: BUKA DISKUSI PROYEK DARI DAFTAR KIRI =================
+        function getFormatTanggal(row) { return (row["Tanggal"] || Object.values(row)[0] || "").split("/").slice(0,2).join("/"); }
+
+        // ================= KONTROL NAVIGASI WORKSPACE (BUKA DISKUSI PENUH) =================
         function muatDiskusiProyek(index) {
             const dataProyek = globalProjectList[index];
             currentProposedProject = dataProyek["Nama Proyek"] || Object.values(dataProyek)[1];
@@ -395,19 +392,36 @@
             document.getElementById("financeProjectTarget").value = currentProposedProject;
 
             const workspace = document.getElementById("mainWorkspace");
-            workspace.innerHTML = (riwayatHtml && riwayatHtml.trim() !== "") ? riwayatHtml : `<div class="p-4 border border-slate-800 rounded-2xl bg-slate-900/40"><h3 class="text-lg font-bold text-white mb-2">🏢 ${currentProposedProject}</h3><p class="text-sky-400 font-medium">Sistem bisnis berjalan. Masukkan data / laporan harian untuk dievaluasi oleh AI Engine.</p></div>`;
-            
+            workspace.innerHTML = riwayatHtml;
             renderArusKasProyekAktif();
         }
 
-        // ================= KEMBALI KE MENU UTAMA (BIAR GAK STUCK) =================
+        function kembaliKeDashboard() {
+            document.getElementById("wawancaraForm").classList.add("hidden");
+            document.getElementById("tinderControls").classList.add("hidden");
+            document.getElementById("evalControls").classList.add("hidden");
+            
+            document.getElementById("flowBadge").innerText = "DAFTAR RINGKASAN PROYEK";
+            document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20";
+            document.getElementById("activeProjectIndicator").innerText = "Mode Explorer";
+            
+            const workspace = document.getElementById("mainWorkspace");
+            workspace.innerHTML = `<div id="multiProjectDashboard" class="space-y-4"></div>`;
+            muatDaftarProyek();
+        }
+
+        function bukaWawancaraBarunav() { bukaWawancaraBaru(); }
+
         function bukaWawancaraBaru() {
             document.getElementById("wawancaraForm").classList.remove("hidden");
             document.getElementById("tinderControls").classList.add("hidden");
             document.getElementById("evalControls").classList.add("hidden");
-            document.getElementById("mainWorkspace").innerHTML = "";
-            document.getElementById("mainWorkspace").appendChild(document.getElementById("wawancaraForm"));
-            document.getElementById("flowBadge").innerText = "TAHAP 1: WAWANCARA";
+            
+            const workspace = document.getElementById("mainWorkspace");
+            workspace.innerHTML = "";
+            workspace.appendChild(document.getElementById("wawancaraForm"));
+            
+            document.getElementById("flowBadge").innerText = "TAHAP 1: WAWANCARA BARU";
             document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20";
             document.getElementById("activeProjectIndicator").innerText = "Proyek: Umum";
             document.getElementById("financeProjectTarget").value = "LUAR PROYEK (UMUM)";
@@ -415,11 +429,10 @@
             renderArusKasProyekAktif();
         }
 
-        // ================= SUBMIT INTERAKSI WAWANCARA =================
+        // ================= OPERASIONAL AI CORE =================
         function submitWawancara() {
-            if (!getApiKey()) { alert("Masukkan API Key Gemini Anda telebih dahulu!"); return; }
+            if (!getApiKey()) { alert("Masukkan API Key Gemini!"); return; }
             const modalBersih = bersihkanTitik(document.getElementById("ans2").value);
-            
             userContext = {
                 sekitar: document.getElementById("ans1").value || "Umum",
                 modal: modalBersih || "100000",
@@ -434,10 +447,10 @@
             const tinderControls = document.getElementById("tinderControls");
 
             loader.classList.remove("hidden");
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-sky-400"></i><p>Menganalisis sistem korporasi mikro mikro terbaik...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-sky-400"></i><p>AI sedang merancang cetak biru sistem korporasi...</p></div>`;
             tinderControls.classList.add("hidden");
 
-            const prompt = `Anda Direktur Bisnis AI Korporasi Mikro. Rumuskan 1 Ide Bisnis Riil berskala Korporasi Mikro berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide yang ditolak: [${rejectedIdeas.join(", ")}]. Bisnis harus menggunakan sistem delegasi/kemitraan agar owner tidak kerja kasar sendiri. Seluruh penyebutan nominal rupiah di dalam teks penjelasan wajib diberi pemisah titik (Contoh: Rp 500.000). Tulis dengan gaya mentor bisnis yang sangat berenergi, premium, mendalam dan membakar semangat membaca! Output HTML murni tanpa bungkus markdown (\`\`\`html). Wajib pasang tag h2 id="tempTitle" untuk judul proyek.`;
+            const prompt = `Anda Direktur Bisnis AI Korporasi Mikro. Rumuskan 1 Ide Bisnis Riil berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide: [${rejectedIdeas.join(", ")}]. Sistem wajib berbasis kemitraan agar owner murni memegang kontrol digital tanpa kerja fisik kasar. Gunakan pemisah titik untuk angka ribuan. Output HTML murni tanpa markdown. Wajib pasang tag <h2 id="tempTitle">Judul Proyek</h2> di paling atas konten.`;
 
             try {
                 const responseAI = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -452,17 +465,11 @@
                 
                 const titleEl = document.getElementById("tempTitle");
                 currentProposedProject = titleEl ? titleEl.innerText : "Sistem Bisnis Pilihan AI";
-            } catch (err) {
-                workspace.innerHTML = `<div class="text-rose-400 p-4">Koneksi Error: ${err.message}</div>`;
-            } finally {
-                loader.classList.add("hidden");
-            }
+            } catch (err) { workspace.innerHTML = `<div class="text-rose-400 p-4">Koneksi Bermasalah.</div>`; }
+            finally { loader.classList.add("hidden"); }
         }
 
-        function tolakIde() {
-            rejectedIdeas.push(currentProposedProject);
-            mintaIdeDariGemini();
-        }
+        function tolakIde() { rejectedIdeas.push(currentProposedProject); mintaIdeDariGemini(); }
 
         async function terimaIde() {
             document.getElementById("tinderControls").classList.add("hidden");
@@ -473,7 +480,7 @@
             const loader = document.getElementById("loadingStatus");
             loader.classList.remove("hidden");
 
-            const prompt = `Pemilik menyetujui proyek: "${currentProposedProject}". Buat panduan instruksi taktis mendalam untuk HARI PERTAMA (fokus pada pondasi jaringan, rekrutmen mitra, pencarian supply). Diakhiri dengan 1 pertanyaan laporan untuk malam nanti. Semua nominal mata uang wajib ditulis rapi berformat titik pemisah ribuan (contoh: Rp 75.000). Tulis dengan gaya bahasa mentor bisnis premium yang membakar semangat eksekusi lapangan! Output HTML murni tanpa markdown.`;
+            const prompt = `Pemilik menyetujui proyek: "${currentProposedProject}". Buat panduan eksekusi taktis mendalam untuk HARI PERTAMA (rekrutmen supply, broadcast media, setup channel koordinasi). Berikan format HTML murni tanpa markdown dengan gaya bahasa membakar semangat!`;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -483,34 +490,27 @@
                 });
                 const json = await response.json();
                 const isiHtmlHariPertama = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
-                
                 workspace.innerHTML = isiHtmlHariPertama;
-
-                const tanggal = new Date().toLocaleDateString('id-ID');
-                const payload = {
-                    action: "insertRow",
-                    targetSheet: "Tab_Ide",
-                    rowData: [tanggal, currentProposedProject, "BERJALAN", isiHtmlHariPertama]
-                };
 
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({
+                        action: "insertRow",
+                        targetSheet: "Tab_Ide",
+                        rowData: [new Date().toLocaleDateString('id-ID'), currentProposedProject, "BERJALAN", isiHtmlHariPertama]
+                    }),
                     headers: { "Content-Type": "text/plain" }
                 });
-
                 await sinkronisasiSistemUtama();
-
-            } catch (e) {
-                workspace.innerHTML = "Gagal memproses penguncian ide.";
-            } finally {
+            } catch (e) { workspace.innerHTML = "Gagal memproses penyimpanan sistem."; }
+            finally { 
                 loader.classList.add("hidden");
                 document.getElementById("flowBadge").innerText = "TAHAP 3: KAWAL & EVALUASI HARIAN";
                 document.getElementById("flowBadge").className = "px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
             }
         }
 
-        // ================= KONTROL INTERAKSI EVALUASI HARIAN =================
+        // ================= INTERAKSI LAPORAN HARIAN & KELANJUTAN TAHAP =================
         async function kirimEvaluasiHarian() {
             const input = document.getElementById("evalInput");
             const reportText = input.value.trim();
@@ -521,10 +521,10 @@
             
             loader.classList.remove("hidden");
             const userHistory = workspace.innerHTML;
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Menganalisis pergerakan taktis lapangan...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-emerald-400 mb-2"></i><p>Mengevaluasi laporan pergerakan finansial & lapangan...</p></div>`;
             input.value = "";
 
-            const prompt = `Anda Mentor Bisnis Lapangan. Proyek: "${currentProposedProject}". Riwayat instruksi sebelumnya:\n${userHistory}\nJawaban/Laporan Owner: "${reportText}". Berikan evaluasi taktis harian, perhitungan risiko terbaru, serta langkah operasional esok hari dalam format HTML murni tanpa markdown. Tulis dengan gaya bisnis lapangan premium yang berenergi tinggi. Pastikan penulisan nominal keuangan berformat titik pemisah ribuan.`;
+            const prompt = `Anda Mentor Lapangan Bisnis Solopreneur. Proyek: "${currentProposedProject}". Riwayat operasional:\n${userHistory}\nLaporan owner: "${reportText}". Berikan ulasan evaluasi korektif, mitigasi risiko riil hari ini, serta rancangan strategi esok hari dalam HTML murni murni tanpa markdown wrapper.`;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -535,39 +535,28 @@
                 const json = await response.json();
                 const hasilHtmlBaru = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
                 
-                const akumulasiHtml = userHistory + `<div class="my-6 p-4 border-l-4 border-sky-500 bg-slate-900/90 rounded-r-xl"><b>Laporan Lapangan Anda:</b> ${reportText}</div>` + hasilHtmlBaru;
+                const akumulasiHtml = userHistory + `<div class="my-5 p-3 border-l-4 border-sky-500 bg-slate-900/90 text-xs rounded-r-xl"><b>Laporan Lapangan Anda:</b> ${reportText}</div>` + hasilHtmlBaru;
                 workspace.innerHTML = akumulasiHtml;
 
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({
-                        action: "updateDiskusi",
-                        targetSheet: "Tab_Ide",
-                        namaProyek: currentProposedProject,
-                        htmlBaru: akumulasiHtml
-                    }),
+                    body: JSON.stringify({ action: "updateDiskusi", targetSheet: "Tab_Ide", namaProyek: currentProposedProject, htmlBaru: akumulasiHtml }),
                     headers: { "Content-Type": "text/plain" }
                 });
-                
                 await sinkronisasiSistemUtama();
-
-            } catch (e) {
-                workspace.innerHTML = "Gagal memproses evaluasi.";
-            } finally {
-                loader.classList.add("hidden");
-            }
+            } catch (e) { workspace.innerHTML = "Gagal memproses pengiriman data."; }
+            finally { loader.classList.add("hidden"); }
         }
 
-        // ================= LOGIKA LANJUT LANGKAH (ANTI STUCK) =================
         async function mintaLangkahLanjutan() {
             const workspace = document.getElementById("mainWorkspace");
             const loader = document.getElementById("loadingStatus");
             
             loader.classList.remove("hidden");
             const userHistory = workspace.innerHTML;
-            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-sky-400"></i><p>Menyusun strategi hari berikutnya...</p></div>`;
+            workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-2xl text-sky-400 mb-2"></i><p>Menyusun langkah lanjutan otomatis...</p></div>`;
 
-            const prompt = `Proyek: "${currentProposedProject}". Riwayat sistem saat ini:\n${userHistory}\n\nOwner meminta kelanjutan strategi ke fase/hari berikutnya secara otomatis. Berikan modul langkah operasional baru lanjutan beserta sistem manajemen target pembagian hasilnya secara taktis dan rapi dalam HTML murni tanpa markdown.`;
+            const prompt = `Proyek: "${currentProposedProject}". Riwayat sistem:\n${userHistory}\n\nBerikan modul instruksi lanjutan hari berikutnya secara komplit dalam format HTML murni tanpa markdown.`;
 
             try {
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${getApiKey()}`, {
@@ -578,29 +567,20 @@
                 const json = await response.json();
                 const hasilLanjutanHtml = json.candidates[0].content.parts[0].text.replace(/```html/g, "").replace(/```/g, "").trim();
                 
-                const akumulasiHtml = userHistory + `<div class="my-6 p-3 bg-sky-950/40 border border-sky-800 text-center font-bold rounded-xl text-sky-400">⏩ ALUR DILANJUTKAN KE HARI / TAHAP BERIKUTNYA</div>` + hasilLanjutanHtml;
+                const akumulasiHtml = userHistory + `<div class="my-4 p-2 bg-sky-950/40 border border-sky-800 text-center font-bold rounded-xl text-xs text-sky-400">⏩ STRATEGI OPERASIONAL BERLANJUT</div>` + hasilLanjutanHtml;
                 workspace.innerHTML = akumulasiHtml;
 
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({
-                        action: "updateDiskusi",
-                        targetSheet: "Tab_Ide",
-                        namaProyek: currentProposedProject,
-                        htmlBaru: akumulasiHtml
-                    }),
+                    body: JSON.stringify({ action: "updateDiskusi", targetSheet: "Tab_Ide", namaProyek: currentProposedProject, htmlBaru: akumulasiHtml }),
                     headers: { "Content-Type": "text/plain" }
                 });
-                
                 await sinkronisasiSistemUtama();
-            } catch (e) {
-                workspace.innerHTML = "Gagal melompat ke fase lanjutan.";
-            } finally {
-                loader.classList.add("hidden");
-            }
+            } catch (e) { workspace.innerHTML = "Gagal memproses alur otomatis lanjutan."; }
+            finally { loader.classList.add("hidden"); }
         }
 
-        // ================= SIMPAN FINANSIAL MULTI-PROYEK / LUAR PROYEK =================
+        // ================= SIMPAN FINANSIAL MULTI-KATEGORI =================
         async function simpanKeuanganCepat() {
             const rawAmount = document.getElementById("quickAmount").value.trim();
             const type = document.getElementById("quickType").value;
@@ -608,54 +588,38 @@
             const targetProyek = document.getElementById("financeProjectTarget").value;
             const btn = document.getElementById("btnSaveFinance");
 
-            if (!rawAmount) { alert("Nominal dana wajib diisi!"); return; }
+            if (!rawAmount) { alert("Nominal wajib diisi!"); return; }
             const amountBersih = bersihkanTitik(rawAmount);
 
             btn.disabled = true;
-            btn.innerText = "Menyimpan Transaksi...";
-
-            const payload = {
-                action: "insertRow",
-                targetSheet: "Tab_Keuangan",
-                rowData: [new Date().toLocaleDateString('id-ID'), targetProyek, type, amountBersih, notes]
-            };
+            btn.innerText = "Menyimpan...";
 
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ action: "insertRow", targetSheet: "Tab_Keuangan", rowData: [new Date().toLocaleDateString('id-ID'), targetProyek, type, amountBersih, notes] }),
                     headers: { "Content-Type": "text/plain" }
                 });
-                alert(`Keuangan sukses dicatat ke kategori: ${targetProyek}`);
+                alert(`Finansial berhasil dicatat ke: ${targetProyek}`);
                 document.getElementById("quickAmount").value = "";
                 document.getElementById("quickNotes").value = "";
                 await sinkronisasiSistemUtama();
-            } catch (err) {
-                alert("Gagal koneksi: " + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Catat ke Google Sheets";
-            }
+            } catch (err) { alert("Error menyimpan transaksi."); }
+            finally { btn.disabled = false; btn.innerText = "Catat ke Google Sheets"; }
         }
 
-        // ================= HAPUS PROYEK PERMANEN =================
+        // ================= HAPUS DATA PERMANEN =================
         async function hapusProyekPermanen(namaProyek) {
-            const tanya = confirm(`Apakah Anda yakin ingin menghapus proyek "${namaProyek}" secara permanen dari database?`);
-            if (!tanya) return;
-
+            if (!confirm(`Hapus permanen proyek "${namaProyek}"?`)) return;
             try {
                 await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "deleteRow", targetSheet: "Tab_Ide", namaProyek: namaProyek }),
                     headers: { "Content-Type": "text/plain" }
                 });
-                alert(`Sukses: Proyek "${namaProyek}" telah dihapus!`);
-                if (currentProposedProject === namaProyek) bukaWawancaraBaru();
-            } catch (err) {
-                alert("Koneksi gagal saat menghapus: " + err.message);
-            } finally {
-                await sinkronisasiSistemUtama();
-            }
+                if (currentProposedProject === namaProyek) kembaliKeDashboard();
+                else muatDaftarProyek();
+            } catch (err) { alert("Gagal menghapus."); }
         }
     </script>
 </body>
