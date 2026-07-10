@@ -105,23 +105,40 @@
     </div>
 
     <div id="modal-proyek" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-[#111827] border border-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider">Tambah Proyek Baru ke Sheet</h3>
+                <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider">Formulir Analisis Ide Bisnis Baru</h3>
                 <button onclick="tutupModalProyek()" class="text-gray-400 hover:text-gray-200 text-lg">&times;</button>
             </div>
             <form id="form-proyek-baru" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-gray-400 mb-1 font-medium">Nama Proyek</label>
-                    <input type="text" id="input-nama-proyek" required placeholder="Contoh: Pondok Digital Nusantara" 
-                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 focus:outline-none focus:border-teal-500">
+                    <label class="block text-gray-400 mb-1 font-medium">1. Apa yang melimpah di sekitar saya? (Sumber Daya/Potensi)</label>
+                    <textarea id="input-potensi" rows="2" required placeholder="Contoh: Santri senior yang menganggur, hasil tani melimpah, dll..."
+                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 focus:outline-none focus:border-teal-500"></textarea>
                 </div>
+                
                 <div>
-                    <label class="block text-gray-400 mb-1 font-medium">Konten/Template HTML Proyek</label>
-                    <textarea id="input-html-proyek" rows="8" required placeholder="Masukkan struktur kode HTML atau deskripsi di sini..."
-                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 font-mono focus:outline-none focus:border-teal-500 custom-scrollbar"></textarea>
+                    <label class="block text-gray-400 mb-1 font-medium">2. Berapa modal uang yang saya punya? (Rupiah)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-gray-500 font-bold">Rp</span>
+                        <input type="text" id="input-modal-uang" required placeholder="100.000" oninput="formatInputRibuan(this)"
+                            class="w-full bg-[#090d16] border border-gray-800 rounded-lg pl-9 pr-3 py-2.5 text-gray-200 font-bold focus:outline-none focus:border-teal-500">
+                    </div>
                 </div>
-                <div class="flex justify-end gap-2 pt-2">
+
+                <div>
+                    <label class="block text-gray-400 mb-1 font-medium">3. Apa keahlian/skill yang saya punya?</label>
+                    <textarea id="input-keahlian" rows="2" required placeholder="Contoh: Pengajaran kitab kuning, pembuatan web, manajemen operasional..."
+                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 focus:outline-none focus:border-teal-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-gray-400 mb-1 font-medium">4. Pilihan lain untuk mengerucutkan tawaran usaha yang memungkinkan sebagai Korporasi</label>
+                    <textarea id="input-korporasi" rows="3" required placeholder="Contoh: Menggunakan sistem kemitraan bagi hasil, mendelegasikan pengajaran lewat platform online..."
+                        class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-gray-200 focus:outline-none focus:border-teal-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-800">
                     <button type="button" onclick="tutupModalProyek()" class="bg-gray-800 hover:bg-gray-750 text-gray-300 px-4 py-2 rounded-lg">Batal</button>
                     <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] font-bold px-4 py-2 rounded-lg shadow-lg">Simpan ke Sheet</button>
                 </div>
@@ -246,20 +263,72 @@
             document.getElementById('workspace-konten').innerHTML = kontenHtml;
         }
 
-        // 4. LOGIKA KIRIM/TAMBAH DATA BARU (insertRow)
+        // Fungsi pembantu untuk membuat titik otomatis saat mengetik nominal uang
+        function formatInputRibuan(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value === "") {
+                input.value = "";
+                return;
+            }
+            input.value = new Intl.NumberFormat('id-ID').format(parseInt(value));
+        }
+
+        // LOGIKA BARU KETIKA TOMBOL SIMPAN DIKLIK
         document.getElementById('form-proyek-baru').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const namaProyek = document.getElementById('input-nama-proyek').value;
-            const htmlProyek = document.getElementById('input-html-proyek').value;
-            const tanggalSekarang = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+            // Mengambil nilai dari tiap input parameter baru
+            const potensi = document.getElementById('input-potensi').value;
+            const modalUang = document.getElementById('input-modal-uang').value;
+            const keahlian = document.getElementById('input-keahlian').value;
+            const korporasi = document.getElementById('input-korporasi').value;
+            
+            const tanggalSekarang = new Date().toISOString().split('T')[0];
 
-            // Susun data array sesuai urutan kolom pada Tab_Ide Anda (Contoh: TANGGAL, NAMA PROYEK, STATUS, KETERANGAN/HTML)
-            // Sesuaikan urutan array di bawah ini dengan urutan kolom sebenarnya di spreadsheet Anda!
-            const rowDataBaru = [tanggalSekarang, namaProyek, "BERJALAN", htmlProyek];
+            // Menentukan Nama Proyek Secara Otomatis dari Kata Kunci Kombinasi (Bisa Anda sesuaikan manual nanti)
+            const namaProyekOtomatis = "Analisis Ide: " + keahlian.split(',')[0] + " Berbasis Kemitraan";
+
+            // Membuat Template Struktur HTML Cantik secara otomatis dari parameter yang diisi user
+            const susunanHtmlOtomatis = `
+                <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 border border-gray-800 space-y-6">
+                    <div class="border-b border-gray-800 pb-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold bg-teal-500/10 text-teal-400 border border-teal-500/20 tracking-wider mb-2">
+                            TAHAP 1: FORMULASI IDE
+                        </span>
+                        <h1 class="text-2xl font-black text-blue-400 mb-1">${namaProyekOtomatis}</h1>
+                        <p class="text-gray-500 text-xs">Dibuat otomatis via Dashboard Analisis Teknis</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-[#0f172a] p-4 rounded-xl border border-gray-800/60">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">💡 Potensi Lingkungan (Melimpah)</h4>
+                            <p class="text-gray-300 text-xs leading-relaxed">${potensi}</p>
+                        </div>
+                        <div class="bg-[#0f172a] p-4 rounded-xl border border-gray-800/60">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">💰 Modal Finansial</h4>
+                            <p class="text-emerald-400 text-sm font-black">Rp ${modalUang}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="bg-[#0f172a] p-4 rounded-xl border border-gray-800/60">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">🔑 Keahlian Internal Utama</h4>
+                            <p class="text-gray-300 text-xs leading-relaxed">${keahlian}</p>
+                        </div>
+                        <div class="bg-[#0f172a] p-4 rounded-xl border border-gray-500/20 shadow-lg">
+                            <h4 class="text-xs font-bold text-teal-400 uppercase tracking-wider mb-1.5">🏢 Strategi Skala Korporasi</h4>
+                            <p class="text-gray-200 text-xs leading-relaxed font-medium">${korporasi}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Atur susunan Array ini agar pas dengan tajuk kolom Tab_Ide Anda di Spreadsheet
+            // Misal struktur tabel Anda di Spreadsheet adalah: TANGGAL | NAMA PROYEK | STATUS | KETERANGAN (HTML)
+            const rowDataBaru = [tanggalSekarang, namaProyekOtomatis, "BERJALAN", susunanHtmlOtomatis];
 
             try {
-                document.getElementById('workspace-konten').innerHTML = '<div class="text-center text-teal-400">Sedang mengirim data ke Google Sheets...</div>';
+                document.getElementById('workspace-konten').innerHTML = '<div class="text-center text-teal-400">Sedang mendaftarkan analisis ide baru ke Google Sheets...</div>';
                 tutupModalProyek();
 
                 const response = await fetch(WEB_APP_URL, {
@@ -273,27 +342,17 @@
 
                 const res = await response.json();
                 if (res.status === "success") {
-                    alert("Proyek Berhasil Ditambahkan!");
+                    alert("Analisis Parameter Ide Berhasil Disimpan ke Sheet!");
                     document.getElementById('form-proyek-baru').reset();
-                    // Segera refresh data setelah berhasil memasukkan baris baru
-                    loadProyekAktif(); 
+                    loadProyekAktif(); // Refresh daftar proyek aktif di kiri
                 } else {
-                    alert("Gagal: " + res.message);
+                    alert("Gagal menyimpan: " + res.message);
                 }
             } catch (error) {
                 console.error(error);
-                alert("Terjadi kesalahan jaringan atau Apps Script!");
+                alert("Terjadi masalah koneksi atau error pada Apps Script!");
             }
         });
-
-        window.onload = function() {
-            if(WEB_APP_URL === "Masukkan_URL_Web_App_Apps_Script_Anda_Di_Sini") {
-                alert("Harap isi variabel WEB_APP_URL di baris atas kode HTML ini!");
-            } else {
-                loadKeuangan();
-                loadProyekAktif();
-            }
-        };
     </script>
 </body>
 </html>
