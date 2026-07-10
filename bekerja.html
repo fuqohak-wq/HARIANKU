@@ -1,154 +1,223 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pondok Digital Nusantara</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #111827;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #4b5563;
-      border-radius: 3px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pondok Digital Nusantara - Dashboard Proyek AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar khusus untuk daftar proyek aktif agar rapi seperti di gambar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
 </head>
-<body class="bg-gray-950 p-4 sm:p-6 text-gray-100">
+<body class="bg-[#0b0f19] text-gray-100 min-h-screen p-4 md:p-6 lg:p-8">
 
-  <div class="max-w-4xl mx-auto bg-gray-900 shadow-2xl rounded-xl p-6 sm:p-8 md:p-10 border border-gray-800 text-gray-100 my-4">
-    <!-- Header Proyek Sesuai Judul Sheet -->
-    <header class="mb-8 border-b border-gray-800 pb-6 text-center sm:text-left">
-      <div class="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3">
-        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> BERJALAN
-      </div>
-      <h1 class="text-2xl sm:text-3xl md:text-3.5xl font-extrabold text-white leading-tight tracking-tight">
-        Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
-      </h1>
-      <p class="text-xs text-gray-500 mt-2">
-        Dimulai: 10 Juli 2026
-      </p>
-    </header>
+    <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        
+        <div class="lg:col-span-1 space-y-5">
+            
+            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl">
+                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-2">GEMINI STUDIO API KEY</span>
+                <input type="password" value="••••••••••••••••••••••••••••••••••••••••••••••••" disabled 
+                    class="w-full bg-[#090d16] border border-gray-800 rounded-lg px-3 py-2.5 text-xs text-gray-500 tracking-widest focus:outline-none">
+            </div>
 
-    <!-- Konten Laporan Utama -->
-    <main class="space-y-8">
-      
-      <!-- Seksi 1: Evaluasi Taktis Harian -->
-      <section>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-lg bg-teal-500/10 text-teal-400 font-bold text-sm">01</div>
-          <h2 class="text-xl font-bold text-teal-400 tracking-wide">Evaluasi Taktis Harian</h2>
+            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl flex flex-col max-h-[420px]">
+                <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">PILIH PROYEK AKTIF</span>
+                    <button class="text-xs text-teal-400 flex items-center gap-1.5 hover:text-teal-300 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                
+                <div class="overflow-y-auto pr-1 space-y-3 custom-scrollbar flex-grow">
+                    <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative overflow-hidden group">
+                        <div class="flex items-start gap-2.5 mb-2">
+                            <span class="text-amber-500 mt-0.5">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">10/7/2026</h4>
+                                <h3 class="text-xs font-bold text-gray-200 leading-snug">
+                                    Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex justify-between items-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">
+                                BERJALAN
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl">
+                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">SALDO GLOBAL (TOTAL KAS)</span>
+                <div class="text-2xl font-black text-emerald-400 tracking-wide">Rp 984.000</div>
+            </div>
+
         </div>
-        <div class="bg-gray-800/40 p-5 rounded-xl border border-gray-800/60 space-y-4 text-gray-300 text-sm sm:text-base leading-relaxed">
-          <p>Luar biasa! Respons <span class="text-amber-400 font-semibold">"sudah, lanjut"</span> dari Anda menunjukkan kecepatan eksekusi yang kita butuhkan. Selamat, Anda telah berhasil menyelesaikan fondasi infrastruktur digital minimalis pada Hari 1, sebuah capaian krusial yang membuktikan komitmen Anda terhadap proyek ini. Ini adalah sprint awal yang sangat penting!</p>
-          
-          <div class="pt-2">
-            <span class="block font-semibold mb-2 text-xs uppercase tracking-wider text-gray-400">Pencapaian Hari 1:</span>
-            <ul class="list-disc pl-5 space-y-1.5 text-gray-400 text-sm">
-              <li><strong class="text-gray-300">Infrastruktur Digital Minimalis Siap:</strong> WhatsApp Business telah dikonfigurasi sebagai pusat komunikasi utama, dan Google Forms untuk pendaftaran murid &amp; pengajar telah terbangun.</li>
-              <li><strong class="text-gray-300">Aset Pemasaran Dasar Tercipta:</strong> Template grafis awal menggunakan Canva Free sudah siap untuk disebarkan.</li>
-              <li><strong class="text-gray-300">Keputusan Domain Dibuat:</strong> Baik Anda memilih domain profesional (.my.id/.id) atau alternatif gratis seperti Google Sites, fondasi landing page awal sudah ada.</li>
-              <li><strong class="text-gray-300">Identifikasi Jaringan Pengajar Awal:</strong> Beberapa kontak kunci untuk rekrutmen santri pengajar telah diidentifikasi.</li>
-              <li><strong class="text-gray-300">Pengelolaan Modal Terkendali:</strong> Pengeluaran sesuai rencana, menjaga sisa modal tetap maksimal.</li>
-            </ul>
-          </div>
 
-          <div class="pt-2 border-t border-gray-800/80">
-            <span class="block font-semibold mb-1 text-xs uppercase tracking-wider text-gray-400">Situasi Saat Ini:</span>
-            <p class="text-gray-400 text-sm">Kita kini berada di garis start yang sebenarnya, dengan semua alat dasar siap di tangan. Fondasi digital telah berdiri, dan sekarang saatnya kita mulai membangun jaringannya. Energi harus diarahkan penuh pada <em class="text-teal-400 not-italic font-medium">outreach</em> agresif dan validasi awal di lapangan. Ini adalah momen untuk membuktikan bahwa ide kita memiliki daya tarik nyata di pasar!</p>
-          </div>
+        <div class="lg:col-span-3 space-y-6">
+            
+            <div class="flex flex-wrap items-center justify-between gap-4 bg-[#111827]/50 border border-gray-800 px-4 py-3 rounded-xl">
+                <div class="flex items-center gap-2">
+                    <button class="bg-teal-950/80 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider">
+                        Daftar Ringkasan Proyek
+                    </button>
+                    <button class="bg-gray-800/40 text-gray-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-800 transition">
+                        Mode Explorer
+                    </button>
+                </div>
+                <button class="bg-gray-800 text-gray-300 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-700 transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+                    Menu Awal
+                </button>
+            </div>
+
+            <div class="flex">
+                <span class="bg-teal-950/60 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm">
+                    Tahap 3: Kawal &amp; Evaluasi Harian
+                </span>
+            </div>
+
+            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
+                <header class="mb-8 border-b border-gray-800 pb-6 text-center lg:text-left">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-400 tracking-tight mb-2">
+                        Direktur Bisnis AI: Ide Inovatif
+                    </h1>
+                    <p class="text-base sm:text-lg text-gray-400 font-medium">
+                        Memanfaatkan Potensi Santri, Membangun Ekosistem Digital
+                    </p>
+                </header>
+
+                <section class="mb-8 border-l-4 border-amber-500 pl-4 sm:pl-5">
+                    <h2 id="tempTitle" class="text-xl sm:text-2xl font-extrabold text-gray-100 mb-3 tracking-tight leading-snug">
+                        Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
+                    </h2>
+                    <p class="text-sm sm:text-base text-gray-300 leading-relaxed font-light">
+                        Ide bisnis ini bertujuan untuk menciptakan sebuah platform edukasi online yang menghubungkan santri senior yang menganggur dengan para pelajar dari berbagai kalangan yang ingin mendalami ilmu agama (Al-Qur'an, Nahwu, Shorof, Fiqih, baca kitab dasar). Dengan memanfaatkan modal yang sangat terbatas, Rp 100.000, serta keahlian pengajaran yang spesifik, proyek ini akan beroperasi dengan model kemitraan dan delegasi yang kuat, memungkinkan skalabilitas dan dampak sosial yang signifikan.
+                    </p>
+                </section>
+
+                <section class="mb-8 bg-[#0f172a]/50 p-5 rounded-xl border border-gray-800/60">
+                    <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
+                        <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                        Latar Belakang &amp; Potensi
+                    </h3>
+                    <ul class="space-y-3 text-sm sm:text-base text-gray-300">
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
+                            <span><strong>Ketersediaan SDM Unggul:</strong> Banyak santri senior yang memiliki kapabilitas mumpuni dalam ilmu agama, namun terkendala lapangan pekerjaan. Mereka adalah aset berharga yang siap diberdayakan.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
+                            <span><strong>Kebutuhan Pasar:</strong> Permintaan pendidikan agama personal sangat tinggi dari kalangan Muslim perkotaan, diaspora, hingga orang tua yang menginginkan pengajar kompeten.</span>
+                        </li>
+                        <li class="flex items-start gap-2.5">
+                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
+                            <span><strong>Modal Minim, Dampak Maksimal:</strong> Alokasi modal Rp 100.000 difokuskan penuh pada optimalisasi alat digital gratis dan manajemen pemasaran organik secara cerdas.</span>
+                        </li>
+                    </ul>
+                </section>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
+                        <h3 class="text-md font-bold text-teal-400 mb-3 uppercase tracking-wider">Visi &amp; Misi</h3>
+                        <p class="text-sm text-gray-300 italic mb-3">"Menjadi jembatan digital utama bagi santri untuk menyalurkan ilmu agama secara global."</p>
+                        <ol class="list-decimal pl-4 text-xs sm:text-sm text-gray-400 space-y-1.5">
+                            <li>Pemberdayaan ekonomi santri sistem kemitraan adil.</li>
+                            <li>Akses mudah pendidikan Al-Qur'an &amp; Kitab Kuning.</li>
+                            <li>Efisiensi platform digital berkelanjutan.</li>
+                        </ol>
+                    </div>
+
+                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
+                        <h3 class="text-md font-bold text-blue-400 mb-3 uppercase tracking-wider">Sistem Bagi Hasil</h3>
+                        <div class="space-y-2 text-xs sm:text-sm">
+                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
+                                <span class="text-gray-400">Mitra Pengajar (Santri)</span>
+                                <span class="font-bold text-emerald-400">70% - 80%</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
+                                <span class="text-gray-400">Pengelola (Kas Utama)</span>
+                                <span class="font-bold text-blue-400">20% - 30%</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500 pt-1">Digunakan kembali untuk operasional, promosi, dan keberlangsungan sistem aplikasi.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-4 border-l-4 border-teal-500 bg-[#111827] rounded-r-xl shadow-md flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-bold text-teal-400 uppercase tracking-widest block mb-0.5">Respons/Laporan Anda:</span>
+                    <p class="text-sm text-gray-200 font-medium">"sudah, lanjut"</p>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] bg-teal-500/10 text-teal-400 rounded font-semibold border border-teal-500/20">Diterima</span>
+            </div>
+
+            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
+                <header class="mb-6 border-b border-gray-800 pb-5">
+                    <div class="text-xs text-amber-500 font-bold uppercase tracking-widest mb-1">Evaluasi Hasil Lapangan</div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-gray-100 tracking-tight">Laporan Mentor Bisnis</h2>
+                    <p class="text-xs sm:text-sm text-gray-400 mt-1">Status Proyek: Fase Implementasi Awal — <span class="text-teal-400 font-semibold">Hari Ke-2</span></p>
+                </header>
+
+                <p class="text-sm sm:text-base text-gray-300 leading-relaxed mb-6 bg-[#1a2333]/30 p-4 rounded-xl border border-blue-900/30">
+                    Luar biasa! Respons <span class="text-teal-400 font-semibold">"sudah, lanjut"</span> dari Anda menunjukkan kecepatan eksekusi yang tinggi. Selamat, Anda telah berhasil menyelesaikan fondasi infrastruktur digital minimalis pada Hari 1. Ini adalah capaian krusial penentu komitmen proyek!
+                </p>
+
+                <h3 class="text-md font-bold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    Langkah Esok Hari (Hari 2 Implementasi)
+                </h3>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
+                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">1</div>
+                        <div>
+                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Aktivasi Saluran Rekrutmen Pengajar</h4>
+                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
+                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Hubungi 3-5 kontak awal dari pengurus alumni pesantren. Bagikan formulir pendaftaran digital pengajar menggunakan database gratis.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
+                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">2</div>
+                        <div>
+                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Peluncuran Promosi Murid Awal</h4>
+                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
+                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Sebarkan materi kreatif pamflet promosi digital berkala ke grup komunitas wali murid, media sosial, dan ekosistem terdekat.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </section>
-
-      <!-- Seksi 2: Perhitungan Risiko Terbaru -->
-      <section>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-lg bg-teal-500/10 text-teal-400 font-bold text-sm">02</div>
-          <h2 class="text-xl font-bold text-teal-400 tracking-wide">Perhitungan Risiko Terbaru</h2>
-        </div>
-        <div class="grid grid-cols-1 gap-4 text-sm">
-          <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800">
-            <span class="font-bold text-blue-400 block mb-1">1. Risiko Ketiadaan Santri Pengajar Awal (Tinggi)</span>
-            <p class="text-gray-400 mb-2"><strong class="text-gray-300">Deskripsi:</strong> Tanpa pengajar, tidak ada layanan. Respons pasif dari kontak awal bisa menunda progress.</p>
-            <p class="text-gray-400"><strong class="text-teal-400">Mitigasi:</strong> Kontak proaktif dan personal ke daftar 3-5 kontak yang sudah diidentifikasi. Jelaskan manfaat jelas (penghasilan tambahan, pemberdayaan ilmu, fleksibilitas).</p>
-          </div>
-
-          <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800">
-            <span class="font-bold text-blue-400 block mb-1">2. Risiko Ketiadaan Murid Awal (Tinggi)</span>
-            <p class="text-gray-400 mb-2"><strong class="text-gray-300">Deskripsi:</strong> Tanpa murid, bisnis tidak akan menghasilkan pendapatan. Daya tarik promosi awal perlu diuji.</p>
-            <p class="text-gray-400"><strong class="text-teal-400">Mitigasi:</strong> Luncurkan promosi intensif di kanal organik. Tawarkan insentif kecil untuk 5-10 murid pertama. Kumpulkan testimoni segera setelah sesi pertama.</p>
-          </div>
-
-          <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800">
-            <span class="font-bold text-blue-400 block mb-1">3. Risiko Reputasi &amp; Kualitas Komunikasi (Sedang-Tinggi)</span>
-            <p class="text-gray-400 mb-2"><strong class="text-gray-300">Deskripsi:</strong> Kesan pertama sangat krusial. Respons lambat atau komunikasi yang kurang profesional dapat merusak citra.</p>
-            <p class="text-gray-400"><strong class="text-teal-400">Mitigasi:</strong> Siapkan template balasan cepat di WhatsApp Business. Pastikan semua pesan promosi/rekrutmen jelas, ringkas, dan profesional.</p>
-          </div>
-
-          <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800">
-            <span class="font-bold text-blue-400 block mb-1">4. Risiko Overwhelm Komunikasi (Sedang)</span>
-            <p class="text-gray-400 mb-2"><strong class="text-gray-300">Deskripsi:</strong> Jika terlalu banyak pertanyaan masuk secara bersamaan, Anda bisa kewalahan mengelola tanpa sistem.</p>
-            <p class="text-gray-400"><strong class="text-teal-400">Mitigasi:</strong> Manfaatkan fitur "label" di WhatsApp Business. Buat spreadsheet sederhana untuk mencatat semua leads dan statusnya.</p>
-          </div>
-
-          <div class="bg-gray-800/30 p-4 rounded-xl border border-gray-800">
-            <span class="font-bold text-blue-400 block mb-1">5. Risiko Pemborosan Modal (Sedang)</span>
-            <p class="text-gray-400 mb-2"><strong class="text-gray-300">Deskripsi:</strong> Dorongan untuk membayar iklan terlalu dini tanpa validasi organik yang kuat.</p>
-            <p class="text-gray-400"><strong class="text-teal-400">Mitigasi:</strong> Tetap fokus pada strategi organik 100% untuk saat ini. Modal yang ada harus dijaga ketat.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Seksi 3: Langkah Hari 2 Implementasi -->
-      <section>
-        <div class="flex items-center gap-3 mb-4">
-          <div class="p-2 rounded-lg bg-teal-500/10 text-teal-400 font-bold text-sm">03</div>
-          <h2 class="text-xl font-bold text-teal-400 tracking-wide">Langkah Hari 2 Implementasi</h2>
-        </div>
-        <div class="space-y-6 text-sm sm:text-base">
-          <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <h3 class="font-bold text-white text-base">1. Aktivasi Saluran Rekrutmen Pengajar</h3>
-            <p class="text-xs text-gray-500 font-medium mb-2">Estimasi Modal: Rp 0</p>
-            <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-              <li><strong class="text-gray-300">Kontak Personal &amp; Jaringan:</strong> Segera hubungi 3-5 kontak awal (pengurus pesantren, alumni, guru agama). Bagikan grafis Canva dan link Google Form rekrutmen. <span class="text-teal-400 font-medium">(Target: 1-2 calon pengajar serius)</span></li>
-              <li><strong class="text-gray-300">Posting di Komunitas Online:</strong> Sebarkan info lowongan mengajar ke grup Facebook/WhatsApp alumni pesantren.</li>
-            </ul>
-          </div>
-
-          <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <h3 class="font-bold text-white text-base">2. Peluncuran Promosi Murid Awal</h3>
-            <p class="text-xs text-gray-500 font-medium mb-2">Estimasi Modal: Rp 0</p>
-            <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-              <li><strong class="text-gray-300">Pemasaran Organik Intensif:</strong> Bagikan poster "Belajar Kitab &amp; Qur'an Online" di medsos pribadi, grup keluarga, dan komunitas muslim terdekat. <span class="text-teal-400 font-medium">(Target: 1-3 pendaftar)</span></li>
-              <li><strong class="text-gray-300">Penawaran Khusus Validasi:</strong> Tawarkan "Sesi Coba Gratis 30 Menit" atau "Diskon 20% untuk 5 Pendaftar Pertama" sebagai pemecah kebekuan.</li>
-            </ul>
-          </div>
-
-          <div class="border-l-2 border-blue-500 pl-4 py-1">
-            <h3 class="font-bold text-white text-base">3. Optimalisasi &amp; Pencatatan Komunikasi</h3>
-            <p class="text-xs text-gray-500 font-medium mb-2">Estimasi Modal: Rp 0</p>
-            <ul class="list-disc pl-5 space-y-1 text-sm text-gray-400">
-              <li><strong class="text-gray-300">Pemantauan Real-time:</strong> Pantau berkala Google Forms &amp; WhatsApp Business. Berikan respons secepat mungkin demi menjaga konversi calon konsumen.</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- Footer Tracker Ringkasan Keuangan -->
-      <footer class="bg-gray-950 p-4 rounded-xl border border-gray-800 flex flex-wrap justify-between items-center gap-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-        <div>Modal Awal: <span class="text-white ml-1">Rp 100.000</span></div>
-        <div>Pengeluaran Hari Ini: <span class="text-amber-400 ml-1">Rp 0</span></div>
-        <div>Sisa Saldo: <span class="text-emerald-400 ml-1">Rp 100.000</span></div>
-      </footer>
-    </main>
-  </div>
+    </div>
 
 </body>
 </html>
