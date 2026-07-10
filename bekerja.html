@@ -5,29 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pondok Digital Nusantara - Dashboard Proyek AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar khusus untuk daftar proyek aktif agar rapi seperti di gambar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #0f172a;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-gray-100 min-h-screen p-4 md:p-6 lg:p-8">
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKIhi5xoOj-VWlD2keUsqcbs3gObA1cc4XtdRtTDr1EvTYbxgMwUiAJkhRTGHW4-q7sw/exec";
+    </script>
 
     <div class="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         
@@ -42,7 +33,7 @@
             <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl flex flex-col max-h-[460px]">
                 <div class="flex justify-between items-center mb-4 flex-shrink-0">
                     <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">PROYEK AKTIF</span>
-                    <button class="text-xs text-teal-400 flex items-center gap-1.5 hover:text-teal-300 transition">
+                    <button onclick="loadProyekAktif()" class="text-xs text-teal-400 flex items-center gap-1.5 hover:text-teal-300 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path>
                         </svg>
@@ -50,52 +41,22 @@
                     </button>
                 </div>
                 
-                <div class="overflow-y-auto pr-1 space-y-3 custom-scrollbar flex-grow">
-                    <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative overflow-hidden group">
-                        <div class="flex items-start gap-2.5 mb-2">
-                            <span class="text-amber-500 mt-0.5">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">10/7/2026</h4>
-                                <h3 class="text-xs font-bold text-gray-200 leading-snug mb-3">
-                                    Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
-                                </h3>
-                            </div>
-                        </div>
-                        <div class="mt-3 flex justify-between items-center border-t border-gray-800/80 pt-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">
-                                BERJALAN
-                            </span>
-                            <button class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg shadow-teal-500/10 transition flex items-center gap-1">
-                                Lanjutkan
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                <div id="container-proyek-aktif" class="overflow-y-auto pr-1 space-y-3 custom-scrollbar flex-grow text-xs text-gray-400">
+                    Memuat data proyek aktif...
                 </div>
             </div>
 
             <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl">
                 <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-3">TAWARAN PROYEK BARU</span>
-                <div class="bg-[#0f172a] border border-gray-800/80 rounded-xl p-3.5 space-y-2.5">
-                    <div class="text-xs font-bold text-blue-400 leading-tight">AI Halal Compliance Checker for MSME</div>
-                    <p class="text-[11px] text-gray-400 leading-relaxed">Sistem audit otomatis dokumen sertifikasi halal berbasis AI untuk UMKM.</p>
-                    <button class="w-full bg-gray-800 hover:bg-gray-750 text-gray-200 text-xs font-semibold py-2 rounded-lg transition border border-gray-700/50 flex items-center justify-center gap-1.5">
-                        Coba Proyek Lain
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                    </button>
+                <div id="container-tawaran-baru" class="bg-[#0f172a] border border-gray-800/80 rounded-xl p-3.5 space-y-2.5 text-xs text-gray-400">
+                    Memuat tawaran proyek baru...
                 </div>
             </div>
 
             <div class="bg-[#111827] border border-gray-800 rounded-xl p-5 shadow-xl space-y-4">
                 <div>
                     <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-1">SALDO GLOBAL (TOTAL KAS)</span>
-                    <div class="text-2xl font-black text-emerald-400 tracking-wide">Rp 984.000</div>
+                    <div id="saldo-global" class="text-2xl font-black text-emerald-400 tracking-wide">Rp 0</div>
                 </div>
                 
                 <div class="border-t border-gray-800/80 pt-3.5 space-y-3">
@@ -103,27 +64,16 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div class="bg-emerald-500/5 border border-emerald-500/10 p-2 rounded-lg">
                             <div class="text-[10px] text-gray-500 uppercase font-medium">Total Masuk</div>
-                            <div class="text-xs font-bold text-emerald-400 mt-0.5">+ Rp 1.084.000</div>
+                            <div id="total-pemasukan" class="text-xs font-bold text-emerald-400 mt-0.5">Rp 0</div>
                         </div>
                         <div class="bg-rose-500/5 border border-rose-500/10 p-2 rounded-lg">
                             <div class="text-[10px] text-gray-500 uppercase font-medium">Total Keluar</div>
-                            <div class="text-xs font-bold text-rose-400 mt-0.5">- Rp 100.000</div>
+                            <div id="total-pengeluaran" class="text-xs font-bold text-rose-400 mt-0.5">Rp 0</div>
                         </div>
                     </div>
                     
-                    <div class="text-[11px] space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
-                        <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
-                            <span class="text-gray-400 truncate max-w-[110px]">Pendaftaran Wali Murid</span>
-                            <span class="text-emerald-400 font-medium">+150.000</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
-                            <span class="text-gray-400 truncate max-w-[110px]">Infaq Donasi Sistem</span>
-                            <span class="text-emerald-400 font-medium">+934.000</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
-                            <span class="text-gray-400 truncate max-w-[110px]">Modal Awal Operasional</span>
-                            <span class="text-rose-400 font-medium">-100.000</span>
-                        </div>
+                    <div id="daftar-mutasi-kas" class="text-[11px] space-y-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
+                        Memuat riwayat keuangan...
                     </div>
                 </div>
             </div>
@@ -147,128 +97,182 @@
                 </button>
             </div>
 
-            <div class="flex">
-                <span class="bg-teal-950/60 text-teal-400 border border-teal-800/60 text-xs font-bold px-3 py-1.5 rounded-lg uppercase tracking-wider shadow-sm">
-                    Tahap 3: Kawal &amp; Evaluasi Harian
-                </span>
-            </div>
-
-            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
-                <header class="mb-8 border-b border-gray-800 pb-6 text-center lg:text-left">
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-blue-400 tracking-tight mb-2">
-                        Direktur Bisnis AI: Ide Inovatif
-                    </h1>
-                    <p class="text-base sm:text-lg text-gray-400 font-medium">
-                        Memanfaatkan Potensi Santri, Membangun Ekosistem Digital
-                    </p>
-                </header>
-
-                <section class="mb-8 border-l-4 border-amber-500 pl-4 sm:pl-5">
-                    <h2 id="tempTitle" class="text-xl sm:text-2xl font-extrabold text-gray-100 mb-3 tracking-tight leading-snug">
-                        Pondok Digital Nusantara: Jaringan Pengajar Kitab &amp; Qur'an Online
-                    </h2>
-                    <p class="text-sm sm:text-base text-gray-300 leading-relaxed font-light">
-                        Ide bisnis ini bertujuan untuk menciptakan sebuah platform edukasi online yang menghubungkan santri senior yang menganggur dengan para pelajar dari berbagai kalangan yang ingin mendalami ilmu agama (Al-Qur'an, Nahwu, Shorof, Fiqih, baca kitab dasar). Dengan memanfaatkan modal yang sangat terbatas, Rp 100.000, serta keahlian pengajaran yang spesifik, proyek ini akan beroperasi dengan model kemitraan dan delegasi yang kuat, memungkinkan skalabilitas dan dampak sosial yang signifikan.
-                    </p>
-                </section>
-
-                <section class="mb-8 bg-[#0f172a]/50 p-5 rounded-xl border border-gray-800/60">
-                    <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                        <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
-                        Latar Belakang &amp; Potensi
-                    </h3>
-                    <ul class="space-y-3 text-sm sm:text-base text-gray-300">
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Ketersediaan SDM Unggul:</strong> Banyak santri senior yang memiliki kapabilitas mumpuni dalam ilmu agama, namun terkendala lapangan pekerjaan. Mereka adalah aset berharga yang siap diberdayakan.</span>
-                        </li>
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Kebutuhan Pasar:</strong> Permintaan pendidikan agama personal sangat tinggi dari kalangan Muslim perkotaan, diaspora, hingga orang tua yang menginginkan pengajar kompeten.</span>
-                        </li>
-                        <li class="flex items-start gap-2.5">
-                            <span class="text-teal-400 mt-1.5 flex-shrink-0 text-[10px]">◆</span>
-                            <span><strong>Modal Minim, Dampak Maksimal:</strong> Alokasi modal Rp 100.000 difokuskan penuh pada optimalisasi alat digital gratis dan manajemen pemasaran organik secara cerdas.</span>
-                        </li>
-                    </ul>
-                </section>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
-                        <h3 class="text-md font-bold text-teal-400 mb-3 uppercase tracking-wider">Visi &amp; Misi</h3>
-                        <p class="text-sm text-gray-300 italic mb-3">"Menjadi jembatan digital utama bagi santri untuk menyalurkan ilmu agama secara global."</p>
-                        <ol class="list-decimal pl-4 text-xs sm:text-sm text-gray-400 space-y-1.5">
-                            <li>Pemberdayaan ekonomi santri sistem kemitraan adil.</li>
-                            <li>Akses mudah pendidikan Al-Qur'an &amp; Kitab Kuning.</li>
-                            <li>Efisiensi platform digital berkelanjutan.</li>
-                        </ol>
-                    </div>
-
-                    <div class="bg-[#0f172a]/30 border border-gray-800 p-5 rounded-xl">
-                        <h3 class="text-md font-bold text-blue-400 mb-3 uppercase tracking-wider">Sistem Bagi Hasil</h3>
-                        <div class="space-y-2 text-xs sm:text-sm">
-                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
-                                <span class="text-gray-400">Mitra Pengajar (Santri)</span>
-                                <span class="font-bold text-emerald-400">70% - 80%</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-800/60 pb-1.5">
-                                <span class="text-gray-400">Pengelola (Kas Utama)</span>
-                                <span class="font-bold text-blue-400">20% - 30%</span>
-                            </div>
-                            <p class="text-[11px] text-gray-500 pt-1">Digunakan kembali untuk operasional, promosi, dan keberlangsungan sistem aplikasi.</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="p-4 border-l-4 border-teal-500 bg-[#111827] rounded-r-xl shadow-md flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-bold text-teal-400 uppercase tracking-widest block mb-0.5">Respons/Laporan Anda:</span>
-                    <p class="text-sm text-gray-200 font-medium">"sudah, lanjut"</p>
-                </div>
-                <span class="px-2 py-0.5 text-[10px] bg-teal-500/10 text-teal-400 rounded font-semibold border border-teal-500/20">Diterima</span>
-            </div>
-
-            <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800">
-                <header class="mb-6 border-b border-gray-800 pb-5">
-                    <div class="text-xs text-amber-500 font-bold uppercase tracking-widest mb-1">Evaluasi Hasil Lapangan</div>
-                    <h2 class="text-2xl sm:text-3xl font-black text-gray-100 tracking-tight">Laporan Mentor Bisnis</h2>
-                    <p class="text-xs sm:text-sm text-gray-400 mt-1">Status Proyek: Fase Implementasi Awal — <span class="text-teal-400 font-semibold">Hari Ke-2</span></p>
-                </header>
-
-                <p class="text-sm sm:text-base text-gray-300 leading-relaxed mb-6 bg-[#1a2333]/30 p-4 rounded-xl border border-blue-900/30">
-                    Luar biasa! Respons <span class="text-teal-400 font-semibold">"sudah, lanjut"</span> dari Anda menunjukkan kecepatan eksekusi yang tinggi. Selamat, Anda telah berhasil menyelesaikan fondasi infrastruktur digital minimalis pada Hari 1. Ini adalah capaian krusial penentu komitmen proyek!
-                </p>
-
-                <h3 class="text-md font-bold text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                    Langkah Esok Hari (Hari 2 Implementasi)
-                </h3>
-
-                <div class="space-y-4">
-                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
-                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">1</div>
-                        <div>
-                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Aktivasi Saluran Rekrutmen Pengajar</h4>
-                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
-                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Hubungi 3-5 kontak awal dari pengurus alumni pesantren. Bagikan formulir pendaftaran digital pengajar menggunakan database gratis.</p>
-                        </div>
-                    </div>
-
-                    <div class="p-4 bg-[#0f172a]/60 border border-gray-800 rounded-xl flex gap-3 items-start">
-                        <div class="bg-blue-500/10 text-blue-400 font-bold px-2.5 py-1 text-sm rounded-lg border border-blue-500/20">2</div>
-                        <div>
-                            <h4 class="text-sm sm:text-base font-bold text-gray-200">Peluncuran Promosi Murid Awal</h4>
-                            <span class="text-[11px] text-emerald-400 font-semibold block mb-1">Estimasi Biaya: Rp 0</span>
-                            <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">Sebarkan materi kreatif pamflet promosi digital berkala ke grup komunitas wali murid, media sosial, dan ekosistem terdekat.</p>
-                        </div>
-                    </div>
+            <div id="workspace-konten">
+                <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 border border-gray-800 text-center text-gray-400">
+                    Silahkan pilih proyek di sebelah kiri atau klik "Lanjutkan" untuk melihat isi berkas HTML.
                 </div>
             </div>
 
         </div>
     </div>
 
+    <script>
+        // Formatter Mata Uang Rupiah
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
+        }
+
+        // Formatter Tanggal agar rapi
+        function formatTanggal(tglStr) {
+            if(!tglStr) return "-";
+            const d = new Date(tglStr);
+            return isNaN(d.getTime()) ? tglStr : `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+        }
+
+        // 1. Ambil Data Keuangan (Tab_Keuangan)
+        async function loadKeuangan() {
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "readData", targetSheet: "Tab_Keuangan" })
+                });
+                const res = await response.json();
+                
+                if (res.status === "success") {
+                    let totalMasuk = 0;
+                    let totalKeluar = 0;
+                    let htmlMutasi = "";
+
+                    res.data.reverse().forEach(item => {
+                        const nominal = parseFloat(item.NOMINAL) || 0;
+                        const tipe = item.TIPE ? item.TIPE.toUpperCase() : '';
+                        
+                        if (tipe === "PEMASUKAN" || tipe === "MASUK") {
+                            totalMasuk += nominal;
+                            htmlMutasi += `
+                                <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
+                                    <span class="text-gray-400 truncate max-w-[120px]" title="${item.KETERANGAN || item['NAMA PROYEK']}">${item.KETERANGAN || item['NAMA PROYEK']}</span>
+                                    <span class="text-emerald-400 font-medium">+${nominal.toLocaleString('id-ID')}</span>
+                                </div>`;
+                        } else if (tipe === "PENGELUARAN" || tipe === "KELUAR") {
+                            totalKeluar += nominal;
+                            htmlMutasi += `
+                                <div class="flex justify-between items-center bg-[#090d16] px-2 py-1.5 rounded border border-gray-900">
+                                    <span class="text-gray-400 truncate max-w-[120px]" title="${item.KETERANGAN || item['NAMA PROYEK']}">${item.KETERANGAN || item['NAMA PROYEK']}</span>
+                                    <span class="text-rose-400 font-medium">-${nominal.toLocaleString('id-ID')}</span>
+                                </div>`;
+                        }
+                    });
+
+                    document.getElementById('saldo-global').innerText = formatRupiah(totalMasuk - totalKeluar);
+                    document.getElementById('total-pemasukan').innerText = "+ " + formatRupiah(totalMasuk);
+                    document.getElementById('total-pengeluaran').innerText = "- " + formatRupiah(totalKeluar);
+                    document.getElementById('daftar-mutasi-kas').innerHTML = htmlMutasi || '<div class="text-gray-500">Belum ada mutasi keuangan.</div>';
+                }
+            } catch (error) {
+                console.error("Gagal memuat data keuangan:", error);
+                document.getElementById('daftar-mutasi-kas').innerHTML = '<div class="text-rose-400">Gagal sinkronisasi keuangan.</div>';
+            }
+        }
+
+        // Global Cache untuk menyimpan data Ide/Proyek dari sheet
+        let listProyekGlobal = [];
+
+        // 2. Ambil Data Proyek (Tab_Ide)
+        async function loadProyekAktif() {
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "readData", targetSheet: "Tab_Ide" })
+                });
+                const res = await response.json();
+                
+                if (res.status === "success") {
+                    listProyekGlobal = res.data;
+                    
+                    // Asumsi baris terakhir atau status tertentu adalah PROYEK AKTIF
+                    // Di sini kita buat baris paling bawah/terakhir sebagai Proyek Aktif Utama
+                    if(listProyekGlobal.length > 0) {
+                        const proyekAktif = listProyekGlobal[listProyekGlobal.length - 1]; 
+                        
+                        document.getElementById('container-proyek-aktif').innerHTML = `
+                            <div class="p-4 bg-[#0f172a] border-2 border-teal-500/60 rounded-xl shadow-inner relative overflow-hidden group">
+                                <div class="flex items-start gap-2.5 mb-2">
+                                    <span class="text-amber-500 mt-0.5">
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+                                    </span>
+                                    <div>
+                                        <h4 class="text-[11px] font-medium text-gray-500 block mb-0.5">${formatTanggal(proyekAktif.TANGGAL || proyekAktif.Tanggal)}</h4>
+                                        <h3 class="text-xs font-bold text-gray-200 leading-snug mb-3">
+                                            ${proyekAktif['NAMA PROYEK'] || proyekAktif.Nama_Proyek || proyekAktif.Nama || 'Proyek Tanpa Nama'}
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex justify-between items-center border-t border-gray-800/80 pt-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-green-500/10 text-green-400 border border-green-500/20 tracking-wider">
+                                        BERJALAN
+                                    </span>
+                                    <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 1})" class="bg-teal-500 hover:bg-teal-400 text-[#0b0f19] text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-lg shadow-teal-500/10 transition flex items-center gap-1">
+                                        Lanjutkan
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Mengisi Menu "Tawaran Proyek Baru" dari baris cadangan (jika ada proyek lain di baris sebelumnya)
+                        if(listProyekGlobal.length > 1) {
+                            const proyekLain = listProyekGlobal[listProyekGlobal.length - 2];
+                            document.getElementById('container-tawaran-baru').innerHTML = `
+                                <div class="text-xs font-bold text-blue-400 leading-tight">${proyekLain['NAMA PROYEK'] || proyekLain.Nama_Proyek || 'Ide Alternatif'}</div>
+                                <p class="text-[11px] text-gray-400 leading-relaxed">Klik tombol di bawah untuk beralih atau mencoba mengeksplorasi dokumentasi proyek ini.</p>
+                                <button onclick="renderKontenWorkspace(${listProyekGlobal.length - 2})" class="w-full bg-gray-800 hover:bg-gray-750 text-gray-200 text-xs font-semibold py-2 rounded-lg transition border border-gray-700/50 flex items-center justify-center gap-1.5">
+                                    Coba Proyek Lain
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                    </svg>
+                                </button>
+                            `;
+                        } else {
+                            document.getElementById('container-tawaran-baru').innerHTML = `<div class="text-gray-500 text-[11px]">Belum ada tawaran ide proyek lain di dalam Sheet.</div>`;
+                        }
+
+                    } else {
+                        document.getElementById('container-proyek-aktif').innerHTML = '<div class="text-gray-500">Tidak ada proyek ditemukan di Tab_Ide.</div>';
+                    }
+                }
+            } catch (error) {
+                console.error("Gagal memuat data proyek:", error);
+                document.getElementById('container-proyek-aktif').innerHTML = '<div class="text-rose-400">Gagal sinkronisasi data proyek.</div>';
+            }
+        }
+
+        // 3. Render isi HTML proyek ke Workspace Utama saat tombol diklik
+        function renderKontenWorkspace(index) {
+            const proyek = listProyekGlobal[index];
+            if(!proyek) return;
+
+            // Mencari kolom yang berisi teks HTML (bisa bernama 'KETERANGAN', 'HTML', 'ISI', dll sesuai isi header di Tab_Ide Anda)
+            // Di sini kita cek properti yang bernilai string panjang html atau properti kunci target Anda
+            let kontenHtml = proyek.KETERANGAN || proyek.HTML || proyek.Isi || "";
+            
+            // Jika kolom kosong, buat template default agar halaman tidak blank
+            if(!kontenHtml || !kontenHtml.includes('<')) {
+                kontenHtml = `
+                    <div class="bg-[#111827] shadow-2xl rounded-2xl p-6 sm:p-8 border border-gray-800">
+                        <h1 class="text-2xl font-black text-blue-400 mb-2">${proyek['NAMA PROYEK'] || 'Proyek AI'}</h1>
+                        <p class="text-gray-400 text-sm mb-4">Data HTML mentah tidak ditemukan di sheet. Menampilkan deskripsi default:</p>
+                        <div class="p-4 bg-[#0f172a] rounded-xl border border-gray-800 text-gray-300 text-sm">
+                            ${kontenHtml || "Tidak ada deskripsi tambahan untuk proyek ini."}
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('workspace-konten').innerHTML = kontenHtml;
+        }
+
+        // Jalankan sinkronisasi otomatis saat halaman pertama kali dibuka
+        window.onload = function() {
+            if(WEB_APP_URL === "Masukkan_URL_Web_App_Apps_Script_Anda_Di_Sini") {
+                alert("Perhatian: Harap isi WEB_APP_URL Anda di dalam kode HTML agar fitur sinkronisasi Google Sheets berfungsi!");
+            } else {
+                loadKeuangan();
+                loadProyekAktif();
+            }
+        };
+    </script>
 </body>
 </html>
