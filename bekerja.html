@@ -9,6 +9,34 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* ================= PREMIUM UI TUNING UNTUK HASIL OUTPUT AI ================= */
+        /* Menghindari tulisan samar, putih di atas putih, atau berantakan di spreadsheet/layar */
+        #mainWorkspace h1 { font-size: 1.6rem; font-weight: 800; color: #ffffff !important; margin-bottom: 14px; border-left: 4px solid #10b981; padding-left: 10px; line-height: 1.3; }
+        #mainWorkspace h2 { font-size: 1.25rem; font-weight: 700; color: #fbbf24 !important; margin-top: 22px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        #mainWorkspace h3 { font-size: 1.05rem; font-weight: 700; color: #38bdf8 !important; margin-top: 14px; margin-bottom: 6px; }
+        #mainWorkspace p, #mainWorkspace li { color: #f1f5f9 !important; font-size: 0.875rem; line-height: 1.6; margin-bottom: 8px; }
+        #mainWorkspace ul { list-style-type: disc; margin-left: 20px; margin-bottom: 12px; }
+        #mainWorkspace ol { list-style-type: decimal; margin-left: 20px; margin-bottom: 12px; }
+        #mainWorkspace strong { color: #f43f5e !important; font-weight: 700; }
+        
+        /* Box Waktu Kemitraan (Elegant Glassmorphism Dark) */
+        .time-block { background: rgba(30, 41, 59, 0.7) !important; border-left: 4px solid #38bdf8 !important; padding: 16px; margin-bottom: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .time-block h3 { margin-top: 0px !important; color: #38bdf8 !important; font-weight: 800; }
+        
+        /* Kotak Pertanyaan Laporan Malam */
+        .question-box { background: rgba(251, 191, 36, 0.08) !important; border: 1px solid rgba(251, 191, 36, 0.25) !important; padding: 16px; margin-top: 24px; border-radius: 14px; color: #fbbf24 !important; }
+        .question-box h3 { color: #fbbf24 !important; margin-top: 0px !important; }
+        .question-box p { color: #fef08a !important; }
+
+        /* Tabel Data Kontak Mitra */
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.85rem; background: rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden; }
+        th { background: #1e293b !important; color: #ffffff !important; padding: 10px; font-weight: 700; text-align: left; border: 1px solid #334155; }
+        td { padding: 10px; color: #cbd5e1 !important; border: 1px solid #334155; background: transparent; }
+        
+        /* Penyelaras scroll workspace */
+        #mainWorkspace::-webkit-scrollbar { width: 6px; }
+        #mainWorkspace::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
@@ -144,11 +172,8 @@
 
         function getApiKey() { return document.getElementById("geminiKey").value.trim(); }
 
-        // ================= UTILITY: FUNGSI STRUKTUR FORMAT TITIK RIBUAN =================
         function formatInputRibuan(input) {
-            // Hilangkan semua karakter kecuali angka
             let value = input.value.replace(/[^0-9]/g, "");
-            // Tambahkan titik sebagai pemisah ribuan
             if (value !== "") {
                 input.value = Number(value).toLocaleString('id-ID');
             } else {
@@ -157,11 +182,9 @@
         }
 
         function bersihkanTitik(teksAngka) {
-            // Mengubah format "100.000" kembali menjadi angka mentah murni 100000 agar aman di database
             return parseInt(teksAngka.toString().replace(/[^0-9]/g, '')) || 0;
         }
 
-        // ================= DOWNLOAD DATA & AMBIL DAFTAR PROYEK =================
         async function muatDaftarProyek() {
             const container = document.getElementById("projectListContainer");
             container.innerHTML = `<div class="text-xs text-slate-500 italic p-3 text-center"><i class="fa-solid fa-spinner animate-spin mr-1"></i> Sinkronisasi sheet...</div>`;
@@ -219,7 +242,6 @@
             }
         }
 
-        // ================= HAPUS PROYEK PERMANEN =================
         async function hapusProyekPermanen(namaProyek) {
             const tanya = confirm(`PERINGATAN!\n\nApakah Anda yakin ingin menghapus proyek "${namaProyek}" secara permanen dari Google Sheets?`);
             if (!tanya) return;
@@ -245,7 +267,6 @@
             }
         }
 
-        // ================= AMBIL DISKUSI PROYEK DARI KIRI =================
         function muatDiskusiProyek(index) {
             const dataProyek = globalProjectList[index];
             currentProposedProject = dataProyek["Nama Proyek"] || Object.values(dataProyek)[1];
@@ -263,7 +284,6 @@
             workspace.innerHTML = (riwayatHtml && riwayatHtml.trim() !== "") ? riwayatHtml : `<div class="p-4 border border-slate-800 rounded-2xl bg-slate-900/40"><h3 class="text-lg font-bold text-white mb-2">🏢 ${currentProposedProject}</h3><p class="text-amber-400 font-medium">Tulis laporan aktivitas tokomu di kolom bawah.</p></div>`;
         }
 
-        // ================= ALUR SEPERTI BIASA =================
         function bukaWawancaraBaru() {
             document.getElementById("wawancaraForm").classList.remove("hidden");
             document.getElementById("tinderControls").classList.add("hidden");
@@ -279,7 +299,6 @@
         function submitWawancara() {
             if (!getApiKey()) { alert("Masukkan API Key Gemini dulu!"); return; }
             
-            // Konversi nilai modal bertitik ke nilai angka bersih untuk dibaca AI
             const modalBersih = bersihkanTitik(document.getElementById("ans2").value);
             
             userContext = {
@@ -299,7 +318,6 @@
             workspace.innerHTML = `<div class="text-center text-slate-400 py-12"><i class="fa-solid fa-spinner animate-spin text-3xl mb-3 text-emerald-400"></i><p>Mencari peluang sistem bisnis...</p></div>`;
             tinderControls.classList.add("hidden");
 
-            // Meminta AI menuliskan angka ribuan berformat titik pada hasil jawaban proposalnya
             const prompt = `Anda Direktur Bisnis AI. Rumuskan 1 Ide Bisnis Riil berskala Korporasi Mikro berbasis aset sekitar: ${userContext.sekitar}, modal Rp ${Number(userContext.modal).toLocaleString('id-ID')}, keahlian: ${userContext.keahlian}. Jangan gunakan ide yang ditolak: [${rejectedIdeas.join(", ")}]. Bisnis harus menggunakan sistem delegasi/kemitraan agar owner tidak kerja kasar sendiri. Seluruh penyebutan nominal uang angka rupiah di dalam teks penjelasan wajib diberi pemisah titik (Contoh: Rp 500.000, Rp 2.500.000). Output HTML murni tanpa markdown (\`\`\`html). Gunakan class Tailwind CSS gelap. Wajib pasang tag h2 id="tempTitle" untuk judul proyek.`;
 
             try {
@@ -317,6 +335,7 @@
                 currentProposedProject = titleEl ? titleEl.innerText : "Sistem Bisnis Pilihan AI";
             } catch (err) {
                 workspace.innerHTML = `<div class="text-red-400 p-4">Error: ${err.message}</div>`;
+            } align-items: center;
             } finally {
                 loader.classList.add("hidden");
             }
@@ -422,7 +441,6 @@
             }
         }
 
-        // ================= SIMPAN KEUANGAN (AUTO BERSIHKAN TITIK SEBELUM MASUK SHEET) =================
         async function simpanKeuanganCepat() {
             const rawAmount = document.getElementById("quickAmount").value.trim();
             const type = document.getElementById("quickType").value;
@@ -431,7 +449,6 @@
 
             if (!rawAmount) { alert("Isi nominal!"); return; }
 
-            // Bersihkan format titik agar menjadi angka integer murni di Google Sheets
             const amountBersih = bersihkanTitik(rawAmount);
 
             btn.disabled = true;
