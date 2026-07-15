@@ -116,7 +116,7 @@
           <div class="text-[7.5px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
             <span id="date-masehi">Memuat...</span>
             <span>•</span>
-            <span id="date-hijriah" class="text-blue-200 font-bold">13 Muharram 1448 H</span>
+            <span id="date-hijriah" class="text-blue-200 font-bold">Memuat Hijriah...</span>
           </div>
         </div>
         <div class="flex justify-between items-center mt-0.5">
@@ -267,7 +267,7 @@
       <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
       <div class="flex items-center gap-1">
         <button onclick="panggilAnalisisRutinitasAI()" class="text-[6.5px] font-black bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded-full transition active:scale-95">🔄 SYNC</button>
-        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">AUTO-ROTATE 60s</span>
+        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">60s</span>
       </div>
     </div>
     <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
@@ -275,7 +275,7 @@
         <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
         Mengkalkulasi koordinasi waktu produktif Anda...
       </div>
-      <p id="ai-rutinitas-teks" class="text-[8.5px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
+      <p id="ai-rutinitas-teks" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
         Menghubungkan satelit harian...
       </p>
     </div>
@@ -289,17 +289,17 @@
     </a>
   </div>
 
-  <!-- DOMPET FINANSIAL GLOBAL (VIP BLACK CARD PREMIUM DENGAN TIGA METRIK) -->
-  <div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-28" id="card-keuangan">
-    <div class="flex justify-between items-start">
+  <!-- DOMPET FINANSIAL GLOBAL (VIP BLACK CARD PREMIUM DENGAN TIGA METRIK - UKURAN DIRAMPINGKAN) -->
+  <div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-2 px-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-24" id="card-keuangan">
+    <div class="flex justify-between items-start leading-none">
       <div class="flex flex-col">
-        <span class="text-[6.5px] font-black text-emerald-400 tracking-widest uppercase">VIP Black Saving Card</span>
-        <span class="text-[6px] font-extrabold text-slate-400 tracking-wider mt-1">AVAILABLE NET BALANCE</span>
-        <h3 id="keuangan-saldo" class="text-base font-black tracking-tight text-white drop-shadow-sm mt-0.5">Rp 0</h3>
+        <span class="text-[6px] font-black text-emerald-400 tracking-widest uppercase">VIP Black Saving Card</span>
+        <span class="text-[5.5px] font-extrabold text-slate-400 tracking-wider mt-0.5">AVAILABLE NET BALANCE</span>
+        <h3 id="keuangan-saldo" class="text-sm font-black tracking-tight text-white drop-shadow-sm mt-0.5">Rp 0</h3>
       </div>
-      <!-- Chip Kartu Kredit Fiktif -->
-      <div class="w-7 h-5 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-md opacity-85 shadow border border-yellow-400/30 flex items-center justify-center overflow-hidden">
-        <div class="grid grid-cols-3 gap-[1px] w-full h-full p-1 opacity-70">
+      <!-- Chip Kartu Kredit Fiktif Ramping -->
+      <div class="w-6 h-4 bg-gradient-to-br from-yellow-300 to-amber-500 rounded opacity-85 shadow border border-yellow-400/30 flex items-center justify-center overflow-hidden">
+        <div class="grid grid-cols-3 gap-[1px] w-full h-full p-0.5 opacity-70">
           <div class="border-[0.5px] border-black/40 rounded-sm"></div>
           <div class="border-[0.5px] border-black/40 rounded-sm"></div>
           <div class="border-[0.5px] border-black/40 rounded-sm"></div>
@@ -310,21 +310,21 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-2 gap-2 mt-1.5 border-t border-white/5 pt-1.5">
+    <div class="grid grid-cols-2 gap-2 mt-0.5 border-t border-white/5 pt-1">
       <div class="flex flex-col leading-none">
-        <span class="text-[5.5px] font-extrabold text-emerald-400 tracking-wider uppercase">📥 TOTAL PEMASUKAN</span>
-        <p id="keuangan-pemasukan" class="text-[11px] font-black text-emerald-400 mt-1">Rp 0</p>
+        <span class="text-[5px] font-extrabold text-emerald-400 tracking-wider uppercase">📥 PEMASUKAN</span>
+        <p id="keuangan-pemasukan" class="text-[10px] font-black text-emerald-400 mt-0.5">Rp 0</p>
       </div>
       <div class="flex flex-col leading-none border-l border-white/5 pl-2">
-        <span class="text-[5.5px] font-extrabold text-rose-400 tracking-wider uppercase">📤 TOTAL PENGELUARAN</span>
-        <p id="keuangan-pengeluaran" class="text-[11px] font-black text-rose-400 mt-1">Rp 0</p>
+        <span class="text-[5px] font-extrabold text-rose-400 tracking-wider uppercase">📤 PENGELUARAN</span>
+        <p id="keuangan-pengeluaran" class="text-[10px] font-black text-rose-400 mt-0.5">Rp 0</p>
       </div>
     </div>
 
-    <div class="flex justify-between items-center text-[5.5px] font-mono text-slate-500 mt-1">
+    <div class="flex justify-between items-center text-[5px] font-mono text-slate-500">
       <span>CARD NO: **** **** **** 4911</span>
-      <span class="text-emerald-400 animate-pulse flex items-center gap-1">
-        <span class="w-1 h-1 rounded-full bg-emerald-400"></span> SECURE SYNCED
+      <span class="text-emerald-400 flex items-center gap-0.5">
+        <span class="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span> SECURE SYNCED
       </span>
     </div>
   </div>
@@ -623,9 +623,26 @@ function muatDataDariOffline() {
   }
 }
 
+// FORMAT KALENDER MASEHI & PERHITUNGAN OTOMATIS TANGGAL HIJRIAH (UMM AL-QURA)
 function tentukanKalenderDasar() {
   const sekarang = new Date();
   document.getElementById("date-masehi").innerText = ClinicalFormatDate(sekarang);
+  
+  // Perhitungan otomatis Kalender Hijriah Umm Al-Qura melalui API Internal Browser
+  try {
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    let formattedDate = formatterHijriah.format(sekarang);
+    // Konversi notasi teks standard Hijriah agar presisi dan rapi
+    formattedDate = formattedDate.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
+    document.getElementById("date-hijriah").innerText = formattedDate;
+  } catch (error) {
+    // Estimasi manual cadangan apabila browser tidak mendukung parser Umm al-Qura
+    document.getElementById("date-hijriah").innerText = "15 Safar 1448 H";
+  }
 }
 
 function ClinicalFormatDate(d) {
@@ -811,6 +828,7 @@ function updateFinanceUI() {
 }
 
 function renderDataKeLayar(data) {
+  // Hanya jika API eksternal secara eksplisit mengesampingkan kalkulasi internal
   if (data["HIJRIAH_FIXED"]) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
