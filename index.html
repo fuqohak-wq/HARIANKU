@@ -273,8 +273,8 @@
     </div>
   </div>
 
-  <!-- KARTU NASEHAT AI CEREWET -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
+  <!-- KARTU NASEHAT AI CEREWET (Dibatasi 3 baris dengan scroll tersembunyi) -->
+  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24 overflow-hidden" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
       <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
       <div class="flex items-center gap-1">
@@ -282,12 +282,13 @@
         <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">60s</span>
       </div>
     </div>
-    <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
+    <div class="flex-1 flex flex-col justify-center overflow-hidden">
       <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
         <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
         Mengkalkulasi koordinasi waktu produktif Anda...
       </div>
-      <p id="ai-rutinitas-teks" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
+      <!-- Ditambahkan kelas line-clamp-3 untuk menjamin tampilan maksimal 3 baris secara rapi -->
+      <p id="ai-rutinitas-teks" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify line-clamp-3">
         Menghubungkan satelit harian...
       </p>
     </div>
@@ -697,6 +698,28 @@ async function loadDashboard() {
   }
 }
 
+// PENCARIAN TANGGUH CASE-INSENSITIVE & BEBAS SPASI UNTUK MENGHINDARI SALAH BACA SEL GOOGLE SHEET
+function getSheetValue(data, keyName) {
+  if (!data) return null;
+  const cleanKey = keyName.toUpperCase().trim();
+  
+  // 1. Cari kecocokan eksak bersih (tanpa spasi di ujung & huruf besar)
+  for (let k in data) {
+    if (k.toUpperCase().trim() === cleanKey) {
+      return data[k];
+    }
+  }
+  
+  // 2. Cari kecocokan parsial seandainya ada perbedaan penulisan
+  for (let k in data) {
+    const upperK = k.toUpperCase().trim();
+    if (upperK.includes(cleanKey) || cleanKey.includes(upperK)) {
+      return data[k];
+    }
+  }
+  return null;
+}
+
 // RESILIENT PARSER KEY-INSENSITIVE UNTUK KOLOM GOOGLE SHEET KEUANGAN
 function normalizeRow(row) {
   const normalized = {};
@@ -859,15 +882,17 @@ function renderDataKeLayar(data) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
-  if (data["MOTIVASI"] && data["MOTIVASI"].value) {
-    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
+  const motivasiObj = getSheetValue(data, "MOTIVASI");
+  if (motivasiObj && motivasiObj.value) {
+    document.getElementById("display-quote").innerText = `"${motivasiObj.value}"`;
   }
 
   globalTasks = data["LIST_TUGAS"] || [];
   globalCeramah = data["LIST_CERAMAH"] || [];
   globalRutinitas = data["RUTINITAS"] || [];
   
-  const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
+  const moodObj = getSheetValue(data, "MOOD");
+  const teksMoodAsli = moodObj?.value || data["MOOD_STATUS"]?.value || "STABIL";
   currentMoodStatus = teksMoodAsli;
   
   let textMoodElement = document.getElementById("user-mood");
@@ -875,7 +900,7 @@ function renderDataKeLayar(data) {
   
   textMoodElement.innerText = teksMoodAsli;
 
-  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN") || teksMoodAsli.toUpperCase().includes("LELAH")) {
     textMoodElement.innerText = "😞 " + teksMoodAsli;
     textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, bangkit!";
     textMustDoElement.className = "text-[7px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
@@ -889,8 +914,11 @@ function renderDataKeLayar(data) {
     textMustDoElement.className = "text-[7px] font-black text-rose-200 uppercase tracking-tight";
   }
 
-  const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
-  const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
+  const shalatObj = getSheetValue(data, "SHALAT JAMAAH");
+  const murojaahObj = getSheetValue(data, "MUROJAAH");
+  
+  const aktualJamaah = Number(shalatObj?.value || 0);
+  const aktualMurojaah = Number(murojaahObj?.value || 0);
   
   document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
   document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
@@ -920,7 +948,8 @@ function renderDataKeLayar(data) {
   }
 
   // Sinkronisasi log air dengan kunci lokal (anti-flicker)
-  const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
+  const minumAirObj = getSheetValue(data, "MINUM AIR");
+  const serverWater = Math.floor(Number(minumAirObj?.value || 0));
   const selisihWaktu = Date.now() - localWaterState.lastUpdated;
   
   if (selisihWaktu < 15000 && localWaterState.count > serverWater) {
@@ -931,16 +960,28 @@ function renderDataKeLayar(data) {
     localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
   }
 
-  document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
-  document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-  document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-  document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
-  document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+  const kaloriMasukObj = getSheetValue(data, "KALORI MASUK");
+  const kaloriKeluarObj = getSheetValue(data, "KALORI KELUAR");
+  const hpObj = getSheetValue(data, "MENGURANGI HP");
+  const menulisObj = getSheetValue(data, "MENULIS");
+  const englishObj = getSheetValue(data, "ENGLISH");
+
+  document.getElementById("val-kalori").innerText = kaloriMasukObj?.value || 0;
+  document.getElementById("val-kalori-keluar").innerText = kaloriKeluarObj?.value || 0;
+  document.getElementById("val-hp").innerText = hpObj?.value || 0;
+  document.getElementById("val-menulis").innerText = menulisObj?.value || 0;
+  
+  // Tarik data B6 (ENGLISH) secara tepat menggunakan getSheetValue
+  let englishVal = 0;
+  if (englishObj) {
+    englishVal = englishObj.value !== undefined ? englishObj.value : (englishObj.jml !== undefined ? englishObj.jml : (englishObj.jumlah || 0));
+  }
+  document.getElementById("val-english").innerText = englishVal + " M";
   
   document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
   document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
 
-  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+  const progressIn = ((kaloriMasukObj?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
   if (data["RIWAYAT"]) {
@@ -1067,9 +1108,12 @@ async function panggilAnalisisRutinitasAI() {
     const result = await response.json();
     
     if (result.success && Array.isArray(result.nasehat)) {
-      localAiAdvices = result.nasehat.map(item => {
+      const rawAdvices = result.nasehat.map(item => {
         return item.replace(/[\*\#_]/g, '').trim();
-      }).filter(item => item.length > 15);
+      }).filter(item => item.length > 10);
+      
+      // Membagi kalimat secara logis agar tidak terpotong di tengah kata
+      localAiAdvices = chunkTextBySentences(rawAdvices);
       
       if (localAiAdvices.length > 0) {
         loadingEl.classList.add("hidden");
@@ -1078,6 +1122,7 @@ async function panggilAnalisisRutinitasAI() {
         
         tampilkanNasehatAktif();
         
+        // Rotasi per baris kalimat secara perlahan setiap 1 menit (60 detik)
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
@@ -1093,6 +1138,30 @@ async function panggilAnalisisRutinitasAI() {
     console.error("Gagal menghubungkan asisten AI.", e);
     loadingEl.innerText = "Gagal memproses rekomendasi. Ketuk SYNC untuk mengulang.";
   }
+}
+
+// Helper untuk memecah teks panjang berdasarkan tanda baca menjadi potongan-potongan logis (~3 baris)
+function chunkTextBySentences(textList) {
+  let chunks = [];
+  textList.forEach(text => {
+    const sentences = text.split(/(?<=[.!?])\s+/);
+    let currentChunk = "";
+    
+    sentences.forEach(sentence => {
+      sentence = sentence.trim();
+      if (!sentence) return;
+      
+      // Menjaga agar panjang teks yang tampil per menit berada dalam batas kenyamanan mata (~150 karakter)
+      if ((currentChunk + " " + sentence).trim().length <= 150) {
+        currentChunk = (currentChunk + " " + sentence).trim();
+      } else {
+        if (currentChunk) chunks.push(currentChunk);
+        currentChunk = sentence;
+      }
+    });
+    if (currentChunk) chunks.push(currentChunk);
+  });
+  return chunks;
 }
 
 async function tampilkanNasehatAktif() {
