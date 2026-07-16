@@ -1092,6 +1092,7 @@ async function eksekusiAnimasiTeks() {
 }
 
 // Fungsi tombol SYNC MANUAL (Hanya dipanggil saat Anda klik tombol SYNC secara sadar)
+// Fungsi tombol SYNC MANUAL di index.html
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1101,32 +1102,36 @@ async function panggilAnalisisRutinitasAI() {
   
   let nasehatDidapat = [];
   
-  // SKENARIO 1: Gemini AI Studio Pribadi
+  // SKENARIO 1: Gemini AI Studio Pribadi (Tambahkan ?refresh=true di ujung URL)
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 8000); 
-    const response = await fetch(PERSONAL_AI_URL, { signal: controller.signal });
-    clearTimeout(idTimeout);
+    const idTimeout = setTimeout(() => controller.abort(), 15000); // Naikkan ke 15 detik karena panggil Gemini butuh waktu
     
+    // PERBAIKAN DI SINI: Tempelkan &refresh=true atau ?refresh=true
+    const urlDenganRefresh = PERSONAL_AI_URL.includes('?') 
+      ? `${PERSONAL_AI_URL}&refresh=true&_ts=${Date.now()}` 
+      : `${PERSONAL_AI_URL}?refresh=true&_ts=${Date.now()}`;
+
+    const response = await fetch(urlDenganRefresh, { signal: controller.signal });
     const result = await response.json();
+    
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
       nasehatDidapat = result.nasehat;
-    } else if (result && Array.isArray(result)) {
-      nasehatDidapat = result;
     }
   } catch (e) {
-    console.warn("Skenario 1 Gagal, mencoba server terpadu...");
+    console.warn("Skenario 1 Gagal, mencoba server cadangan...");
   }
   
-  // SKENARIO 2: Apps Script Utama
+  // SKENARIO 2: Apps Script Utama (Jika Skenario 1 gagal)
   if (nasehatDidapat.length === 0) {
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(() => controller.abort(), 6000);
-      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice", { signal: controller.signal });
-      clearTimeout(idTimeout);
+      const idTimeout = setTimeout(() => controller.abort(), 15000);
       
+      // PERBAIKAN DI SINI: Pastikan ada &refresh=true
+      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { signal: controller.signal });
       const result = await response.json();
+      
       if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
         nasehatDidapat = result.nasehat;
       }
@@ -1135,12 +1140,11 @@ async function panggilAnalisisRutinitasAI() {
     }
   }
   
-  // Jika berhasil mendapatkan data baru, simpan ke cache lokal agar awet
+  // Jika sukses dapat data baru dari Gemini, update cache lokal HTML
   if (nasehatDidapat.length > 0) {
     localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
     mulaiSiklusTampilan(nasehatDidapat);
   } else {
-    // Jika semua server gagal (offline), gunakan apa yang ada di cache lokal sebelumnya
     inisialisasiRotasiNasehatLokal();
   }
 }
