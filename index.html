@@ -4,7 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fuqohak Executive Tracker</title>
-<meta name="theme-color" content="#1e56e3">
+<meta name="theme-color" content="#070d19">
+
+<!-- PWA Meta Tags untuk Android, Huawei, dan iOS -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fuqohak Tracker">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -515,10 +524,7 @@ Buka Dashboard Bekerja ➔
 
 <script>
 // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
-// URL Web App Dashboard Utama
-const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
-
-// URL Web App Gemini AI Studio Pribadi Milik Anda (PENTING: Sudah diarahkan langsung)
+const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
 
 const API_URL = BASE_WEB_APP_URL;
@@ -577,22 +583,21 @@ let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
 window.onload = async function() {
-  initWaterLocal();
-  tentukanKalenderDasar();
-  terapkanSistemTema();
-  evaluasiVisualModeMalam();
-  muatDataDariOffline(); 
-  await loadDashboard();
-  await fetchFinanceData();
-  
-  // SEBELUMNYA: Memanggil API Gemini langsung saat startup (Boros API)
-  // SEKARANG: Hanya jalankan rotasi dari cache yang sudah ada di lokal
-  inisialisasiRotasiNasehatLokal();
+initWaterLocal();
+tentukanKalenderDasar();
+terapkanSistemTema();
+evaluasiVisualModeMalam();
+muatDataDariOffline(); 
+await loadDashboard();
+await fetchFinanceData();
+setTimeout(() => {
+panggilAnalisisRutinitasAI();
+}, 1200);
 
-  setInterval(async () => {
-    await loadDashboard();
-    await fetchFinanceData();
-  }, 25000);
+setInterval(async () => {
+await loadDashboard();
+await fetchFinanceData();
+}, 25000);
 };
 
 function initWaterLocal() {
@@ -915,7 +920,6 @@ console.error("Gagal mengirim data hidrasi ke server:", e);
 }
 }
 
-// FORMAT GRAPH BARU: KURVA GELOMBANG BEZIER BEBAS REPOT (SANGAT BERSIH & LEMBUT)
 function buildLineChart(riwayat) {
 if (!riwayat || riwayat.length < 2) return;
 
@@ -937,7 +941,6 @@ const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
 return { x, y, val: item.jumlah, date: item.tanggal };
 });
 
-// MEMBUAT PATH DENGAN SIGMOID SPLINE KUBIK BEZIER UNTUK KURVA GELOMBANG HALUS
 let pathD = `M ${points[0].x} ${points[0].y}`;
 for (let i = 0; i < points.length - 1; i++) {
 const p0 = points[i];
@@ -968,7 +971,6 @@ badgeTren.innerText = "↔️ STABIL";
 badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
 }
 
-// STRUKTUR MATRIKS SVG SANGAT BERSIH (TANPA DOT DAN ANGKA BERANTAKAN)
 svg.innerHTML = `
 <defs>
 <linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
@@ -988,168 +990,85 @@ labelContainer.appendChild(el);
 });
 }
 
-// SISTEM ANALISIS AI ANTI-GAGAL WATERFALL (3 SKENARIO PERTAHANAN)
-// Variabel kontrol rotasi kalimat halus
-let daftarPotonganKalimat = [];
-let indeksKalimatAktif = 0;
-let intervalRotasiKalimat = null;
-
-// Fungsi pembantu untuk memotong nasehat panjang menjadi potongan pas 3 baris
-function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
-  let hasilPotongan = [];
-  
-  daftarNasehat.forEach(paragraf => {
-    // Bersihkan karakter aneh, kurung siku JSON yang tersisa, atau markdown bintang
-    let teksBersih = paragraf.replace(/[\[\]"'\*#_]/g, '').trim();
-    
-    // Split berdasarkan tanda baca akhir (titik, tanya, seru) tanpa menghilangkan tanda bacanya
-    let kalimatList = teksBersih.match(/[^.!?]+[.!?]+/g) || [teksBersih];
-    
-    let penampungPotongan = "";
-    
-    kalimatList.forEach(kalimat => {
-      let kalimatTrimmed = kalimat.trim();
-      if (!kalimatTrimmed) return;
-      
-      // Jika digabungkan masih cukup (maksimal ~140 karakter agar pas 3 baris di HP)
-      if ((penampungPotongan + " " + kalimatTrimmed).length <= 140) {
-        penampungPotongan += (penampungPotongan ? " " : "") + kalimatTrimmed;
-      } else {
-        // Jika sudah penuh, simpan potongan sebelumnya dan buat wadah baru
-        if (penampungPotongan) {
-          hasilPotongan.push(penampungPotongan);
-        }
-        penampungPotongan = kalimatTrimmed;
-      }
-    });
-    
-    if (penampungPotongan) {
-      hasilPotongan.push(penampungPotongan);
-    }
-  });
-  
-  return hasilPotongan;
-}
-
-// Menjalankan rotasi nasehat dari penyimpanan lokal (Gratis tanpa panggil API)
-function inisialisasiRotasiNasehatLokal() {
-  const cachedAdvices = localStorage.getItem("fuqohak_ai_advices_cache");
-  let mentah = [];
-  if (cachedAdvices) {
-    try {
-      mentah = JSON.parse(cachedAdvices);
-    } catch(e) { mentah = []; }
-  }
-  
-  if (mentah.length === 0) {
-    // Data fallback jika cache kosong sama sekali
-    mentah = [
-      "Hidrasi Darurat. Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil.",
-      "Kendalikan Screen Time. Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak pulih.",
-      "Hubungan Spiritual. Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini."
-    ];
-  }
-  
-  mulaiSiklusTampilan(mentah);
-}
-
-// Memulai siklus transisi tulisan per 30 detik
-function mulaiSiklusTampilan(dataNasehat) {
-  if (intervalRotasiKalimat) {
-    clearInterval(intervalRotasiKalimat);
-  }
-  
-  daftarPotonganKalimat = pecahNasehatMenjadiPotonganPas(dataNasehat);
-  indeksKalimatAktif = 0;
-  
-  // Tampilkan kalimat pertama segera
-  eksekusiAnimasiTeks();
-  
-  // Setel timer berputar setiap 30 detik (30000 ms)
-  intervalRotasiKalimat = setInterval(() => {
-    indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
-    eksekusiAnimasiTeks();
-  }, 30000); 
-}
-
-// Animasi transisi fade out -> ganti teks -> fade in agar mata tidak lelah
-async function eksekusiAnimasiTeks() {
-  const loadingEl = document.getElementById("ai-rutinitas-loading");
-  const teksEl = document.getElementById("ai-rutinitas-teks");
-  
-  loadingEl.classList.add("hidden");
-  teksEl.classList.remove("hidden");
-  
-  teksEl.classList.remove("opacity-100");
-  teksEl.classList.add("opacity-0");
-  
-  await new Promise(r => setTimeout(r, 400));
-  
-  teksEl.innerText = daftarPotonganKalimat[indeksKalimatAktif] || "Menunggu koordinasi waktu harian...";
-  
-  teksEl.classList.remove("opacity-0");
-  teksEl.classList.add("opacity-100");
-}
-
-// Fungsi tombol SYNC MANUAL (Hanya dipanggil saat Anda klik tombol SYNC secara sadar)
-// Fungsi tombol SYNC MANUAL di index.html
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
+  
+  if (aiRotationInterval) {
+    clearInterval(aiRotationInterval);
+    aiRotationInterval = null;
+  }
   
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
   
   let nasehatDidapat = [];
   
-  // SKENARIO 1: Gemini AI Studio Pribadi (Tambahkan ?refresh=true di ujung URL)
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 15000); // Naikkan ke 15 detik karena panggil Gemini butuh waktu
+    const idTimeout = setTimeout(() => controller.abort(), 7000); 
+    const response = await fetch(PERSONAL_AI_URL, { signal: controller.signal });
+    clearTimeout(idTimeout);
     
-    // PERBAIKAN DI SINI: Tempelkan &refresh=true atau ?refresh=true
-    const urlDenganRefresh = PERSONAL_AI_URL.includes('?') 
-      ? `${PERSONAL_AI_URL}&refresh=true&_ts=${Date.now()}` 
-      : `${PERSONAL_AI_URL}?refresh=true&_ts=${Date.now()}`;
-
-    const response = await fetch(urlDenganRefresh, { signal: controller.signal });
     const result = await response.json();
-    
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
       nasehatDidapat = result.nasehat;
     }
   } catch (e) {
-    console.warn("Skenario 1 Gagal, mencoba server cadangan...");
+    console.warn("Skenario 1 Gagal (Gemini Studio API), lanjut ke Skenario 2.", e);
   }
   
-  // SKENARIO 2: Apps Script Utama (Jika Skenario 1 gagal)
   if (nasehatDidapat.length === 0) {
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(() => controller.abort(), 15000);
+      const idTimeout = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice", { signal: controller.signal });
+      clearTimeout(idTimeout);
       
-      // PERBAIKAN DI SINI: Pastikan ada &refresh=true
-      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { signal: controller.signal });
       const result = await response.json();
-      
       if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
         nasehatDidapat = result.nasehat;
       }
     } catch (e) {
-      console.warn("Skenario 2 Gagal.");
+      console.warn("Skenario 2 Gagal (Server Terpadu), lanjut ke Skenario 3.", e);
     }
   }
   
-  // Jika sukses dapat data baru dari Gemini, update cache lokal HTML
-  if (nasehatDidapat.length > 0) {
-    localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
-    mulaiSiklusTampilan(nasehatDidapat);
-  } else {
-    inisialisasiRotasiNasehatLokal();
+  if (nasehatDidapat.length === 0) {
+    nasehatDidapat = [
+      "💧 Hidrasi Darurat: Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil di sela-sela rutinitas.",
+      "📱 Kendalikan Screen Time: Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak memulihkan fokus alaminya.",
+      "🕌 Hubungan Spiritual: Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini.",
+      "📖 Konsistensi Belajar: Sisihkan waktu 15-30 menit untuk membaca jurnal keilmuan demi memperluas wawasan akademis Anda.",
+      "✍️ Goreskan Pena: Luangkan waktu untuk menulis target mingguan Anda, porsi kemajuan kecil yang konsisten bernilai sangat besar."
+    ];
   }
+  
+  localAiAdvices = nasehatDidapat.map(item => {
+    return item.replace(/[\*\#_]/g, '').trim();
+  });
+  
+  loadingEl.classList.add("hidden");
+  teksEl.classList.remove("hidden");
+  currentAdviceIndex = 0;
+  tampilkanNasehatAktif();
+  
+  aiRotationInterval = setInterval(() => {
+    currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
+    tampilkanNasehatAktif();
+  }, 45000); 
 }
 
-// SISTEM PEMBUKA MODAL ENGLISH HUB (IFRAME INTEGRATION)
+async function tampilkanNasehatAktif() {
+const teksEl = document.getElementById("ai-rutinitas-teks");
+teksEl.classList.remove("opacity-100");
+teksEl.classList.add("opacity-0");
+await new Promise(r => setTimeout(r, 400));
+teksEl.innerText = localAiAdvices[currentAdviceIndex];
+teksEl.classList.remove("opacity-0");
+teksEl.classList.add("opacity-100");
+}
+
 function bukaModalEnglish() {
   const iframe = document.getElementById("english-iframe");
   if (iframe.src !== "https://kerja-nine.vercel.app/") {
@@ -1160,6 +1079,15 @@ function bukaModalEnglish() {
 
 function tutupModalEnglish() {
   document.getElementById("english-modal").style.display = "none";
+}
+
+// REGISTER SERVICE WORKER UNTUK INSTALASI PWA (SANGAT COMPATIBLE DENGAN HARMONYOS / EMUI / ANDROID)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker terdaftar:', reg.scope))
+      .catch(err => console.error('Pendaftaran Service Worker gagal:', err));
+  });
 }
 
 // MODAL DAFTAR TUGAS
