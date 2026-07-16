@@ -250,7 +250,7 @@ top: 100%;
 </div>
 </div>
 
-<!-- GRAFIK TREN MOOD -->
+<!-- GRAFIK TREN MOOD (BERSIH & MINIMALIS) -->
 <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
 <div class="flex justify-between items-center mb-0.5">
 <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -260,9 +260,6 @@ top: 100%;
 <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
 <!-- SVG Line chart -->
 </svg>
-</div>
-<div id="label-grafik-tanggal" class="flex justify-between text-[7px] text-slate-400 font-bold mt-0.5 px-1">
-<span>-</span><span>-</span><span>-</span><span>-</span>
 </div>
 </div>
 
@@ -659,15 +656,15 @@ updateFinanceUI();
 }
 
 function tentukanKalenderDasar() {
-const sekarang = new Date();
-document.getElementById("date-masehi").innerText = ClinicalFormatDate(sekarang);
+const parseIntObj = new Date();
+document.getElementById("date-masehi").innerText = ClinicalFormatDate(parseIntObj);
 try {
 const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
 day: 'numeric',
 month: 'long',
 year: 'numeric'
 });
-let formattedDate = formatterHijriah.format(sekarang);
+let formattedDate = formatterHijriah.format(parseIntObj);
 formattedDate = formattedDate.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
 document.getElementById("date-hijriah").innerText = formattedDate;
 } catch (error) {
@@ -947,75 +944,78 @@ console.error("Gagal mengirim data hidrasi ke server:", e);
 }
 }
 
+// ==================== DYNAMIC CHRONOLOGICAL LINE CHART (LEFT-TO-RIGHT) ====================
 function buildLineChart(riwayat) {
-if (!riwayat || riwayat.length < 2) return;
+  if (!riwayat || riwayat.length < 2) return;
 
-const svg = document.getElementById("grafik-svg");
-const labelContainer = document.getElementById("label-grafik-tanggal");
-const values = riwayat.map(item => item.jumlah);
-const minVal = Math.min(...values, 0);
-const maxVal = Math.max(...values, 50); 
-const valRange = maxVal - minVal || 1;
+  const svg = document.getElementById("grafik-svg");
+  
+  // Membalikkan data riwayat dari server agar kronologis berurutan dari kiri ke kanan
+  const chronologicalData = [...riwayat].reverse();
+  
+  const values = chronologicalData.map(item => item.jumlah);
+  const minVal = Math.min(...values, 0);
+  const maxVal = Math.max(...values, 50); 
+  const valRange = maxVal - minVal || 1;
 
-const w = 100; 
-const h = 35; 
-const paddingY = 4;
-const graphH = h - (paddingY * 2);
+  const w = 100; 
+  const h = 35; 
+  const paddingY = 4;
+  const graphH = h - (paddingY * 2);
 
-const points = riwayat.map((item, index) => {
-const x = (index / (riwayat.length - 1)) * w;
-const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
-return { x, y, val: item.jumlah, date: item.tanggal };
-});
+  const points = chronologicalData.map((item, index) => {
+    const x = (index / (chronologicalData.length - 1)) * w;
+    const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
+    return { x, y, val: item.jumlah, date: item.tanggal };
+  });
 
-let pathD = `M ${points[0].x} ${points[0].y}`;
-for (let i = 0; i < points.length - 1; i++) {
-const p0 = points[i];
-const p1 = points[i + 1];
-const cpX1 = p0.x + (p1.x - p0.x) / 2;
-const cpY1 = p0.y;
-const cpX2 = p0.x + (p1.x - p0.x) / 2;
-const cpY2 = p1.y;
-pathD += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+  // Pembuatan spline bezier kubik halus
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i];
+    const p1 = points[i + 1];
+    const cpX1 = p0.x + (p1.x - p0.x) / 2;
+    const cpY1 = p0.y;
+    const cpX2 = p0.x + (p1.x - p0.x) / 2;
+    const cpY2 = p1.y;
+    pathD += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+  }
+
+  let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
+
+  const lastVal = values[values.length - 1] || 0;
+  const prevVal = values[values.length - 2] || 0;
+  
+  let badgeTren = document.getElementById("label-tren");
+  if (lastVal > prevVal) {
+    badgeTren.innerText = "📈 NAIK";
+    badgeTren.className = "text-[7px] font-black bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded";
+  } else if (lastVal < prevVal) {
+    badgeTren.innerText = "📉 TURUN";
+    badgeTren.className = "text-[7px] font-black bg-rose-100 text-rose-700 px-1 py-0.2 rounded";
+  } else {
+    badgeTren.innerText = "↔️ STABIL";
+    badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
+  }
+
+  // Pengaturan gradien warna baru (Merah Muda -> Kuning Amber -> Hijau Produktif)
+  svg.innerHTML = `
+  <defs>
+    <linearGradient id="gradien-area-energetic" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+    </linearGradient>
+    <linearGradient id="gradien-stroke-energetic" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  <path d="${areaD}" fill="url(#gradien-area-energetic)" />
+  <path d="${pathD}" fill="none" stroke="url(#gradien-stroke-energetic)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+  `;
 }
-
-let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
-
-const lastVal = values[values.length - 1] || 0;
-const prevVal = values[values.length - 2] || 0;
-let strokeColor = "#3b82f6"; 
-let badgeTren = document.getElementById("label-tren");
-if (lastVal > prevVal) {
-strokeColor = "#10b981"; 
-badgeTren.innerText = "📈 NAIK";
-badgeTren.className = "text-[7px] font-black bg-emerald-100 text-emerald-700 px-1 py-0.2 rounded";
-} else if (lastVal < prevVal) {
-strokeColor = "#ef4444"; 
-badgeTren.innerText = "📉 TURUN";
-badgeTren.className = "text-[7px] font-black bg-rose-100 text-rose-700 px-1 py-0.2 rounded";
-} else {
-badgeTren.innerText = "↔️ STABIL";
-badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
-}
-
-svg.innerHTML = `
-<defs>
-<linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.25"/>
-<stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0"/>
-</linearGradient>
-</defs>
-<path d="${areaD}" fill="url(#gradien-grafik)" />
-<path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-`;
-
-labelContainer.innerHTML = "";
-riwayat.forEach(item => {
-const el = document.createElement("span");
-el.innerText = item.tanggal;
-labelContainer.appendChild(el);
-});
-}
+// ==================================================================================================
 
 let daftarPotonganKalimat = [];
 let indeksKalimatAktif = 0;
@@ -1262,6 +1262,10 @@ pindahTabCeramah('lihat');
 
 function tutupModalCeramah() { 
 document.getElementById("ceramah-modal").style.display = "none"; 
+}
+
+function phtmlTabCeramah(tab) {
+pindahTabCeramah(tab);
 }
 
 function pindahTabCeramah(tab) {
