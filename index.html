@@ -2,12 +2,9 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
-  <!-- PWA Manifest Link -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -16,16 +13,13 @@
       background: #070d19; 
       margin: 0; 
       padding: 0; 
-      height: 100vh; 
-      height: 100dvh; 
+      min-height: 100vh; 
       display: flex; 
       justify-content: center; 
-      align-items: center;
-      overflow: hidden; /* Menonaktifkan scroll utama pada window browser */
-      user-select: none;
+      overflow-x: hidden; 
     }
     
-    /* Layout Presisi Layar Tunggal Mutlak (Pakem) */
+    /* Layout Presisi Layar Tunggal Tanpa Scrollbar Utama */
     .app-container { 
       width: 100%; 
       max-width: 480px; 
@@ -35,11 +29,10 @@
       display: flex; 
       flex-direction: column; 
       justify-content: space-between; 
-      gap: 4px; /* Gap dipersempit agar pas di berbagai rasio layar */
-      padding: 8px; /* Padding lebih ramping */
-      overflow: hidden; /* Mutlak melarang gulir halaman utama */
+      gap: 5px; 
+      padding: 10px; 
+      overflow-y: auto; 
       position: relative; 
-      box-sizing: border-box;
     }
     
     /* Dark Mode Premium & Glassmorphism */
@@ -47,9 +40,9 @@
     .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
     .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
     
-    /* Scrollbar Halus Asisten AI dan Modals */
-    .scroll-inner::-webkit-scrollbar { width: 3px; }
-    .scroll-inner::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
+    /* Scrollbar Halus Asisten AI */
+    .scroll-ai::-webkit-scrollbar { width: 3px; }
+    .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
     
     #ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal { 
       display: none; 
@@ -123,7 +116,7 @@
           <div class="text-[7.5px] font-bold text-slate-200 tracking-tight truncate flex items-center gap-1">
             <span id="date-masehi">Memuat...</span>
             <span>•</span>
-            <span id="date-hijriah" class="text-blue-200 font-bold">Memuat...</span>
+            <span id="date-hijriah" class="text-blue-200 font-bold">Memuat Hijriah...</span>
           </div>
         </div>
         <div class="flex justify-between items-center mt-0.5">
@@ -142,7 +135,7 @@
     </div>
 
     <div class="bg-black/20 rounded-lg p-0.5 border border-white/10 shadow-inner">
-      <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Kesabaran harian menghasilkan kesuksesan mutlak."</p>
+      <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Kesabaran panjang, menghasilkan kemenangan yang tidak semua orang dapat"</p>
     </div>
   </div>
       
@@ -186,13 +179,14 @@
 
   <!-- ENGLISH, MENULIS & MEMBACA -->
   <div class="grid grid-cols-2 gap-1.5 shrink-0">
-    <a href="https://kerja-nine.vercel.app/" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
+    <a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
       <p class="text-[7.5px] font-bold text-indigo-100 uppercase tracking-wider">🇬🇧 English Hub</p>
       <div class="flex justify-between items-baseline leading-none mt-0.5">
         <span class="text-[8px] font-bold text-white truncate max-w-[80px]">Belajar AI ➔</span>
         <span class="text-xs font-black text-white" id="val-english">0 M</span>
       </div>
     </a>
+
     <div class="grid grid-cols-2 gap-1.5">
       <a href="writer.html" class="block glass-card p-1.5 rounded-xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-menulis">
         <p class="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider">✍️ Menulis</p>
@@ -202,12 +196,11 @@
         </div>
       </a>
 
-      <!-- MEMBACA SEKARANG MENAMPILKAN NILAI POIN LANGSUNG DARI SHEET B10 -->
       <a href="membaca.html" class="block glass-card p-1.5 rounded-xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-membaca">
         <p class="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider">📚 Membaca</p>
         <div class="flex justify-between items-baseline leading-none mt-0.5">
-          <span class="text-[7px] text-slate-500 font-bold">Progres ➔</span>
-          <span class="text-[10px] font-black text-emerald-600" id="val-membaca">0</span>
+          <span class="text-[7px] text-slate-500 font-bold">Buka ➔</span>
+          <span class="text-[10px] font-black text-emerald-600">📖</span>
         </div>
       </a>
     </div>
@@ -252,7 +245,7 @@
     </div>
   </div>
 
-  <!-- GRAFIK TREN MOOD (MINIMALIS & MANIS BERGELOMBANG) -->
+  <!-- GRAFIK TREN MOOD -->
   <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
     <div class="flex justify-between items-center mb-0.5">
       <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -260,7 +253,7 @@
     </div>
     <div id="container-grafik" class="h-10 w-full relative flex items-end justify-between px-1">
       <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
-        <!-- SVG Line chart (Clean curves generated dynamically) -->
+        <!-- SVG Line chart -->
       </svg>
     </div>
     <div id="label-grafik-tanggal" class="flex justify-between text-[7px] text-slate-400 font-bold mt-0.5 px-1">
@@ -268,22 +261,27 @@
     </div>
   </div>
 
-  <!-- KARTU NASEHAT AI (WITTY & MANTEP - PAKEM 3 BARIS) -->
-  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24 overflow-hidden" id="card-rekomendasi-ai">
+  <!-- KARTU NASEHAT AI CEREWET -->
+  <div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
-      <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (WITTY & MANTEP)</span>
+      <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
       <div class="flex items-center gap-1">
         <button onclick="panggilAnalisisRutinitasAI()" class="text-[6.5px] font-black bg-purple-600 hover:bg-purple-700 text-white px-1.5 py-0.5 rounded-full transition active:scale-95">🔄 SYNC</button>
+        <span class="text-[6.5px] font-black bg-purple-100 text-purple-700 px-1 py-0.5 rounded-full">60s</span>
       </div>
     </div>
-    <div class="flex-1 overflow-hidden flex flex-col justify-center">
-      <p id="ai-rutinitas-teks" class="text-[10px] text-slate-700 dark:text-slate-200 font-bold leading-normal transition-all duration-300 line-clamp-3 text-justify">
-        Mengambil nasehat emas Mas Fuqohak...
+    <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
+      <div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
+        <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
+        Mengkalkulasi koordinasi waktu produktif Anda...
+      </div>
+      <p id="ai-rutinitas-teks" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
+        Menghubungkan satelit harian...
       </p>
     </div>
   </div>
 
-  <!-- SCAN MAKANAN LINK -->
+  <!-- SCAN MAKANAN LINK (Ditempatkan di atas finansial agar permanen) -->
   <div class="shrink-0 mt-0.5" id="container-scan-makanan">
     <a href="makanan.html" id="btn-upload" class="bg-gradient-to-r from-slate-900 to-slate-950 text-white rounded-xl p-1.5 shadow-sm flex items-center justify-center gap-1.5 hover:from-slate-800 hover:to-slate-900 active:scale-95 transition duration-300 border border-slate-800">
       <span class="text-xs">📸</span>
@@ -291,7 +289,7 @@
     </a>
   </div>
 
-  <!-- DOMPET FINANSIAL GLOBAL -->
+  <!-- DOMPET FINANSIAL GLOBAL (VIP BLACK CARD PREMIUM DENGAN TIGA METRIK - UKURAN DIRAMPINGKAN) -->
   <div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-2 px-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-24" id="card-keuangan">
     <div class="flex justify-between items-start leading-none">
       <div class="flex flex-col">
@@ -299,6 +297,7 @@
         <span class="text-[5.5px] font-extrabold text-slate-400 tracking-wider mt-0.5">AVAILABLE NET BALANCE</span>
         <h3 id="keuangan-saldo" class="text-sm font-black tracking-tight text-white drop-shadow-sm mt-0.5">Rp 0</h3>
       </div>
+      <!-- Chip Kartu Kredit Fiktif Ramping -->
       <div class="w-6 h-4 bg-gradient-to-br from-yellow-300 to-amber-500 rounded opacity-85 shadow border border-yellow-400/30 flex items-center justify-center overflow-hidden">
         <div class="grid grid-cols-3 gap-[1px] w-full h-full p-0.5 opacity-70">
           <div class="border-[0.5px] border-black/40 rounded-sm"></div>
@@ -509,7 +508,7 @@
 
 <script>
 // URL API UTAMA SINKRONISASI DATABASE (UIN)
-const API_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 // URL WEB APP APPS SCRIPT KEUANGAN (REAL-TIME SINKRONISASI SHEET INDEPENDEN)
 const FINANCE_API_URL = "https://script.google.com/macros/s/AKfycbyFtPge1Q14hGryBzYTGtAnf7BZrvx0D8qtq-XX2h8ruHlaBLSMiagWDHQAoh7jDgeMNg/exec";
@@ -521,14 +520,6 @@ const KUMPULAN_TEMA = [
   "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
   "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
   "linear-gradient(135deg, #047857 0%, #059669 100%)"
-];
-
-const NASEHAT_LOKAL = [
-  "Lelah boleh, menyerah jangan. Kesempatan menang hanya ada bagi yang memilih tetap bertahan di arena pertempuran.",
-  "Setiap detak jarum jam adalah pengurangan modal hidup. Ambil jeda siang secukupnya, lalu tuntaskan misi utama hari ini.",
-  "Disiplin yang ketat membedakan sang visioner profesional dengan pemimpi amatir. Mulailah dari shalat berjamaah tepat waktu.",
-  "Rencana hebat tanpa eksekusi harian hanyalah halusinasi. Tulis progres tulisanmu, meski hanya satu paragraf berkualitas.",
-  "Membaca memperluas cakrawala, sementara hidrasi menjaga fokus otak. Jangan biarkan layar ponsel merampas produktivitasmu."
 ];
 
 // Data cadangan berdasarkan isi tabel Google Sheet KEUANGAN terbaru Anda
@@ -582,22 +573,13 @@ window.onload = async function() {
   tentukanKalenderDasar();
   terapkanSistemTema();
   evaluasiVisualModeMalam();
-  tampilkanNasehatOffline();
   
-  // 1. Ambil data dari cache lokal terlebih dahulu (INSTANT LOAD - ANTI STUCK)
   muatDataDariOffline(); 
   
-  // 2. Registrasi PWA Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => {
-      console.log('Fuqohak PWA Service Worker Registered!');
-    }).catch(err => console.warn('PWA Register Failed', err));
-  }
-
-  // 3. Ambil data dashboard dasar di latar belakang
+  // Ambil data dashboard dasar
   await loadDashboard();
   
-  // 4. Ambil data keuangan riil dari sheet
+  // Ambil data keuangan riil dari sheet
   await fetchFinanceData();
   
   setTimeout(() => {
@@ -641,11 +623,26 @@ function muatDataDariOffline() {
   }
 }
 
-// FORMAT KALENDER MASEHI & HIJRIAH SERVER-SIDE SINKRON
+// FORMAT KALENDER MASEHI & PERHITUNGAN OTOMATIS TANGGAL HIJRIAH (UMM AL-QURA)
 function tentukanKalenderDasar() {
   const sekarang = new Date();
   document.getElementById("date-masehi").innerText = ClinicalFormatDate(sekarang);
-  document.getElementById("date-hijriah").innerText = "Memuat Hijriah...";
+  
+  // Perhitungan otomatis Kalender Hijriah Umm Al-Qura melalui API Internal Browser
+  try {
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    let formattedDate = formatterHijriah.format(sekarang);
+    // Konversi notasi teks standard Hijriah agar presisi dan rapi
+    formattedDate = formattedDate.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
+    document.getElementById("date-hijriah").innerText = formattedDate;
+  } catch (error) {
+    // Estimasi manual cadangan apabila browser tidak mendukung parser Umm al-Qura
+    document.getElementById("date-hijriah").innerText = "15 Safar 1448 H";
+  }
 }
 
 function ClinicalFormatDate(d) {
@@ -795,6 +792,7 @@ function updateFinanceUI() {
     }
     
     containerLog.innerHTML = "";
+    // Urutkan transaksi terbaru di posisi paling atas
     const listTampilkan = [...globalKeuangan.transaksi].reverse();
     
     listTampilkan.forEach(tx => {
@@ -830,7 +828,7 @@ function updateFinanceUI() {
 }
 
 function renderDataKeLayar(data) {
-  // Tanggal Hijriah konsisten mutlak dari server
+  // Hanya jika API eksternal secara eksplisit mengesampingkan kalkulasi internal
   if (data["HIJRIAH_FIXED"]) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
@@ -843,26 +841,24 @@ function renderDataKeLayar(data) {
   globalCeramah = data["LIST_CERAMAH"] || [];
   globalRutinitas = data["RUTINITAS"] || [];
   
-  // Mood Tanpa Angka (Pembersihan tanda kurung nilai numerik)
   const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
-  let moodClean = teksMoodAsli.replace(/\s*\(\d+(\.\d+)?\)/g, "").trim().toUpperCase();
-  currentMoodStatus = moodClean;
+  currentMoodStatus = teksMoodAsli;
   
   let textMoodElement = document.getElementById("user-mood");
   let textMustDoElement = document.getElementById("user-must-do");
   
-  textMoodElement.innerText = moodClean;
+  textMoodElement.innerText = teksMoodAsli;
 
-  if (moodClean.includes("BURUK") || moodClean.includes("TURUN") || moodClean.includes("LELAH")) {
-    textMoodElement.innerText = "😞 " + moodClean;
+  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+    textMoodElement.innerText = "😞 " + teksMoodAsli;
     textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, bangkit!";
     textMustDoElement.className = "text-[7px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
-  } else if (moodClean.includes("STABIL")) {
-    textMoodElement.innerText = "😊 " + moodClean;
+  } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+    textMoodElement.innerText = "😊 " + teksMoodAsli;
     textMustDoElement.innerText = "Kondisi Stabil! Jaga ritme ibadah & produktivitas.";
     textMustDoElement.className = "text-[7px] font-black text-emerald-200 uppercase tracking-tight";
   } else {
-    textMoodElement.innerText = "🔥 " + moodClean;
+    textMoodElement.innerText = "🔥 " + teksMoodAsli;
     textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
     textMustDoElement.className = "text-[7px] font-black text-rose-200 uppercase tracking-tight";
   }
@@ -888,6 +884,7 @@ function renderDataKeLayar(data) {
     labelKonsistensi.className = "text-[7px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded-full";
   }
 
+  // Jika respon utama (UIN) mengirimkan tab keuangan terintegrasi, lakukan rendering langsung
   if (data["KEUANGAN"] && Array.isArray(data["KEUANGAN"].transaksi) && data["KEUANGAN"].transaksi.length > 0) {
     globalKeuangan.pemasukan = Number(data["KEUANGAN"].pemasukan || 0);
     globalKeuangan.pengeluaran = Number(data["KEUANGAN"].pengeluaran || 0);
@@ -896,7 +893,7 @@ function renderDataKeLayar(data) {
     updateFinanceUI();
   }
 
-  // Sinkronisasi log air harian
+  // Sinkronisasi log air dengan kunci lokal (anti-flicker)
   const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
   const selisihWaktu = Date.now() - localWaterState.lastUpdated;
   
@@ -913,7 +910,6 @@ function renderDataKeLayar(data) {
   document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
   document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
   document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
-  document.getElementById("val-membaca").innerText = data["MEMBACA"]?.value || 0;
   
   document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
   document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
@@ -926,7 +922,7 @@ function renderDataKeLayar(data) {
   }
 }
 
-// UPDATE LOG HIDRASI AIR
+// UPDATE LOG HIDRASI AIR (INSTAN TANPA JEDA)
 async function tambahAir() {
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
@@ -952,7 +948,6 @@ async function tambahAir() {
   }
 }
 
-// PEMBANGUNAN GRAFIK ESTETIK BERGELOMBANG (SUMBU X RAPI & TANPA ANGKA PENUMPUK)
 function buildLineChart(riwayat) {
   if (!riwayat || riwayat.length === 0) return;
 
@@ -961,12 +956,12 @@ function buildLineChart(riwayat) {
   
   const values = riwayat.map(item => item.jumlah);
   const minVal = Math.min(...values, 0);
-  const maxVal = Math.max(...values, 100); 
+  const maxVal = Math.max(...values, 50); 
   const valRange = maxVal - minVal || 1;
 
   const w = 100; 
   const h = 35;  
-  const paddingY = 4;
+  const paddingY = 6;
   const graphH = h - (paddingY * 2);
 
   const points = riwayat.map((item, index) => {
@@ -975,16 +970,9 @@ function buildLineChart(riwayat) {
     return { x, y, val: item.jumlah, date: item.tanggal };
   });
 
-  // Pembuatan kurva mulus dengan bezier interpolation
   let pathD = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i];
-    const p1 = points[i + 1];
-    const cpX1 = p0.x + (p1.x - p0.x) / 2;
-    const cpY1 = p0.y;
-    const cpX2 = p0.x + (p1.x - p0.x) / 2;
-    const cpY2 = p1.y;
-    pathD += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+  for (let i = 1; i < points.length; i++) {
+    pathD += ` L ${points[i].x} ${points[i].y}`;
   }
 
   let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
@@ -1007,44 +995,30 @@ function buildLineChart(riwayat) {
     badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
   }
 
-  // Menghapus elemen teks numerik di atas sumbu melingkar agar visual bersih
   svg.innerHTML = `
     <defs>
       <linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.25"/>
+        <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.35"/>
         <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0"/>
       </linearGradient>
     </defs>
     <path d="${areaD}" fill="url(#gradien-grafik)" />
-    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
     ${points.map(p => `
-      <circle cx="${p.x}" cy="${p.y}" r="0.8" fill="#ffffff" stroke="${strokeColor}" stroke-width="0.5" />
+      <circle cx="${p.x}" cy="${p.y}" r="1.5" fill="#ffffff" stroke="${strokeColor}" stroke-width="1" />
+      <text x="${p.x}" y="${p.y - 4}" font-size="3" font-weight="900" fill="${modeMalamManual ? '#e2e8f0' : '#1e293b'}" text-anchor="middle">${p.val}</text>
     `).join('')}
   `;
 
-  // Filter distribusi sumbu tanggal agar tidak tumpang tindih
   labelContainer.innerHTML = "";
-  const step = Math.ceil(riwayat.length / 4);
-  riwayat.forEach((item, index) => {
+  riwayat.forEach(item => {
     const el = document.createElement("span");
-    if (index % step === 0 || index === riwayat.length - 1) {
-      el.innerText = item.tanggal;
-    } else {
-      el.innerText = "";
-    }
+    el.innerText = item.tanggal;
     labelContainer.appendChild(el);
   });
 }
 
-// SINKRONISASI ASISTEN AI (WITTY & SELALU SINKRON)
-function tampilkanNasehatOffline() {
-  const acak = NASEHAT_LOKAL[Math.floor(Math.random() * NASEHAT_LOKAL.length)];
-  const teksEl = document.getElementById("ai-rutinitas-teks");
-  teksEl.innerText = acak;
-}
-
-// MEMANGGIL REKOMENDASI REAL DARI ENDPOINT ASISTEN AI
-// REKOMENDASI AI REAL-TIME (MURNI HASIL PIKIRAN AI AGENT)
+// REKOMENDASI AI PERSONAL
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1054,13 +1028,11 @@ async function panggilAnalisisRutinitasAI() {
     aiRotationInterval = null;
   }
   
-  // Tampilkan indikator loading real-time
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
-  teksEl.style.opacity = "0";
   
   if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
-    loadingEl.innerText = "Konfigurasi satelit AI belum lengkap.";
+    loadingEl.innerText = "Konfigurasi URL Web App personal di index.html belum selesai.";
     return;
   }
   
@@ -1080,30 +1052,31 @@ async function panggilAnalisisRutinitasAI() {
         
         tampilkanNasehatAktif();
         
-        // Rotasi hasil pemikiran AI
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
         }, 60000); 
-        return;
+        
+      } else {
+        throw new Error("Struktur nasehat kosong.");
       }
+    } else {
+      throw new Error("Format respons tidak valid.");
     }
-    throw new Error("Format respons AI tidak valid.");
   } catch(e) {
-    console.error("Gagal sinkronisasi asisten AI:", e);
-    // Menampilkan status error real-time, tidak menampilkan isi dari local storage
-    loadingEl.innerText = "Gagal memproses rekomendasi pikiran AI. Ketuk SYNC untuk mengulang.";
+    console.error("Gagal menghubungkan asisten AI.", e);
+    loadingEl.innerText = "Gagal memproses rekomendasi. Ketuk SYNC untuk mengulang.";
   }
 }
+
 async function tampilkanNasehatAktif() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
   teksEl.classList.remove("opacity-100");
   teksEl.classList.add("opacity-0");
+  
   await new Promise(r => setTimeout(r, 400));
   
-  if (localAiAdvices[currentAdviceIndex]) {
-    teksEl.innerText = localAiAdvices[currentAdviceIndex];
-  }
+  teksEl.innerText = localAiAdvices[currentAdviceIndex];
   teksEl.classList.remove("opacity-0");
   teksEl.classList.add("opacity-100");
 }
