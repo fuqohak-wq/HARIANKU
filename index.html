@@ -1044,6 +1044,7 @@ function tampilkanNasehatOffline() {
 }
 
 // MEMANGGIL REKOMENDASI REAL DARI ENDPOINT ASISTEN AI
+// REKOMENDASI AI REAL-TIME (MURNI HASIL PIKIRAN AI AGENT)
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1053,13 +1054,13 @@ async function panggilAnalisisRutinitasAI() {
     aiRotationInterval = null;
   }
   
-  // Tampilkan indikator memuat data real-time
+  // Tampilkan indikator loading real-time
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
   teksEl.style.opacity = "0";
   
   if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
-    loadingEl.innerText = "Satelit AI belum dikonfigurasi.";
+    loadingEl.innerText = "Konfigurasi satelit AI belum lengkap.";
     return;
   }
   
@@ -1068,7 +1069,6 @@ async function panggilAnalisisRutinitasAI() {
     const result = await response.json();
     
     if (result.success && Array.isArray(result.nasehat)) {
-      // Ekstrak data nasehat murni dari hasil eksekusi AI Agent
       localAiAdvices = result.nasehat.map(item => {
         return item.replace(/[\*\#_]/g, '').trim();
       }).filter(item => item.length > 15);
@@ -1080,7 +1080,7 @@ async function panggilAnalisisRutinitasAI() {
         
         tampilkanNasehatAktif();
         
-        // Rotasi nasehat real-time berkala
+        // Rotasi hasil pemikiran AI
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
@@ -1088,15 +1088,11 @@ async function panggilAnalisisRutinitasAI() {
         return;
       }
     }
-    throw new Error("Struktur data kosong.");
+    throw new Error("Format respons AI tidak valid.");
   } catch(e) {
-    console.warn("Gagal menarik data asisten AI. Mengaktifkan cadangan luring.");
-    
-    // Aktifkan cadangan luring jika server AI sedang sibuk/kehabisan kuota limit API
-    tampilkanNasehatOffline();
-    loadingEl.classList.add("hidden");
-    teksEl.classList.remove("hidden");
-    teksEl.style.opacity = "1";
+    console.error("Gagal sinkronisasi asisten AI:", e);
+    // Menampilkan status error real-time, tidak menampilkan isi dari local storage
+    loadingEl.innerText = "Gagal memproses rekomendasi pikiran AI. Ketuk SYNC untuk mengulang.";
   }
 }
 async function tampilkanNasehatAktif() {
