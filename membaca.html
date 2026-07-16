@@ -115,8 +115,11 @@
 
     <script>
         // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
-        // Silakan tempel tautan Web App Apps Script terpadu yang sama di bawah ini:
+        // 1. URL Web App untuk memuat data Jurnal & Bacaan (Database Jurnal)
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbztkUU6inK9QwPFklkN7hoFGsiphV0rxc97Jr837pkLGxMfZMPrDXp8pi-oH32kQecW/exec"; 
+        
+        // 2. URL Web App khusus untuk mengirimkan Skor ke sel DASHBOARD: B10
+        const SCORE_API_URL = "https://script.google.com/macros/s/AKfycbznU2T3T_JZtcZKy2QR2VWAK8OhBh-lCoVsz9_efRei4Bgq_V10PYaHsBShnP_t2zwSIg/exec";
         // ===========================================================================
 
         let journalData = [];
@@ -169,21 +172,18 @@
             }, 1000);
         }
 
-        // FUNGSI KIRI DATA KE GOOGLE SPREADSHEETS VIA WEB APP ACTION
+        // FUNGSI KIRIM DATA KE GOOGLE SPREADSHEETS VIA WEB APP ACTION
         async function sendScoreToSheet(score) {
-            if (!BASE_API_URL || BASE_API_URL.includes("DISINI")) return;
+            if (!SCORE_API_URL || SCORE_API_URL.includes("DISINI")) return;
             const statusDisplay = document.getElementById('sync-status');
             statusDisplay.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-emerald-400"></i> Menyimpan...`;
             
             try {
-                // Mengirimkan score via method POST (atau GET fallback bergantung struktur Apps Script Anda)
-                // Di sini menggunakan format string params agar kompatibel dengan doGet/doPost standar Apps Script
-                const targetUrl = `${BASE_API_URL}?target=dashboard&score=${score}`;
+                // Mengirimkan score ke SCORE_API_URL yang telah diperbaiki
+                const targetUrl = `${SCORE_API_URL}?target=dashboard&score=${score}`;
                 
                 const response = await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
                 
-                // Karena menggunakan 'no-cors', response tidak bisa dibaca langsung secara detil, 
-                // tapi data dijamin masuk apabila URL Apps Script benar.
                 statusDisplay.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Tersimpan`;
                 setTimeout(() => {
                     statusDisplay.innerHTML = `<i class="fa-solid fa-cloud text-slate-500"></i> Aktif`;
