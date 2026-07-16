@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Fuqohak Executive Tracker</title>
   <meta name="theme-color" content="#1e56e3">
-  <!-- PWA Manifest Link -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,11 +20,10 @@
       display: flex; 
       justify-content: center; 
       align-items: center;
-      overflow: hidden; /* Mencegah scroll di tingkat window browser */
+      overflow: hidden; 
       user-select: none;
     }
     
-    /* Layout Presisi Layar Tunggal Mutlak (Pakem) */
     .app-container { 
       width: 100%; 
       max-width: 480px; 
@@ -38,16 +36,14 @@
       gap: 6px; 
       padding: 10px; 
       box-sizing: border-box;
-      overflow: hidden; /* Mutlak mengunci gulir halaman utama */
+      overflow: hidden; 
       position: relative; 
     }
     
-    /* Dark Mode Premium & Glassmorphism */
     .dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
     .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
     .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
     
-    /* Custom Scrollbar Halus untuk container scroll internal */
     .scroll-inner::-webkit-scrollbar { width: 3px; }
     .scroll-inner::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
     
@@ -74,7 +70,6 @@
       padding: 16px; 
     }
 
-    /* VIP Black Card Premium Neon Glow */
     @keyframes vip-neon-glow {
       0%, 100% {
         box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), 0 0 20px rgba(59, 130, 246, 0.15);
@@ -236,7 +231,7 @@
     </div>
   </div>
 
-  <!-- GRAFIK TREN MOOD (TAMPILAN DISEDERHANAKAN AGAR LEBIH MANIS) -->
+  <!-- GRAFIK TREN MOOD -->
   <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
     <div class="flex justify-between items-center mb-0.5">
       <span class="text-[7px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -244,7 +239,7 @@
     </div>
     <div id="container-grafik" class="h-11 w-full relative flex items-end justify-between px-1">
       <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
-        <!-- SVG Line chart (Clean Wave-curve generated below) -->
+        <!-- SVG Line chart -->
       </svg>
     </div>
     <div id="label-grafik-tanggal" class="flex justify-between text-[6.5px] text-slate-400 font-bold mt-0.5 px-1">
@@ -252,7 +247,7 @@
     </div>
   </div>
 
-  <!-- KARTU NASEHAT AI CEREWET (PAKEM 3 BARIS & SELALU MUNCUL SINKRON) -->
+  <!-- KARTU NASEHAT AI CEREWET -->
   <div class="glass-card p-2 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-20 overflow-hidden" id="card-rekomendasi-ai">
     <div class="flex justify-between items-center mb-1 border-b border-purple-500/10 pb-0.5">
       <span class="text-[7px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (WITTY & MANTEP)</span>
@@ -313,7 +308,6 @@
 
 </div>
 
-<!-- MODALS (SAMA SEPERTI SEBELUMNYA TAPI DIKUNCI SCROLL) -->
 <!-- MODAL CERAMAH -->
 <div id="ceramah-modal" onclick="tutupModalCeramah()">
   <div class="full-modal-content" onclick="event.stopPropagation()">
@@ -390,7 +384,6 @@
 // URL WEB APP APPS SCRIPT ANDA
 const API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
-// Kumpulan Nasehat Witty & Memahaknan Offline (Mencegah Error/Selalu Tampil Instan)
 const NASEHAT_LOKAL = [
   "Lelah boleh, menyerah jangan. Kesempatan menang hanya ada bagi yang memilih tetap bertahan di arena pertempuran.",
   "Setiap detak jarum jam adalah pengurangan modal hidup. Ambil jeda siang secukupnya, lalu tuntaskan misi utama hari ini.",
@@ -409,13 +402,17 @@ window.onload = async function() {
   evaluasiVisualModeMalam();
   tampilkanNasehatOffline();
   
-  // Daftarkan Service Worker PWA
+  // 1. Load data cache lokal terlebih dahulu (INSTANT LOAD - ANTI STUCK) [1]
+  muatDataDariOffline();
+
+  // 2. Registrasi PWA Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => {
       console.log('Fuqohak PWA Service Worker Registered!');
     }).catch(err => console.warn('PWA Register Failed', err));
   }
 
+  // 3. Tarik data sinkronisasi terbaru dari server di latar belakang [1]
   await loadDashboard();
 };
 
@@ -427,27 +424,51 @@ function tentukanKalenderDasar() {
   document.getElementById("date-masehi").innerText = `${weekday}, ${day} ${month}`;
 }
 
+// FUNGSI MEMBACA CACHE LOKAL DI AWAL [1]
+function muatDataDariOffline() {
+  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+  if (cacheData) {
+    try {
+      renderDataKeLayar(JSON.parse(cacheData));
+    } catch(e) { console.error("Cache utama tidak terbaca:", e); }
+  }
+
+  const financeCache = localStorage.getItem("fuqohak_finance_cache");
+  if (financeCache) {
+    try {
+      globalKeuangan = JSON.parse(financeCache);
+      updateFinanceUI();
+    } catch(e) { console.error("Cache finansial gagal dimuat:", e); }
+  } else {
+    updateFinanceUI();
+  }
+}
+
 async function loadDashboard() {
   try {
     const res = await fetch(API_URL + "?api=1");
+    if (!res.ok) throw new Error("Koneksi gagal");
     const json = await res.json();
     if (json.status === "success" && json.data) {
+      // Simpan ke Cache Lokal [1]
+      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
+      if (json.data.KEUANGAN) {
+        localStorage.setItem("fuqohak_finance_cache", JSON.stringify(json.data.KEUANGAN));
+      }
       renderDataKeLayar(json.data);
     }
   } catch (e) {
-    console.warn("Memuat mode cadangan.");
+    console.warn("Gagal sinkronisasi data terbaru. Menggunakan data offline.");
+    document.getElementById("user-must-do").innerText = "OFFLINE - MENGGUNAKAN DATA LOKAL";
   }
 }
 
 function renderDataKeLayar(data) {
-  // Penanggalan hijriah pakem dari kalkulasi konsisten server
   if (data["HIJRIAH_FIXED"]) {
     document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
   }
 
-  // Teks mood dipotong langsung (Teks saja tanpa angka/skor di belakangnya)
   let moodRaw = data["MOOD_STATUS"]?.value || "LELAH";
-  // Menghapus notasi angka dalam tanda kurung jika ada (misal: "LELAH (38.4)" -> "LELAH")
   let moodClean = moodRaw.replace(/\s*\(\d+(\.\d+)?\)/g, "").trim();
   
   const textMoodElement = document.getElementById("user-mood");
@@ -475,7 +496,6 @@ function renderDataKeLayar(data) {
   document.getElementById("val-shalat").innerText = (data["SHALAT JAMAAH"]?.value || 0) + "/7";
   document.getElementById("val-murojaah").innerText = (data["MUROJAAH"]?.value || 0) + "/3";
   
-  // Konsistensi spiritual harian
   const totalSpiritual = Number(data["SHALAT JAMAAH"]?.value || 0) + Number(data["MUROJAAH"]?.value || 0);
   const persentaseSpiritual = Math.min((totalSpiritual / 10) * 100, 100);
   document.getElementById("val-konsistensi").innerText = persentaseSpiritual.toFixed(0) + "%";
@@ -489,26 +509,22 @@ function renderDataKeLayar(data) {
   const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
   document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
-  // Render motivasi AI harian dari server atau fallback lokal
   if (data["MOTIVASI"]?.value) {
     document.getElementById("ai-rutinitas-teks").innerText = data["MOTIVASI"].value;
   } else {
     tampilkanNasehatOffline();
   }
 
-  // Grafik Estetik (Sumbu X rapi, nilai numerik di atas kurva dihilangkan)
   if (data["RIWAYAT"]) {
     buildLineChartClean(data["RIWAYAT"]);
   }
 
-  // Integrasi finansial global
   if (data["KEUANGAN"]) {
     globalKeuangan = data["KEUANGAN"];
     updateFinanceUI();
   }
 }
 
-// FUNGSI MEMBANGUN GRAFIK MINIMALIS BERGELOMBANG YANG LEBIH MANIS
 function buildLineChartClean(riwayat) {
   if (!riwayat || riwayat.length === 0) return;
 
@@ -531,7 +547,6 @@ function buildLineChartClean(riwayat) {
     return { x, y, val: item.jumlah, date: item.tanggal };
   });
 
-  // Pembuatan garis mulus menggunakan bezier curve spline (Gelombang Halus)
   let pathD = `M ${points[0].x} ${points[0].y}`;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i];
@@ -545,7 +560,6 @@ function buildLineChartClean(riwayat) {
 
   let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
 
-  // Hilangkan pencantuman teks p.val di atas lingkaran node untuk menyederhanakan grafik
   svg.innerHTML = `
     <defs>
       <linearGradient id="gradien-grafik" x1="0" y1="0" x2="0" y2="1">
@@ -561,7 +575,6 @@ function buildLineChartClean(riwayat) {
   `;
 
   labelContainer.innerHTML = "";
-  // Tampilkan hanya 4 label tanggal terdistribusi merata agar tidak bertumpuk padat
   const step = Math.ceil(riwayat.length / 4);
   riwayat.forEach((item, index) => {
     const el = document.createElement("span");
@@ -584,7 +597,6 @@ async function panggilAnalisisRutinitasAI() {
   await loadDashboard();
 }
 
-// LOG HIDRASI INSTAN
 async function tambahAir() {
   let airElement = document.getElementById("val-air");
   let airSekarang = Number(airElement.innerText);
@@ -599,7 +611,6 @@ async function tambahAir() {
   } catch(e) { console.error(e); }
 }
 
-// FUNGSI FINANSIAL
 function updateFinanceUI() {
   const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
   document.getElementById("keuangan-saldo").innerText = formatter.format(globalKeuangan.saldo);
@@ -613,7 +624,6 @@ function bukaModalKeuangan() {
 }
 function tutupModalKeuangan() { document.getElementById("keuangan-modal").style.display = "none"; }
 
-// MODAL TUGAS
 function bukaModalTugas() { document.getElementById("tugas-modal").style.display = "flex"; pindahTabTugas('lihat'); }
 function tutupModalTugas() { document.getElementById("tugas-modal").style.display = "none"; }
 function pindahTabTugas(t) {
@@ -655,7 +665,6 @@ async function simpanTugasBaruDariModal() {
   } catch(e){}
 }
 
-// MODAL CERAMAH
 function bukaModalCeramah() { document.getElementById("ceramah-modal").style.display = "flex"; pindahTabCeramah('lihat'); }
 function tutupModalCeramah() { document.getElementById("ceramah-modal").style.display = "none"; }
 function pindahTabCeramah(t) {
