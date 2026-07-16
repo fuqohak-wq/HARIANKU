@@ -4,9 +4,9 @@
   "description": "Premium Executive Daily & Finance Tracker for Mas Fuqohak",
   "start_url": "index.html",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "background_color": "#070d19",
   "theme_color": "#1e56e3",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "icon-192.png",
