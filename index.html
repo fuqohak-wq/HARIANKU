@@ -40,7 +40,7 @@ position: relative;
 /* Scrollbar Halus Asisten AI */
 .scroll-ai::-webkit-scrollbar { width: 3px; }
 .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
-#ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal { 
+#ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal, #english-modal { 
 display: none; 
 position: fixed; 
 inset: 0; 
@@ -173,13 +173,14 @@ top: 100%;
 
 <!-- ENGLISH, MENULIS & MEMBACA -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
-<a href="https://script.google.com/macros/s/AKfycbx0UN_1X-YIUfqhyEMowAT5eQOafp04Dfhwqbx4B5goc6PnzKgZTYCFyWFX1go2yWD2/exec" target="_blank" class="block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
+<!-- ENGLISH HUB DENGAN FRAME INTERNAL -->
+<div onclick="bukaModalEnglish()" class="cursor-pointer block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
 <p class="text-[7.5px] font-bold text-indigo-100 uppercase tracking-wider">🇬🇧 English Hub</p>
 <div class="flex justify-between items-baseline leading-none mt-0.5">
 <span class="text-[8px] font-bold text-white truncate max-w-[80px]">Belajar AI ➔</span>
 <span class="text-xs font-black text-white" id="val-english">0 M</span>
 </div>
-</a>
+</div>
 
 <div class="grid grid-cols-2 gap-1.5">
 <a href="writer.html" class="block glass-card p-1.5 rounded-xl shadow-sm hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between" id="card-menulis">
@@ -321,6 +322,22 @@ Menghubungkan satelit harian...
 </div>
 </div>
 
+</div>
+
+<!-- MODAL ENGLISH HUB (IFRAME INTEGRATED) -->
+<div id="english-modal" onclick="tutupModalEnglish()">
+<div class="full-modal-content !p-0" onclick="event.stopPropagation()">
+<div class="flex justify-between items-center bg-slate-950 p-2.5 border-b border-white/10 shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="text-xs">🇬🇧</span>
+<span class="text-[9px] font-black text-white uppercase tracking-wider">English Hub App Frame</span>
+</div>
+<button onclick="tutupModalEnglish()" class="text-[8px] bg-red-600 hover:bg-red-700 text-white font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">TUTUP FRAME</button>
+</div>
+<div class="flex-1 w-full bg-white relative overflow-hidden">
+<iframe id="english-iframe" src="" class="w-full h-full border-none" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>
+</div>
+</div>
 </div>
 
 <!-- MODAL AI RESULT -->
@@ -499,7 +516,7 @@ Buka Dashboard Bekerja ➔
 <script>
 // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
 // Silakan tempel tautan Web App Apps Script terpadu Anda di bawah ini:
-const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
+const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
 
 // Pembagian Endpoint Secara Terstruktur & Otomatis
 const API_URL = BASE_WEB_APP_URL;
@@ -964,45 +981,60 @@ labelContainer.appendChild(el);
 });
 }
 
+// REKOMENDASI AI PERSONAL DENGAN TOLERANSI SYSTEM OFFLINE CADANGAN
 async function panggilAnalisisRutinitasAI() {
-const loadingEl = document.getElementById("ai-rutinitas-loading");
-const teksEl = document.getElementById("ai-rutinitas-teks");
-if (aiRotationInterval) {
-clearInterval(aiRotationInterval);
-aiRotationInterval = null;
-}
-loadingEl.classList.remove("hidden");
-teksEl.classList.add("hidden");
-if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) {
-loadingEl.innerText = "Konfigurasi URL Web App personal di index.html belum selesai.";
-return;
-}
-try {
-const response = await fetch(PERSONAL_AI_URL);
-const result = await response.json();
-if (result.success && Array.isArray(result.nasehat)) {
-localAiAdvices = result.nasehat.map(item => {
-return item.replace(/[\*\#_]/g, '').trim();
-}).filter(item => item.length > 15);
-if (localAiAdvices.length > 0) {
-loadingEl.classList.add("hidden");
-teksEl.classList.remove("hidden");
-currentAdviceIndex = 0;
-tampilkanNasehatAktif();
-aiRotationInterval = setInterval(() => {
-currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
-tampilkanNasehatAktif();
-}, 60000); 
-} else {
-throw new Error("Struktur nasehat kosong.");
-}
-} else {
-throw new Error("Format respons tidak valid.");
-}
-} catch(e) {
-console.error("Gagal menghubungkan asisten AI.", e);
-loadingEl.innerText = "Gagal memproses rekomendasi. Ketuk SYNC untuk mengulang.";
-}
+  const loadingEl = document.getElementById("ai-rutinitas-loading");
+  const teksEl = document.getElementById("ai-rutinitas-teks");
+  
+  if (aiRotationInterval) {
+    clearInterval(aiRotationInterval);
+    aiRotationInterval = null;
+  }
+  
+  loadingEl.classList.remove("hidden");
+  teksEl.classList.add("hidden");
+  
+  if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) {
+    loadingEl.innerText = "Konfigurasi URL Web App personal belum diisi.";
+    return;
+  }
+  
+  try {
+    const controller = new AbortController();
+    const idTimeout = setTimeout(() => controller.abort(), 6000); // Batas waktu tunggu 6 detik
+    
+    const response = await fetch(PERSONAL_AI_URL, { signal: controller.signal });
+    clearTimeout(idTimeout);
+    
+    const result = await response.json();
+    if (result && result.success && Array.isArray(result.nasehat)) {
+      localAiAdvices = result.nasehat.map(item => {
+        return item.replace(/[\*\#_]/g, '').trim();
+      }).filter(item => item.length > 5);
+    }
+  } catch(e) {
+    console.warn("Koneksi sibuk, memuat saran cadangan offline.", e);
+  } finally {
+    // Sistem Cadangan Otomatis (Jika jaringan terputus / dibatasi Google)
+    if (!localAiAdvices || localAiAdvices.length === 0) {
+      localAiAdvices = [
+        "💧 Jangan lupa minum air putih minimal 8 gelas hari ini untuk menjaga konsentrasi Anda.",
+        "📱 Kurangi waktu menatap layar telepon genggam demi kesehatan mata dan produktivitas harian.",
+        "🕌 Luangkan waktu untuk shalat jamaah tepat waktu di masjid agar aktivitas hari ini lebih berkah.",
+        "📖 Tetap istiqomah melakukan murojaah hafalan di sela-sela kesibukan harian Anda."
+      ];
+    }
+    
+    loadingEl.classList.add("hidden");
+    teksEl.classList.remove("hidden");
+    currentAdviceIndex = 0;
+    tampilkanNasehatAktif();
+    
+    aiRotationInterval = setInterval(() => {
+      currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
+      tampilkanNasehatAktif();
+    }, 30000); // Rotasi nasehat setiap 30 detik
+  }
 }
 
 async function tampilkanNasehatAktif() {
@@ -1013,6 +1045,19 @@ await new Promise(r => setTimeout(r, 400));
 teksEl.innerText = localAiAdvices[currentAdviceIndex];
 teksEl.classList.remove("opacity-0");
 teksEl.classList.add("opacity-100");
+}
+
+// SISTEM PEMBUKA MODAL ENGLISH HUB (IFRAME INTEGRATION)
+function bukaModalEnglish() {
+  const iframe = document.getElementById("english-iframe");
+  if (iframe.src !== "https://kerja-nine.vercel.app/") {
+    iframe.src = "https://kerja-nine.vercel.app/";
+  }
+  document.getElementById("english-modal").style.display = "flex";
+}
+
+function tutupModalEnglish() {
+  document.getElementById("english-modal").style.display = "none";
 }
 
 // MODAL DAFTAR TUGAS
