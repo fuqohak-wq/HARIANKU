@@ -42,6 +42,31 @@
     </header>
 
     <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow">
+
+        <!-- KOTAK KECIL TRACKER MEMBACA (DI BAGIAN ATAS - HIGLY COMFORTABLE & NON-INTRUSIVE) -->
+        <div class="bg-white border border-emerald-100 rounded-2xl p-3.5 shadow-sm mb-6 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-50 text-emerald-700 p-2.5 rounded-xl">
+                    <i class="fa-solid fa-hourglass-start animate-pulse"></i>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Waktu Sesi Membaca</p>
+                    <div class="flex items-center gap-2 mt-1 leading-none">
+                        <span id="timer-display" class="text-xl font-extrabold text-slate-800 leading-none">00:00</span>
+                        <span id="reading-points" class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full leading-none">SKOR B10: 0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="btn-timer-control" onclick="toggleReadingTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-play"></i> Mulai
+                </button>
+                <button id="btn-timer-sync" onclick="selesaiMembacaDanKirim()" disabled class="bg-slate-100 text-slate-400 font-bold py-2 px-4 rounded-xl text-xs transition-all cursor-not-allowed flex items-center gap-1.5 border border-slate-200/50">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Selesai
+                </button>
+            </div>
+        </div>
         
         <section id="tab-reader" class="block animate-fade-in">
             <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
@@ -102,10 +127,15 @@
 
     <script>
         // URL Web App Google Apps Script Milikmu
-        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbztkUU6inK9QwPFklkN7hoFGsiphV0rxc97Jr837pkLGxMfZMPrDXp8pi-oH32kQecW/exec"; 
+        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec"; 
 
         let journalData = [];
         let readingData = [];
+
+        // Logika Pengukur Waktu Sesi Membaca
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
 
         // Inisialisasi data saat dokumen selesai dimuat
         window.addEventListener('DOMContentLoaded', () => {
@@ -114,6 +144,86 @@
             loadJournals();
             loadReadings();
         });
+
+        // FUNGSI MEMULAI / JEDA WAKTU
+        function toggleReadingTimer() {
+            const btn = document.getElementById("btn-timer-control");
+            const btnSync = document.getElementById("btn-timer-sync");
+
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> Jeda`;
+                btn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
+
+                btnSync.disabled = false;
+                btnSync.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm border border-emerald-500/20";
+
+                timerInterval = setInterval(() => {
+                    timerSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            } else {
+                isTimerRunning = false;
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> Mulai`;
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
+                clearInterval(timerInterval);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const remainingSeconds = timerSeconds % 60;
+
+            const displayMin = minutes < 10 ? "0" + minutes : minutes;
+            const displaySec = remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds;
+
+            document.getElementById("timer-display").innerText = `${displayMin}:${displaySec}`;
+
+            let calculatedScore = 0;
+            if (minutes >= 40) calculatedScore = 100;
+            else if (minutes >= 30) calculatedScore = 75;
+            else if (minutes >= 20) calculatedScore = 50;
+            else if (minutes >= 10) calculatedScore = 25;
+
+            document.getElementById("reading-points").innerText = `SKOR B10: ${calculatedScore}`;
+        }
+
+        // SELESAI DAN SINKRONISASI KE GOOGLE SHEETS
+        async function selesaiMembacaDanKirim() {
+            clearInterval(timerInterval);
+            const minutes = Math.floor(timerSeconds / 60);
+            const btnSync = document.getElementById("btn-timer-sync");
+            
+            btnSync.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengirim...`;
+            btnSync.disabled = true;
+
+            try {
+                const response = await fetch(BASE_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        aksi: "updateMembaca",
+                        durasiMenit: minutes
+                    })
+                });
+                const result = await response.json();
+                if (result.status === "success") {
+                    alert(`Skor B10 berhasil diperbarui ke spreadsheet: ${result.score} Poin.`);
+                    window.location.href = "index.html";
+                } else {
+                    alert("Koneksi berhasil, gagal memperbarui spreadsheet.");
+                    resetSyncBtn();
+                }
+            } catch (err) {
+                alert("Kesalahan transmisi jaringan. Gagal memperbarui data.");
+                resetSyncBtn();
+            }
+        }
+
+        function resetSyncBtn() {
+            const btnSync = document.getElementById("btn-timer-sync");
+            btnSync.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Selesai`;
+            btnSync.disabled = false;
+        }
 
         // MEKANISME PENGUBAH TAB (Full Page Switcher)
         function switchTab(tab) {
