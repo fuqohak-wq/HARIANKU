@@ -101,13 +101,14 @@
     </footer>
 
     <script>
-        // URL Web App Google Apps Script Milikmu
-        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbztkUU6inK9QwPFklkN7hoFGsiphV0rxc97Jr837pkLGxMfZMPrDXp8pi-oH32kQecW/exec"; 
+        // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
+        // Silakan tempel tautan Web App Apps Script terpadu yang sama di bawah ini:
+        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec"; 
+        // ===========================================================================
 
         let journalData = [];
         let readingData = [];
 
-        // Inisialisasi data saat dokumen selesai dimuat
         window.addEventListener('DOMContentLoaded', () => {
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('reading-date').innerText = new Date().toLocaleDateString('id-ID', dateOptions);
@@ -115,7 +116,6 @@
             loadReadings();
         });
 
-        // MEKANISME PENGUBAH TAB (Full Page Switcher)
         function switchTab(tab) {
             const fTab = document.getElementById('tab-finder');
             const rTab = document.getElementById('tab-reader');
@@ -133,8 +133,8 @@
             }
         }
 
-        // AMBIL DATA TAB BACAAN HARIAN
         async function loadReadings() {
+            if (!BASE_API_URL || BASE_API_URL.includes("DISINI")) return;
             try {
                 const response = await fetch(`${BASE_API_URL}?target=bacaan`);
                 readingData = await response.json();
@@ -146,7 +146,6 @@
             }
         }
 
-        // TAMPILKAN BACAAN HARIAN
         function displayReadings(data) {
             const container = document.getElementById('reader-container');
             container.innerHTML = '';
@@ -170,7 +169,6 @@
                     ? aiObject.poin_penting.map(p => `<li class="flex items-start gap-2"><span>•</span> <span>${p}</span></li>`).join('') 
                     : '<li class="text-slate-400">Poin penting tidak berhasil diekstrak oleh AI.</li>';
 
-                // Ekstrak status reputasi dari kolom baru secara spesifik
                 const reputasiJurnal = article['Reputasi Jurnal (Sinta/Scopus)'] || 'Terindeks DOAJ';
                 const badgeColor = reputasiJurnal.toLowerCase().includes('scopus') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200';
 
@@ -217,8 +215,8 @@
             });
         }
 
-        // AMBIL DATA TAB DAFTAR JURNAL
         async function loadJournals() {
+            if (!BASE_API_URL || BASE_API_URL.includes("DISINI")) return;
             try {
                 const response = await fetch(`${BASE_API_URL}?target=jurnal`);
                 journalData = await response.json();
@@ -230,7 +228,6 @@
             }
         }
 
-        // TAMPILKAN JURNAL
         function displayJournals(data) {
             const listContainer = document.getElementById('journal-list');
             listContainer.innerHTML = '';
@@ -263,7 +260,6 @@
             });
         }
 
-        // FILTER PENCARIAN JURNAL
         function filterJournals() {
             const searchKey = document.getElementById('search-journal').value.toLowerCase();
             const repFilter = document.getElementById('filter-reputasi').value;
