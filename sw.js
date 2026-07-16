@@ -1,29 +1,28 @@
-const CACHE_NAME = 'fuqohak-tracker-v1';
+const CACHE_NAME = 'fuqohak-tracker-v3';
 const ASSETS_TO_CACHE = [
   './index.html',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap'
 ];
 
-// Pasang Service Worker dan simpan aset utama ke cache
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('Menyimpan aset penting ke dalam cache lokal...');
       return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
-// Bersihkan cache lama jika ada versi baru
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then(keys => {
       return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
-            console.log('Menghapus cache lawas:', cache);
-            return caches.delete(cache);
+        keys.map(key => {
+          if (key !== CACHE_NAME) {
+            console.log('Menghapus cache lawas:', key);
+            return caches.delete(key);
           }
         })
       );
@@ -31,10 +30,10 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Strategi cache: Ambil dari cache dulu untuk mempercepat rendering, jika tidak ada baru ambil dari internet
 self.addEventListener('fetch', event => {
-  // Lewati penyimpanan cache untuk transaksi API dinamis (Google Apps Script)
-  if (event.request.url.includes('script.google.com')) {
+  // Eksplisit: Bypass dan alirkan langsung seluruh request API Google Apps Script tanpa intervensi cache
+  if (event.request.url.includes('script.google.com') || event.request.url.includes('script.googleusercontent.com')) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -44,7 +43,6 @@ self.addEventListener('fetch', event => {
         return cachedResponse;
       }
       return fetch(event.request).then(networkResponse => {
-        // Simpan aset eksternal baru yang valid ke dalam cache secara dinamis
         if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
           const cacheToKeep = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -54,7 +52,6 @@ self.addEventListener('fetch', event => {
         return networkResponse;
       });
     }).catch(() => {
-      // Skenario darurat jika benar-benar offline tanpa koneksi sama sekali
       return caches.match('./index.html');
     })
   );
