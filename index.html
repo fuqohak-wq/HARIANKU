@@ -577,21 +577,22 @@ let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
 window.onload = async function() {
-initWaterLocal();
-tentukanKalenderDasar();
-terapkanSistemTema();
-evaluasiVisualModeMalam();
-muatDataDariOffline(); 
-await loadDashboard();
-await fetchFinanceData();
-setTimeout(() => {
-panggilAnalisisRutinitasAI();
-}, 1200);
+  initWaterLocal();
+  tentukanKalenderDasar();
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  muatDataDariOffline(); 
+  await loadDashboard();
+  await fetchFinanceData();
+  
+  // SEBELUMNYA: Memanggil API Gemini langsung saat startup (Boros API)
+  // SEKARANG: Hanya jalankan rotasi dari cache yang sudah ada di lokal
+  inisialisasiRotasiNasehatLokal();
 
-setInterval(async () => {
-await loadDashboard();
-await fetchFinanceData();
-}, 25000);
+  setInterval(async () => {
+    await loadDashboard();
+    await fetchFinanceData();
+  }, 25000);
 };
 
 function initWaterLocal() {
@@ -988,90 +989,160 @@ labelContainer.appendChild(el);
 }
 
 // SISTEM ANALISIS AI ANTI-GAGAL WATERFALL (3 SKENARIO PERTAHANAN)
-async function panggilAnalisisRutinitasAI() {
+// Variabel kontrol rotasi kalimat halus
+let daftarPotonganKalimat = [];
+let indeksKalimatAktif = 0;
+let intervalRotasiKalimat = null;
+
+// Fungsi pembantu untuk memotong nasehat panjang menjadi potongan pas 3 baris
+function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
+  let hasilPotongan = [];
+  
+  daftarNasehat.forEach(paragraf => {
+    // Bersihkan karakter aneh, kurung siku JSON yang tersisa, atau markdown bintang
+    let teksBersih = paragraf.replace(/[\[\]"'\*#_]/g, '').trim();
+    
+    // Split berdasarkan tanda baca akhir (titik, tanya, seru) tanpa menghilangkan tanda bacanya
+    let kalimatList = teksBersih.match(/[^.!?]+[.!?]+/g) || [teksBersih];
+    
+    let penampungPotongan = "";
+    
+    kalimatList.forEach(kalimat => {
+      let kalimatTrimmed = kalimat.trim();
+      if (!kalimatTrimmed) return;
+      
+      // Jika digabungkan masih cukup (maksimal ~140 karakter agar pas 3 baris di HP)
+      if ((penampungPotongan + " " + kalimatTrimmed).length <= 140) {
+        penampungPotongan += (penampungPotongan ? " " : "") + kalimatTrimmed;
+      } else {
+        // Jika sudah penuh, simpan potongan sebelumnya dan buat wadah baru
+        if (penampungPotongan) {
+          hasilPotongan.push(penampungPotongan);
+        }
+        penampungPotongan = kalimatTrimmed;
+      }
+    });
+    
+    if (penampungPotongan) {
+      hasilPotongan.push(penampungPotongan);
+    }
+  });
+  
+  return hasilPotongan;
+}
+
+// Menjalankan rotasi nasehat dari penyimpanan lokal (Gratis tanpa panggil API)
+function inisialisasiRotasiNasehatLokal() {
+  const cachedAdvices = localStorage.getItem("fuqohak_ai_advices_cache");
+  let mentah = [];
+  if (cachedAdvices) {
+    try {
+      mentah = JSON.parse(cachedAdvices);
+    } catch(e) { mentah = []; }
+  }
+  
+  if (mentah.length === 0) {
+    // Data fallback jika cache kosong sama sekali
+    mentah = [
+      "Hidrasi Darurat. Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil.",
+      "Kendalikan Screen Time. Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak pulih.",
+      "Hubungan Spiritual. Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini."
+    ];
+  }
+  
+  mulaiSiklusTampilan(mentah);
+}
+
+// Memulai siklus transisi tulisan per 30 detik
+function mulaiSiklusTampilan(dataNasehat) {
+  if (intervalRotasiKalimat) {
+    clearInterval(intervalRotasiKalimat);
+  }
+  
+  daftarPotonganKalimat = pecahNasehatMenjadiPotonganPas(dataNasehat);
+  indeksKalimatAktif = 0;
+  
+  // Tampilkan kalimat pertama segera
+  eksekusiAnimasiTeks();
+  
+  // Setel timer berputar setiap 30 detik (30000 ms)
+  intervalRotasiKalimat = setInterval(() => {
+    indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
+    eksekusiAnimasiTeks();
+  }, 30000); 
+}
+
+// Animasi transisi fade out -> ganti teks -> fade in agar mata tidak lelah
+async function eksekusiAnimasiTeks() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
-  if (aiRotationInterval) {
-    clearInterval(aiRotationInterval);
-    aiRotationInterval = null;
-  }
+  loadingEl.classList.add("hidden");
+  teksEl.classList.remove("hidden");
+  
+  teksEl.classList.remove("opacity-100");
+  teksEl.classList.add("opacity-0");
+  
+  await new Promise(r => setTimeout(r, 400));
+  
+  teksEl.innerText = daftarPotonganKalimat[indeksKalimatAktif] || "Menunggu koordinasi waktu harian...";
+  
+  teksEl.classList.remove("opacity-0");
+  teksEl.classList.add("opacity-100");
+}
+
+// Fungsi tombol SYNC MANUAL (Hanya dipanggil saat Anda klik tombol SYNC secara sadar)
+async function panggilAnalisisRutinitasAI() {
+  const loadingEl = document.getElementById("ai-rutinitas-loading");
+  const teksEl = document.getElementById("ai-rutinitas-teks");
   
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
   
   let nasehatDidapat = [];
   
-  // SKENARIO 1: Menghubungi Gemini AI Studio Pribadi (AKUN PRIBADI)
+  // SKENARIO 1: Gemini AI Studio Pribadi
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 7000); 
+    const idTimeout = setTimeout(() => controller.abort(), 8000); 
     const response = await fetch(PERSONAL_AI_URL, { signal: controller.signal });
     clearTimeout(idTimeout);
     
     const result = await response.json();
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
       nasehatDidapat = result.nasehat;
-      console.log("Skenario 1 Sukses: Data nasehat mendalam dari Gemini dimuat.");
+    } else if (result && Array.isArray(result)) {
+      nasehatDidapat = result;
     }
   } catch (e) {
-    console.warn("Skenario 1 Gagal (Gemini Studio API), lanjut ke Skenario 2.", e);
+    console.warn("Skenario 1 Gagal, mencoba server terpadu...");
   }
   
-  // SKENARIO 2: Menghubungi Heuristik Evaluasi Server Terpadu (Apps Script Utama)
+  // SKENARIO 2: Apps Script Utama
   if (nasehatDidapat.length === 0) {
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(() => controller.abort(), 5000);
+      const idTimeout = setTimeout(() => controller.abort(), 6000);
       const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice", { signal: controller.signal });
       clearTimeout(idTimeout);
       
       const result = await response.json();
       if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
         nasehatDidapat = result.nasehat;
-        console.log("Skenario 2 Sukses: Evaluator harian server terpadu berhasil dimuat.");
       }
     } catch (e) {
-      console.warn("Skenario 2 Gagal (Server Terpadu), lanjut ke Skenario 3 (Darurat Offline).", e);
+      console.warn("Skenario 2 Gagal.");
     }
   }
   
-  // SKENARIO 3: Proteksi Asisten Darurat Lokal Offline (Anti-Gagal Mutlak)
-  if (nasehatDidapat.length === 0) {
-    nasehatDidapat = [
-      "💧 Hidrasi Darurat: Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil di sela-sela rutinitas.",
-      "📱 Kendalikan Screen Time: Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak memulihkan fokus alaminya.",
-      "🕌 Hubungan Spiritual: Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini.",
-      "📖 Konsistensi Belajar: Sisihkan waktu 15-30 menit untuk membaca jurnal keilmuan demi memperluas wawasan akademis Anda.",
-      "✍️ Goreskan Pena: Luangkan waktu untuk menulis target mingguan Anda, porsi kemajuan kecil yang konsisten bernilai sangat besar."
-    ];
-    console.log("Skenario 3 Aktif: Cadangan darurat lokal digunakan.");
+  // Jika berhasil mendapatkan data baru, simpan ke cache lokal agar awet
+  if (nasehatDidapat.length > 0) {
+    localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
+    mulaiSiklusTampilan(nasehatDidapat);
+  } else {
+    // Jika semua server gagal (offline), gunakan apa yang ada di cache lokal sebelumnya
+    inisialisasiRotasiNasehatLokal();
   }
-  
-  // Eksekusi Render ke UI
-  localAiAdvices = nasehatDidapat.map(item => {
-    return item.replace(/[\*\#_]/g, '').trim();
-  });
-  
-  loadingEl.classList.add("hidden");
-  teksEl.classList.remove("hidden");
-  currentAdviceIndex = 0;
-  tampilkanNasehatAktif();
-  
-  aiRotationInterval = setInterval(() => {
-    currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
-    tampilkanNasehatAktif();
-  }, 45000); // Ganti slide nasehat setiap 45 detik agar nyaman dibaca
-}
-
-async function tampilkanNasehatAktif() {
-const teksEl = document.getElementById("ai-rutinitas-teks");
-teksEl.classList.remove("opacity-100");
-teksEl.classList.add("opacity-0");
-await new Promise(r => setTimeout(r, 400));
-teksEl.innerText = localAiAdvices[currentAdviceIndex];
-teksEl.classList.remove("opacity-0");
-teksEl.classList.add("opacity-100");
 }
 
 // SISTEM PEMBUKA MODAL ENGLISH HUB (IFRAME INTEGRATION)
