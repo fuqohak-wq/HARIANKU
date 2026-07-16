@@ -1,392 +1,322 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Islamic Scholar Hub - Cari Jurnal & Bacaan Harian</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-in-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+const SPREADSHEET_ID = "1EgSAs2Bygj2oveSmpFjS9TuSkhKzaPXtbTAPC0EbEok";
+const TIMEZONE = "Asia/Jakarta";
 
-    <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
-        <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-emerald-700 p-2.5 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-book-quran text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight">Islamic Scholar Hub</h1>
-                    <p class="text-xs text-emerald-100">Pencari Jurnal Gratis & Navigator Bacaan Studi Islam</p>
-                </div>
-            </div>
-            
-            <nav class="flex bg-emerald-800/40 p-1 rounded-xl border border-emerald-500/30 shadow-sm">
-                <button id="btn-tab-reader" onclick="switchTab('reader')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow">
-                    <i class="fa-solid fa-newspaper mr-2"></i>Bacaan Hari Ini
-                </button>
-                <button id="btn-tab-finder" onclick="switchTab('finder')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white">
-                    <i class="fa-solid fa-magnifying-glass mr-2"></i>Cari Jurnal APC 0$
-                </button>
-            </nav>
-        </div>
-    </header>
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheetDashboard = ss.getSheetByName("DASHBOARD");
+    
+    // 1. Membaca data metrik dasar dari kolom B (B2 sampai B10)
+    const rangeB2_B10 = sheetDashboard.getRange("B2:B10").getValues();
+    const kaloriMasuk = Number(rangeB2_B10[0][0]) || 0;
+    const kaloriKeluar = Number(rangeB2_B10[1][0]) || 0;
+    const minumAir = Number(rangeB2_B10[2][0]) || 0;
+    const menulis = Number(rangeB2_B10[3][0]) || 0;
+    const english = Number(rangeB2_B10[4][0]) || 0;
+    const shalatJamaah = Number(rangeB2_B10[5][0]) || 0;
+    const murojaah = Number(rangeB2_B10[6][0]) || 0;
+    const screenTime = Number(rangeB2_B10[7][0]) || 0;
+    const membaca = Number(rangeB2_B10[8][0]) || 0;
 
-    <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow">
-        
-        <!-- KOTAK KECIL TRACKER MEMBACA (DITEMPATKAN DI ATAS AGAR SANGAT NYAMAN) -->
-        <div class="bg-white border border-emerald-100 rounded-2xl p-3.5 shadow-sm mb-6 flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center gap-3">
-                <div class="bg-emerald-50 text-emerald-700 p-2.5 rounded-xl">
-                    <i class="fa-solid fa-hourglass-start animate-pulse"></i>
-                </div>
-                <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Waktu Sesi Membaca</p>
-                    <div class="flex items-center gap-2 mt-1 leading-none">
-                        <span id="timer-display" class="text-xl font-extrabold text-slate-800 leading-none">00:00</span>
-                        <span id="reading-points" class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full leading-none">SKOR B10: 0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex gap-2">
-                <button id="btn-timer-control" onclick="toggleReadingTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-play"></i> Mulai
-                </button>
-                <button id="btn-timer-sync" onclick="selesaiMembacaDanKirim()" disabled class="bg-slate-100 text-slate-400 font-bold py-2 px-4 rounded-xl text-xs transition-all cursor-not-allowed flex items-center gap-1.5 border border-slate-200/50">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Selesai
-                </button>
-            </div>
-        </div>
+    // 2. Membaca Mood murni (Teks saja tanpa mencantumkan nilai numerik)
+    const valA12 = sheetDashboard.getRange("A12").getValue();
+    const valB12 = sheetDashboard.getRange("B12").getValue();
+    const finalMoodStatus = String(valA12 || valB12 || "STABIL").trim().toUpperCase();
 
-        <section id="tab-reader" class="block animate-fade-in">
-            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                <div>
-                    <h3 class="font-bold text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-sparkles"></i> Telaah Akademik Harian</h3>
-                    <p class="text-xs text-emerald-700">Artikel rekomendasi kurasi AI berdasarkan bidang Studi Islam.</p>
-                </div>
-                <span id="reading-date" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold"></span>
-            </div>
+    // 3. Kalkulasi Tanggal Hijriah astronomis Umm Al-Qura (Presisi Tinggi)
+    const hijriahServer = getAstronomicHijriDate();
 
-            <div id="loader-reader" class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                <i class="fa-solid fa-spinner animate-spin text-4xl text-teal-600 mb-3"></i>
-                <p class="text-slate-500 text-sm">Mengekstrak abstrak & memuat terjemahan AI harian...</p>
-            </div>
+    // 4. Membaca data Motivasi
+    const motivasiVal = sheetDashboard.getRange("B12").getValue() || "Kesabaran panjang menghasilkan kemenangan.";
 
-            <div id="reader-container" class="space-y-6 hidden"></div>
-        </section>
-
-        <section id="tab-finder" class="hidden animate-fade-in">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="relative md:col-span-1">
-                    <i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-400"></i>
-                    <input type="text" id="search-journal" oninput="filterJournals()" placeholder="Cari rumpun ilmu atau nama jurnal..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm transition-all">
-                </div>
-                <div>
-                    <select id="filter-reputasi" onchange="filterJournals()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm transition-all">
-                        <option value="">Semua Tingkat Reputasi</option>
-                        <option value="Sinta 1">Sinta 1</option>
-                        <option value="Sinta 2">Sinta 2</option>
-                        <option value="Scopus Q1">Scopus Q1</option>
-                        <option value="Scopus Q2">Scopus Q2</option>
-                        <option value="Scopus Q3">Scopus Q3</option>
-                        <option value="Scopus Q4">Scopus Q4</option>
-                    </select>
-                </div>
-                <div>
-                    <select id="filter-cakupan" onchange="filterJournals()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm transition-all">
-                        <option value="">Semua Cakupan</option>
-                        <option value="Nasional">Nasional (Sinta)</option>
-                        <option value="Internasional">Internasional (Scopus)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="loader-journal" class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                <i class="fa-solid fa-spinner animate-spin text-4xl text-emerald-600 mb-3"></i>
-                <p class="text-slate-500 text-sm">Menghubungkan ke database AI Agent...</p>
-            </div>
-
-            <div id="journal-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
-        </section>
-
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 w-full mt-auto">
-        <p>© 2026 Islamic Scholar Hub. Ditenagai oleh Google Apps Script & Gemini AI.</p>
-    </footer>
-
-    <script>
-        // URL Web App Google Apps Script Milikmu
-        const BASE_API_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec"; 
-
-        let journalData = [];
-        let readingData = [];
-
-        // Logika Pengukur Waktu Sesi Membaca
-        let timerSeconds = 0;
-        let timerInterval = null;
-        let isTimerRunning = false;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('reading-date').innerText = new Date().toLocaleDateString('id-ID', dateOptions);
-            loadJournals();
-            loadReadings();
+    const dashboardData = {
+      "KALORI MASUK": { value: kaloriMasuk },
+      "KALORI KELUAR": { value: kaloriKeluar },
+      "MINUM AIR": { value: minumAir },
+      "MENULIS": { value: menulis },
+      "ENGLISH": { value: english },
+      "SHALAT JAMAAH": { value: shalatJamaah },
+      "MUROJAAH": { value: murojaah },
+      "MENGURANGI HP": { value: screenTime },
+      "MEMBACA": { value: membaca },
+      "MOOD_STATUS": { value: finalMoodStatus },
+      "MOTIVASI": { value: String(motivasiVal) },
+      "HIJRIAH_FIXED": hijriahServer
+    };
+    
+    // 5. Membaca data LIST_TUGAS
+    const sheetTugas = ss.getSheetByName("TUGAS") || ss.getSheetByName("LIST_TUGAS");
+    const tugasRows = sheetTugas.getDataRange().getValues();
+    const listTugas = [];
+    let tugasCount = 0;
+    
+    for (let i = 1; i < tugasRows.length; i++) {
+      if (tugasRows[i][1]) {
+        const status = String(tugasRows[i][2] || "").toUpperCase().trim();
+        listTugas.push({
+          rowId: Number(tugasRows[i][0]),
+          tugas: tugasRows[i][1],
+          status: status
         });
-
-        // FUNGSI MEMULAI / JEDA WAKTU
-        function toggleReadingTimer() {
-            const btn = document.getElementById("btn-timer-control");
-            const btnSync = document.getElementById("btn-timer-sync");
-
-            if (!isTimerRunning) {
-                isTimerRunning = true;
-                btn.innerHTML = `<i class="fa-solid fa-pause"></i> Jeda`;
-                btn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
-
-                btnSync.disabled = false;
-                btnSync.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm border border-emerald-500/20";
-
-                timerInterval = setInterval(() => {
-                    timerSeconds++;
-                    updateTimerDisplay();
-                }, 1000);
-            } else {
-                isTimerRunning = false;
-                btn.innerHTML = `<i class="fa-solid fa-play"></i> Mulai`;
-                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
-                clearInterval(timerInterval);
-            }
+        if (status === "BELUM") {
+          tugasCount++;
         }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(timerSeconds / 60);
-            const remainingSeconds = timerSeconds % 60;
-
-            const displayMin = minutes < 10 ? "0" + minutes : minutes;
-            const displaySec = remainingSeconds < 10 ? "0" + remainingSeconds : remainingSeconds;
-
-            document.getElementById("timer-display").innerText = `${displayMin}:${displaySec}`;
-
-            let calculatedScore = 0;
-            if (minutes >= 40) calculatedScore = 100;
-            else if (minutes >= 30) calculatedScore = 75;
-            else if (minutes >= 20) calculatedScore = 50;
-            else if (minutes >= 10) calculatedScore = 25;
-
-            document.getElementById("reading-points").innerText = `SKOR B10: ${calculatedScore}`;
+      }
+    }
+    
+    // 6. Membaca data LIST_CERAMAH
+    const sheetCeramah = ss.getSheetByName("LIST_CERAMAH") || ss.getSheetByName("CERAMAH");
+    const listCeramah = [];
+    let ceramahCount = 0;
+    
+    if (sheetCeramah) {
+      const ceramahRows = sheetCeramah.getDataRange().getValues();
+      for (let i = 1; i < ceramahRows.length; i++) {
+        if (ceramahRows[i][1]) {
+          const status = String(ceramahRows[i][5] || "").toUpperCase().trim();
+          listCeramah.push({
+            rowId: Number(ceramahRows[i][0]),
+            tema: ceramahRows[i][1],
+            tanggal: formatDateString(ceramahRows[i][2]),
+            jam: String(ceramahRows[i][3]),
+            tempat: ceramahRows[i][4],
+            status: status
+          });
+          if (status === "BELUM") {
+            ceramahCount++;
+          }
         }
-
-        // SELESAI DAN KIRIM DURASI KE GOOGLE SHEETS
-        async function selesaiMembacaDanKirim() {
-            clearInterval(timerInterval);
-            const minutes = Math.floor(timerSeconds / 60);
-            const btnSync = document.getElementById("btn-timer-sync");
-            
-            btnSync.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengirim...`;
-            btnSync.disabled = true;
-
+      }
+    }
+    
+    // 7. Membaca data RIWAYAT (Grafik)
+    const sheetRiwayat = ss.getSheetByName("RIWAYAT");
+    const listRiwayat = [];
+    if (sheetRiwayat) {
+      const riwayatRows = sheetRiwayat.getDataRange().getValues();
+      for (let i = 1; i < riwayatRows.length; i++) {
+        if (riwayatRows[i][0]) {
+          let tglFormatted = "";
+          const cellVal = riwayatRows[i][0];
+          if (cellVal instanceof Date) {
+            tglFormatted = Utilities.formatDate(cellVal, TIMEZONE, "dd/MM");
+          } else {
             try {
-                const response = await fetch(BASE_API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        aksi: "updateMembaca",
-                        durasiMenit: minutes
-                    })
-                });
-                const result = await response.json();
-                if (result.status === "success") {
-                    alert(`Skor B10 berhasil diperbarui ke spreadsheet: ${result.score} Poin.`);
-                    window.location.href = "index.html";
-                } else {
-                    alert("Koneksi berhasil, gagal memperbarui spreadsheet.");
-                    resetSyncBtn();
-                }
+              const parsedDate = new Date(cellVal);
+              if (!isNaN(parsedDate.getTime())) {
+                tglFormatted = Utilities.formatDate(parsedDate, TIMEZONE, "dd/MM");
+              } else {
+                tglFormatted = String(cellVal).substring(0, 5);
+              }
             } catch (err) {
-                alert("Kesalahan transmisi jaringan. Gagal memperbarui data.");
-                resetSyncBtn();
+              tglFormatted = String(cellVal);
             }
+          }
+          listRiwayat.push({
+            tanggal: tglFormatted,
+            jumlah: Number(riwayatRows[i][1]) || 0
+          });
         }
-
-        function resetSyncBtn() {
-            const btnSync = document.getElementById("btn-timer-sync");
-            btnSync.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Selesai`;
-            btnSync.disabled = false;
+      }
+    }
+    
+    // 8. Membaca data KEUANGAN
+    const sheetKeuangan = ss.getSheetByName("KEUANGAN");
+    let transaksiList = [];
+    let totalPemasukan = 0;
+    let totalPengeluaran = 0;
+    
+    if (sheetKeuangan) {
+      const keuanganRows = sheetKeuangan.getDataRange().getValues();
+      for (let i = 1; i < keuanganRows.length; i++) {
+        if (keuanganRows[i][1]) {
+          const tipe = String(keuanganRows[i][2] || "").toUpperCase().trim();
+          const nominal = Number(keuanganRows[i][3]) || 0;
+          
+          transaksiList.push({
+            "TANGGAL": keuanganRows[i][0],
+            "NAMA PROYEK": keuanganRows[i][1],
+            "TIPE": tipe,
+            "NOMINAL": nominal,
+            "KETERANGAN": keuanganRows[i][4] || ""
+          });
+          
+          if (tipe === "PEMASUKAN") {
+            totalPemasukan += nominal;
+          } else if (tipe === "PENGELUARAN") {
+            totalPengeluaran += nominal;
+          }
         }
-
-        // MEKANISME TAB SWITCHER ASLI
-        function switchTab(tab) {
-            const fTab = document.getElementById('tab-finder');
-            const rTab = document.getElementById('tab-reader');
-            const fBtn = document.getElementById('btn-tab-finder');
-            const rBtn = document.getElementById('btn-tab-reader');
-
-            if (tab === 'reader') {
-                rTab.classList.remove('hidden'); fTab.classList.add('hidden');
-                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow";
-                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white";
-            } else {
-                fTab.classList.remove('hidden'); rTab.classList.add('hidden');
-                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow";
-                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white";
-            }
+      }
+    }
+    
+    const payload = {
+      status: "success",
+      data: {
+        ...dashboardData,
+        TUGAS_COUNT: tugasCount,
+        CERAMAH_COUNT: ceramahCount,
+        LIST_TUGAS: listTugas,
+        LIST_CERAMAH: listCeramah,
+        RIWAYAT: listRiwayat,
+        KEUANGAN: {
+          saldo: totalPemasukan - totalPengeluaran,
+          pemasukan: totalPemasukan,
+          pengeluaran: totalPengeluaran,
+          transaksi: transaksiList
         }
+      }
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(payload))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
 
-        // SINKRONISASI BACAAN HARIAN ASLI
-        async function loadReadings() {
-            try {
-                const response = await fetch(`${BASE_API_URL}?target=bacaan`);
-                readingData = await response.json();
-                document.getElementById('loader-reader').classList.add('hidden');
-                document.getElementById('reader-container').classList.remove('hidden');
-                displayReadings(readingData);
-            } catch (err) {
-                document.getElementById('loader-reader').innerHTML = `<p class="text-red-500 font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Gagal memuat data bacaan harian.</p>`;
-            }
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const postData = JSON.parse(e.postData.contents);
+    const aksi = postData.aksi;
+    
+    if (aksi === "catatMinum") {
+      const sheetDashboard = ss.getSheetByName("DASHBOARD");
+      const currentCell = sheetDashboard.getRange("B4");
+      const currentVal = Number(currentCell.getValue()) || 0;
+      const targetTambah = Number(postData.jumlahL) || 1;
+      
+      currentCell.setValue(currentVal + targetTambah);
+      
+      const sheetLog = ss.getSheetByName("MINUM_LOG");
+      if (sheetLog) {
+        const formattedDateString = Utilities.formatDate(new Date(), TIMEZONE, "dd/MM/yyyy");
+        sheetLog.appendRow([formattedDateString, targetTambah]);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", updatedValue: currentVal + targetTambah }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (aksi === "updateMembaca") {
+      const sheetDashboard = ss.getSheetByName("DASHBOARD");
+      const durasi = Number(postData.durasiMenit) || 0;
+      let nilaiMembaca = 0;
+      
+      if (durasi >= 40) nilaiMembaca = 100;
+      else if (durasi >= 30) nilaiMembaca = 75;
+      else if (durasi >= 20) nilaiMembaca = 50;
+      else if (durasi >= 10) nilaiMembaca = 25;
+      
+      sheetDashboard.getRange("B10").setValue(nilaiMembaca);
+      
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", score: nilaiMembaca }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (aksi === "tambahTugas") {
+      const sheetTugas = ss.getSheetByName("TUGAS") || ss.getSheetByName("LIST_TUGAS");
+      const rowId = new Date().getTime();
+      sheetTugas.appendRow([rowId, postData.tugas, "BELUM"]);
+      
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (aksi === "selesaikanTugas") {
+      const sheetTugas = ss.getSheetByName("TUGAS") || ss.getSheetByName("LIST_TUGAS");
+      const data = sheetTugas.getDataRange().getValues();
+      const targetId = Number(postData.rowId);
+      
+      for (let i = 1; i < data.length; i++) {
+        if (Number(data[i][0]) === targetId) {
+          sheetTugas.getRange(i + 1, 3).setValue("SELESAI");
+          break;
         }
-
-        function displayReadings(data) {
-            const container = document.getElementById('reader-container');
-            container.innerHTML = '';
-
-            if (!data || data.length === 0 || data.error) {
-                container.innerHTML = '<div class="text-center text-slate-400 py-12 bg-white rounded-2xl border border-dashed border-slate-200">Belum ada daftar bacaan hari ini. Pastikan tab "Bacaan_Harian" di Sheets sudah terisi.</div>';
-                return;
-            }
-
-            data.forEach((article) => {
-                let aiObject = { terjemahan_abstrak: 'Gagal memproses terjemahan.', poin_penting: [], kontribusi_studi_islam: '' };
-                
-                try {
-                    let jsonRaw = article['Terjemahan & Ringkasan AI'];
-                    aiObject = JSON.parse(jsonRaw);
-                } catch(e) {
-                    aiObject.terjemahan_abstrak = article['Terjemahan & Ringkasan AI'] || 'Terjemahan tidak tersedia.';
-                }
-
-                const pointsList = Array.isArray(aiObject.poin_penting) 
-                    ? aiObject.poin_penting.map(p => `<li class="flex items-start gap-2"><span>•</span> <span>${p}</span></li>`).join('') 
-                    : '<li class="text-slate-400">Poin penting tidak berhasil diekstrak oleh AI.</li>';
-
-                const reputasiJurnal = article['Reputasi Jurnal (Sinta/Scopus)'] || 'Terindeks DOAJ';
-                const badgeColor = reputasiJurnal.toLowerCase().includes('scopus') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-teal-50 text-teal-700 border-teal-200';
-
-                const section = document.createElement('div');
-                section.className = "bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4";
-                section.innerHTML = `
-                    <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-4">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <span class="text-[10px] font-bold ${badgeColor} border px-2 py-0.5 rounded uppercase tracking-wider">${reputasiJurnal}</span>
-                                <span class="text-xs text-slate-400 font-semibold font-sans">${article['Nama Jurnal'] || article['Nama Jurnal & Indeks']}</span>
-                            </div>
-                            <h2 class="text-lg font-bold text-slate-900 mt-1.5">${article['Judul Artikel']}</h2>
-                        </div>
-                        <a href="${article['Link Artikel (URL)'] || article['Link Artikel']}" target="_blank" class="shrink-0 text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-xl transition-all">Full Paper <i class="fa-solid fa-external-link text-[10px]"></i></a>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-language"></i> Original Abstract (English)</h4>
-                            <p class="text-xs text-slate-600 leading-relaxed text-justify font-serif">${article['Abstrak Asli (Inggris)'] || 'No english abstract available.'}</p>
-                        </div>
-                        
-                        <div class="bg-emerald-50/20 p-4 rounded-xl border border-emerald-100/50">
-                            <h4 class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-gavel"></i> Terjemahan Bahasa Indonesia</h4>
-                            <p class="text-xs text-slate-700 leading-relaxed text-justify font-sans">${aiObject.terjemahan_abstrak}</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-gradient-to-r from-teal-50/40 to-emerald-50/40 p-4 rounded-xl border border-teal-100/50 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2">
-                            <h5 class="text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1"><i class="fa-solid fa-list-check text-emerald-600"></i> Poin-Poin Intisari Penelitian:</h5>
-                            <ul class="text-xs text-slate-600 space-y-1 pl-1">
-                                ${pointsList}
-                            </ul>
-                        </div>
-                        <div class="border-t md:border-t-0 md:border-l border-teal-200/30 pt-3 md:pt-0 md:pl-4 flex flex-col justify-center">
-                            <h5 class="text-xs font-bold text-teal-800 mb-1"><i class="fa-solid fa-circle-info"></i> Kontribusi Studi Islam:</h5>
-                            <p class="text-xs text-teal-900 italic leading-relaxed">${aiObject.kontribusi_studi_islam || 'Sangat berharga sebagai bahan literatur riset.'}</p>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(section);
-            });
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (aksi === "tambahCeramah") {
+      const sheetCeramah = ss.getSheetByName("LIST_CERAMAH") || ss.getSheetByName("CERAMAH");
+      const rowId = new Date().getTime();
+      sheetCeramah.appendRow([
+        rowId, 
+        postData.tema, 
+        new Date(postData.tanggal), 
+        postData.jam, 
+        postData.tempat, 
+        "BELUM"
+      ]);
+      
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (aksi === "selesaikanCeramah") {
+      const sheetCeramah = ss.getSheetByName("LIST_CERAMAH") || ss.getSheetByName("CERAMAH");
+      const data = sheetCeramah.getDataRange().getValues();
+      const targetId = Number(postData.rowId);
+      
+      for (let i = 1; i < data.length; i++) {
+        if (Number(data[i][0]) === targetId) {
+          sheetCeramah.getRange(i + 1, 6).setValue("SELESAI");
+          break;
         }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Aksi tidak dikenal" }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
 
-        // DAFTAR JURNAL APC 0$ ASLI
-        async function loadJournals() {
-            try {
-                const response = await fetch(`${BASE_API_URL}?target=jurnal`);
-                journalData = await response.json();
-                document.getElementById('loader-journal').classList.add('hidden');
-                document.getElementById('journal-list').classList.remove('hidden');
-                displayJournals(journalData);
-            } catch (err) {
-                document.getElementById('loader-journal').innerHTML = `<p class="text-red-500 font-medium"><i class="fa-solid fa-triangle-exclamation"></i> Gagal terhubung ke database jurnal.</p>`;
-            }
-        }
+function formatDateString(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, TIMEZONE, "yyyy-MM-dd");
+  }
+  return String(val);
+}
 
-        function displayJournals(data) {
-            const listContainer = document.getElementById('journal-list');
-            listContainer.innerHTML = '';
-
-            if(!data || data.length === 0 || data.error) {
-                listContainer.innerHTML = '<div class="col-span-full text-center text-slate-400 py-12 bg-white rounded-2xl border border-dashed border-slate-200">Database jurnal kosong.</div>';
-                return;
-            }
-
-            data.forEach(item => {
-                const badgeColor = (item['Cakupan'] || '').toLowerCase().includes('internasional') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between";
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start gap-2 mb-3">
-                            <span class="text-xs px-2.5 py-1 rounded-lg font-bold border ${badgeColor}">${item['Reputasi'] || 'Sinta'}</span>
-                            <span class="text-[11px] text-slate-400 font-medium"><i class="fa-solid fa-earth-asia"></i> ${item['Cakupan'] || 'Nasional'}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-900 text-base mb-1 line-clamp-2">${item['Nama Jurnal']}</h4>
-                        <p class="text-xs text-slate-500 mb-2 font-medium"><i class="fa-solid fa-building-columns"></i> ${item['Penerbit/Kampus'] || '-'}</p>
-                        <p class="text-xs text-slate-600 mb-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">Fokus: <span class="font-semibold text-slate-700">${item['Bidang Ilmu'] || 'Studi Islam'}</span></p>
-                        <p class="text-xs text-amber-700 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100 italic mb-4"><i class="fa-solid fa-robot text-amber-600 mr-1"></i> AI Note: ${item['Keterangan AI'] || 'Terverifikasi Gratis APC'}</p>
-                    </div>
-                    <a href="${item['Link OJS / Publisher'] || item['Link OJS']}" target="_blank" class="w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
-                        Kunjungi Kertas Jurnal/OJS <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                    </a>
-                `;
-                listContainer.appendChild(card);
-            });
-        }
-
-        function filterJournals() {
-            const searchKey = document.getElementById('search-journal').value.toLowerCase();
-            const repFilter = document.getElementById('filter-reputasi').value;
-            const cakFilter = document.getElementById('filter-cakupan').value;
-
-            const filtered = journalData.filter(item => {
-                const name = item['Nama Jurnal'] ? item['Nama Jurnal'].toLowerCase() : '';
-                const field = item['Bidang Ilmu'] ? item['Bidang Ilmu'].toLowerCase() : '';
-                const rep = item['Reputasi'] ? item['Reputasi'] : '';
-                const cak = item['Cakupan'] ? item['Cakupan'] : '';
-
-                const matchesSearch = name.includes(searchKey) || field.includes(searchKey);
-                const matchesRep = repFilter === "" || rep.toLowerCase() === repFilter.toLowerCase();
-                const matchesCak = cakFilter === "" || cak.toLowerCase() === cakFilter.toLowerCase();
-                return matchesSearch && matchesRep && matchesCak;
-            });
-            displayJournals(filtered);
-        }
-    </script>
-</body>
-</html>
+// FORMAT KALENDER HIJRIAH MENGGUNAKAN MESIN V8 INTERNAL (PERSISI UMM AL-QURA) [1]
+function getAstronomicHijriDate() {
+  try {
+    const today = new Date();
+    // Gunakan 'en-US' locale untuk mendapatkan struktur parsing angka yang bersih
+    const formatter = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', {
+      timeZone: TIMEZONE,
+      calendar: 'islamic-umalqura',
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric'
+    });
+    
+    const parts = formatter.formatToParts(today);
+    let day = "";
+    let monthNum = "";
+    let year = "";
+    
+    for (let part of parts) {
+      if (part.type === 'day') day = part.value;
+      if (part.type === 'month') monthNum = part.value;
+      if (part.type === 'year') year = part.value;
+    }
+    
+    const months = ["Muharram", "Safar", "Rabi'ul Awal", "Rabi'ul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rajab", "Sya'ban", "Ramadhan", "Syawal", "Dzulqa'dah", "Dzulhijjah"];
+    const monthName = months[parseInt(monthNum, 10) - 1] || "Safar";
+    
+    return day + " " + monthName + " " + year + " H";
+  } catch (e) {
+    return "2 Safar 1448 H"; 
+  }
+}
