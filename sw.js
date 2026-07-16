@@ -1,58 +1,61 @@
-const CACHE_NAME = "fuqohak-cache-v1";
+const CACHE_NAME = 'fuqohak-tracker-v1';
 const ASSETS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./membaca.html",
-  "https://cdn.tailwindcss.com"
+  './index.html',
+  'https://cdn.tailwindcss.com',
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap'
 ];
 
-// Tahap Install: Simpan aset statis dasar ke dalam cache
-self.addEventListener("install", (event) => {
+// Pasang Service Worker dan simpan aset utama ke cache
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('Menyimpan aset penting ke dalam cache lokal...');
       return cache.addAll(ASSETS_TO_CACHE);
-    })
+    }).then(() => self.skipWaiting())
   );
 });
 
-// Tahap Aktifkan: Bersihkan cache versi usang
-self.addEventListener("activate", (event) => {
+// Bersihkan cache lama jika ada versi baru
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            console.log('Menghapus cache lawas:', cache);
+            return caches.delete(cache);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
-// Intersepsi Request: Ambil dari cache jika offline (kecuali untuk request data real-time)
-self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET" || event.request.url.includes("script.google.com")) {
-    return; // Biarkan request POST dan fetch database spreadsheet berjalan langsung ke server
+// Strategi cache: Ambil dari cache dulu untuk mempercepat rendering, jika tidak ada baru ambil dari internet
+self.addEventListener('fetch', event => {
+  // Lewati penyimpanan cache untuk transaksi API dinamis (Google Apps Script)
+  if (event.request.url.includes('script.google.com')) {
+    return;
   }
-  
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
+      return fetch(event.request).then(networkResponse => {
+        // Simpan aset eksternal baru yang valid ke dalam cache secara dinamis
+        if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+          const cacheToKeep = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, cacheToKeep);
+          });
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        return response;
-      }).catch(() => {
-        // Fallback aman jika koneksi offline total
+        return networkResponse;
       });
+    }).catch(() => {
+      // Skenario darurat jika benar-benar offline tanpa koneksi sama sekali
+      return caches.match('./index.html');
     })
   );
 });
