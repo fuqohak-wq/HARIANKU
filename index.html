@@ -28,10 +28,10 @@ display: flex;
 justify-content: center; 
 overflow-x: hidden; 
 }
-/* Layout Presisi Layar Tunggal Tanpa Scrollbar Utama */
+/* Layout Fleksibel: Penuh di Mobile & Tablet, Terpusat di Desktop */
 .app-container { 
 width: 100%; 
-max-width: 480px; 
+max-width: 100%; 
 height: 100vh; 
 height: 100dvh; 
 background: #f1f5f9; 
@@ -42,7 +42,16 @@ gap: 5px;
 padding: 10px; 
 overflow-y: auto; 
 position: relative; 
+box-sizing: border-box;
 }
+
+/* Pembatasan lebar hanya diterapkan pada layar desktop besar */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 480px;
+  }
+}
+
 /* Dark Mode Premium & Glassmorphism */
 .dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
 .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
@@ -566,7 +575,7 @@ let dataAnalisaMakanTerakhir = null;
 let globalTasks = [];
 let globalCeramah = [];
 let globalRutinitas = [];
-let globalKeuangan = { saldo: 984000, pemasukan: 1000000, pengeluaran: 16000, transaksi: FALLBACK_FINANCE_ROWS };
+let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
 // Optimistic State Hidrasi Air
@@ -580,47 +589,44 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-// ==================== INITIALIZATION (OPTIMIZED FOR MOBILE / NON-BLOCKING) ====================
+// ==================== INITIALIZATION (HIGH COMPATIBILITY FOR OLDER EMUI/WEBVIEW) ====================
 window.onload = function() {
-  // 1. Inisialisasi visual dan state lokal secara instan (0 milidetik pemuatan)
   initWaterLocal();
   tentukanKalenderDasar();
   terapkanSistemTema();
   evaluasiVisualModeMalam();
   
-  // 2. Muat data cadangan lokal agar langsung tampil di layar tanpa delay
   muatDataDariOffline(); 
   inisialisasiRotasiNasehatLokal();
 
-  // 3. Sinkronisasi data jaringan secara paralel di latar belakang (Tidak Menghambat UI)
-  sinkronisasiDataLatarBelakang();
+  // Pengganti Promise.allSettled yang tidak didukung Webview Huawei lama
+  sinkronisasiDataLatarBelakangLegacy();
 
-  // 4. Atur interval sinkronisasi periodik
-  setInterval(sinkronisasiDataLatarBelakang, 25000);
+  setInterval(sinkronisasiDataLatarBelakangLegacy, 25000);
 
-  // 5. Daftarkan Service Worker untuk kapabilitas PWA
   daftarkanServiceWorker();
 };
 
-// Fungsi gabungan sinkronisasi data paralel
-async function sinkronisasiDataLatarBelakang() {
-  try {
-    await Promise.allSettled([
-      loadDashboard(),
-      fetchFinanceData()
-    ]);
-    console.log("Sinkronisasi latar belakang selesai.");
-  } catch (err) {
-    console.warn("Sinkronisasi latar belakang mengalami penundaan.");
-  }
+// Fungsi sinkronisasi aman yang kompatibel dengan mesin peramban lama
+function sinkronisasiDataLatarBelakangLegacy() {
+  loadDashboard().catch(function(e) {
+    console.warn("Gagal memuat dasbor:", e);
+  });
+  
+  fetchFinanceData().catch(function(e) {
+    console.warn("Gagal memuat keuangan:", e);
+  });
 }
 
-// PWA Service Worker Registration
 function daftarkanServiceWorker() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker terdaftar di skop:', reg.scope))
-      .catch(err => console.error('Pendaftaran Service Worker gagal:', err));
+      .then(function(reg) {
+        console.log('Service Worker terdaftar di skop:', reg.scope);
+      })
+      .catch(function(err) {
+        console.error('Pendaftaran Service Worker gagal:', err);
+      });
   }
 }
 // ==============================================================================================
@@ -656,15 +662,15 @@ updateFinanceUI();
 }
 
 function tentukanKalenderDasar() {
-const parseIntObj = new Date();
-document.getElementById("date-masehi").innerText = ClinicalFormatDate(parseIntObj);
+const currentDate = new Date();
+document.getElementById("date-masehi").innerText = ClinicalFormatDate(currentDate);
 try {
 const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
 day: 'numeric',
 month: 'long',
 year: 'numeric'
 });
-let formattedDate = formatterHijriah.format(parseIntObj);
+let formattedDate = formatterHijriah.format(currentDate);
 formattedDate = formattedDate.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
 document.getElementById("date-hijriah").innerText = formattedDate;
 } catch (error) {
@@ -676,14 +682,14 @@ function ClinicalFormatDate(d) {
 const weekday = d.toLocaleDateString('id-ID', { weekday: 'long' });
 const day = d.getDate();
 const month = d.toLocaleDateString('id-ID', { month: 'short' });
-return `${weekday}, ${day} ${month}`;
+return weekday + ", " + day + " " + month;
 }
 
 async function loadDashboard() {
 if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
 try {
 const controller = new AbortController();
-const idTimeout = setTimeout(() => controller.abort(), 6000);
+const idTimeout = setTimeout(function() { controller.abort(); }, 6000);
 
 const res = await fetch(API_URL, { signal: controller.signal });
 clearTimeout(idTimeout);
@@ -716,7 +722,7 @@ async function fetchFinanceData() {
 if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
 try {
 const controller = new AbortController();
-const idTimeout = setTimeout(() => controller.abort(), 8000);
+const idTimeout = setTimeout(function() { controller.abort(); }, 8000);
 const res = await fetch(FINANCE_API_URL, { signal: controller.signal });
 clearTimeout(idTimeout);
 const json = await res.json();
@@ -725,7 +731,7 @@ if (Array.isArray(json)) {
 rawRows = json;
 } else if (json && Array.isArray(json.data)) {
 rawRows = json.data;
-} else if (json && json.data && Array.isArray(json.data.KEUANGAN?.transaksi)) {
+} else if (json && json.data && json.data.KEUANGAN && Array.isArray(json.data.KEUANGAN.transaksi)) {
 rawRows = json.data.KEUANGAN.transaksi;
 } else if (json && Array.isArray(json.transaksi)) {
 rawRows = json.transaksi;
@@ -736,7 +742,7 @@ if (rawRows.length > 0) {
 let tempPemasukan = 0;
 let tempPengeluaran = 0;
 let calculatedRows = [];
-rawRows.forEach(row => {
+rawRows.forEach(function(row) {
 const parsed = normalizeRow(row);
 calculatedRows.push(row); 
 if (parsed.tipe === "PEMASUKAN") {
@@ -773,7 +779,7 @@ updateFinanceUI();
 function GunakanFallbackLokal() {
 let tempPemasukan = 0;
 let tempPengeluaran = 0;
-FALLBACK_FINANCE_ROWS.forEach(row => {
+FALLBACK_FINANCE_ROWS.forEach(function(row) {
 const parsed = normalizeRow(row);
 if (parsed.tipe === "PEMASUKAN") tempPemasukan += parsed.nominal;
 if (parsed.tipe === "PENGELUARAN") tempPengeluaran += parsed.nominal;
@@ -804,8 +810,8 @@ containerLog.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center
 return;
 }
 containerLog.innerHTML = "";
-const listTampilkan = [...globalKeuangan.transaksi].reverse();
-listTampilkan.forEach(tx => {
+const listTampilkan = [].concat(globalKeuangan.transaksi).reverse();
+listTampilkan.forEach(function(tx) {
 const parsed = normalizeRow(tx);
 const isMasuk = parsed.tipe === "PEMASUKAN";
 const badgeColor = isMasuk ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10";
@@ -835,6 +841,7 @@ containerLog.appendChild(div);
 }
 }
 
+// ==================== REMOVED MODERN ES2020 OPTIONAL CHAINING (?.) ====================
 function renderDataKeLayar(data) {
 if (data["HIJRIAH_FIXED"]) {
 document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
@@ -847,17 +854,18 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 globalTasks = data["LIST_TUGAS"] || [];
 globalCeramah = data["LIST_CERAMAH"] || [];
 globalRutinitas = data["RUTINITAS"] || [];
-const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
+
+const teksMoodAsli = (data["MOOD_STATUS"] && data["MOOD_STATUS"].value) ? data["MOOD_STATUS"].value : "STABIL";
 currentMoodStatus = teksMoodAsli;
 let textMoodElement = document.getElementById("user-mood");
 let textMustDoElement = document.getElementById("user-must-do");
 textMoodElement.innerText = teksMoodAsli;
 
-if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
+if (teksMoodAsli.toUpperCase().indexOf("BURUK") !== -1 || teksMoodAsli.toUpperCase().indexOf("TURUN") !== -1) {
 textMoodElement.innerText = "😞 " + teksMoodAsli;
 textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, bangkit!";
 textMustDoElement.className = "text-[7px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
-} else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
+} else if (teksMoodAsli.toUpperCase().indexOf("STABIL") !== -1) {
 textMoodElement.innerText = "😊 " + teksMoodAsli;
 textMustDoElement.innerText = "Kondisi Stabil! Jaga ritme ibadah & produktivitas.";
 textMustDoElement.className = "text-[7px] font-black text-emerald-200 uppercase tracking-tight";
@@ -867,8 +875,8 @@ textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
 textMustDoElement.className = "text-[7px] font-black text-rose-200 uppercase tracking-tight";
 }
 
-const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
-const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
+const aktualJamaah = Number((data["SHALAT JAMAAH"] && data["SHALAT JAMAAH"].value) ? data["SHALAT JAMAAH"].value : 0);
+const aktualMurojaah = Number((data["MUROJAAH"] && data["MUROJAAH"].value) ? data["MUROJAAH"].value : 0);
 document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
 document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
 const totalPoinAktual = aktualJamaah + aktualMurojaah;
@@ -893,7 +901,7 @@ globalKeuangan.transaksi = data["KEUANGAN"].transaksi;
 updateFinanceUI();
 }
 
-const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
+const serverWater = Math.floor(Number((data["MINUM AIR"] && data["MINUM AIR"].value) ? data["MINUM AIR"].value : 0));
 const selisihWaktu = Date.now() - localWaterState.lastUpdated;
 if (selisihWaktu < 15000 && localWaterState.count > serverWater) {
 document.getElementById("val-air").innerText = localWaterState.count;
@@ -903,15 +911,16 @@ localWaterState.count = serverWater;
 localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
 }
 
-document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
-document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
-document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
+document.getElementById("val-kalori").innerText = (data["KALORI MASUK"] && data["KALORI MASUK"].value) ? data["KALORI MASUK"].value : 0;
+document.getElementById("val-kalori-keluar").innerText = (data["KALORI KELUAR"] && data["KALORI KELUAR"].value) ? data["KALORI KELUAR"].value : 0;
+document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["MENGURANGI HP"].value) ? data["MENGURANGI HP"].value : 0;
+document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
+document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
 document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
 
-const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
+const rawKaloriMasuk = (data["KALORI MASUK"] && data["KALORI MASUK"].value) ? data["KALORI MASUK"].value : 0;
+const progressIn = (Number(rawKaloriMasuk) / 2000) * 100;
 document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
 
 if (data["RIWAYAT"]) {
@@ -931,7 +940,7 @@ localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
 
 const cardAir = document.getElementById("card-air");
 cardAir.classList.add("scale-[0.97]", "bg-blue-500/10");
-setTimeout(() => cardAir.classList.remove("scale-[0.97]", "bg-blue-500/10"), 150);
+setTimeout(function() { cardAir.classList.remove("scale-[0.97]", "bg-blue-500/10"); }, 150);
 
 if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
 try {
@@ -951,11 +960,11 @@ function buildLineChart(riwayat) {
   const svg = document.getElementById("grafik-svg");
   
   // Membalikkan data riwayat dari server agar kronologis berurutan dari kiri ke kanan
-  const chronologicalData = [...riwayat].reverse();
+  const chronologicalData = [].concat(riwayat).reverse();
   
-  const values = chronologicalData.map(item => item.jumlah);
-  const minVal = Math.min(...values, 0);
-  const maxVal = Math.max(...values, 50); 
+  const values = chronologicalData.map(function(item) { return item.jumlah; });
+  const minVal = Math.min.apply(null, [].concat(values, [0]));
+  const maxVal = Math.max.apply(null, [].concat(values, [50])); 
   const valRange = maxVal - minVal || 1;
 
   const w = 100; 
@@ -963,14 +972,14 @@ function buildLineChart(riwayat) {
   const paddingY = 4;
   const graphH = h - (paddingY * 2);
 
-  const points = chronologicalData.map((item, index) => {
+  const points = chronologicalData.map(function(item, index) {
     const x = (index / (chronologicalData.length - 1)) * w;
     const y = h - paddingY - (((item.jumlah - minVal) / valRange) * graphH);
-    return { x, y, val: item.jumlah, date: item.tanggal };
+    return { x: x, y: y, val: item.jumlah, date: item.tanggal };
   });
 
   // Pembuatan spline bezier kubik halus
-  let pathD = `M ${points[0].x} ${points[0].y}`;
+  let pathD = "M " + points[0].x + " " + points[0].y;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i];
     const p1 = points[i + 1];
@@ -978,10 +987,10 @@ function buildLineChart(riwayat) {
     const cpY1 = p0.y;
     const cpX2 = p0.x + (p1.x - p0.x) / 2;
     const cpY2 = p1.y;
-    pathD += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
+    pathD += " C " + cpX1 + " " + cpY1 + ", " + cpX2 + " " + cpY2 + ", " + p1.x + " " + p1.y;
   }
 
-  let areaD = `${pathD} L ${points[points.length-1].x} ${h} L ${points[0].x} ${h} Z`;
+  let areaD = pathD + " L " + points[points.length-1].x + " " + h + " L " + points[0].x + " " + h + " Z";
 
   const lastVal = values[values.length - 1] || 0;
   const prevVal = values[values.length - 2] || 0;
@@ -1024,12 +1033,12 @@ let intervalRotasiKalimat = null;
 function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
   let hasilPotongan = [];
   
-  daftarNasehat.forEach(paragraf => {
+  daftarNasehat.forEach(function(paragraf) {
     let teksBersih = paragraf.replace(/[\[\]"'\*#_]/g, '').trim();
     let kalimatList = teksBersih.match(/[^.!?]+[.!?]+/g) || [teksBersih];
     let penampungPotongan = "";
     
-    kalimatList.forEach(kalimat => {
+    kalimatList.forEach(function(kalimat) {
       let kalimatTrimmed = kalimat.trim();
       if (!kalimatTrimmed) return;
       
@@ -1080,7 +1089,7 @@ function mulaiSiklusTampilan(dataNasehat) {
   indeksKalimatAktif = 0;
   eksekusiAnimasiTeks();
   
-  intervalRotasiKalimat = setInterval(() => {
+  intervalRotasiKalimat = setInterval(function() {
     indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
     eksekusiAnimasiTeks();
   }, 30000); 
@@ -1095,7 +1104,7 @@ async function eksekusiAnimasiTeks() {
   teksEl.classList.remove("opacity-100");
   teksEl.classList.add("opacity-0");
   
-  await new Promise(r => setTimeout(r, 400));
+  await new Promise(function(r) { setTimeout(r, 400); });
   
   teksEl.innerText = daftarPotonganKalimat[indeksKalimatAktif] || "Menunggu koordinasi waktu harian...";
   teksEl.classList.remove("opacity-0");
@@ -1113,11 +1122,11 @@ async function panggilAnalisisRutinitasAI() {
   
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 15000);
+    const idTimeout = setTimeout(function() { controller.abort(); }, 15000);
     
-    const urlDenganRefresh = PERSONAL_AI_URL.includes('?') 
-      ? `${PERSONAL_AI_URL}&refresh=true&_ts=${Date.now()}` 
-      : `${PERSONAL_AI_URL}?refresh=true&_ts=${Date.now()}`;
+    const urlDenganRefresh = PERSONAL_AI_URL.indexOf('?') !== -1 
+      ? PERSONAL_AI_URL + "&refresh=true&_ts=" + Date.now()
+      : PERSONAL_AI_URL + "?refresh=true&_ts=" + Date.now();
 
     const response = await fetch(urlDenganRefresh, { signal: controller.signal });
     const result = await response.json();
@@ -1132,7 +1141,7 @@ async function panggilAnalisisRutinitasAI() {
   if (nasehatDidapat.length === 0) {
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(() => controller.abort(), 15000);
+      const idTimeout = setTimeout(function() { controller.abort(); }, 15000);
       
       const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { signal: controller.signal });
       const result = await response.json();
@@ -1196,12 +1205,12 @@ kontenLihat.classList.add("hidden");
 function renderDaftarTugasInstan() {
 const container = document.getElementById("konten-lihat-tugas");
 container.innerHTML = "";
-const belumSelesai = globalTasks.filter(item => item.status.toUpperCase() === "BELUM");
+const belumSelesai = globalTasks.filter(function(item) { return item.status.toUpperCase() === "BELUM"; });
 if (belumSelesai.length === 0) {
 container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua target pekerjaan rampung!</p>`;
 return;
 }
-belumSelesai.forEach(item => {
+belumSelesai.forEach(function(item) {
 const div = document.createElement("div");
 div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
 div.innerHTML = `
@@ -1213,12 +1222,12 @@ container.appendChild(div);
 }
 
 async function selesaikanTugasOptimis(rowId) {
-const taskBackup = [...globalTasks];
-globalTasks = globalTasks.map(t => {
+const taskBackup = [].concat(globalTasks);
+globalTasks = globalTasks.map(function(t) {
 if (t.rowId === rowId) t.status = "SELESAI";
 return t;
 });
-const sisaTugas = globalTasks.filter(t => t.status === "BELUM").length;
+const sisaTugas = globalTasks.filter(function(t) { return t.status === "BELUM"; }).length;
 document.getElementById("badge-tugas").innerText = sisaTugas;
 renderDaftarTugasInstan();
 
@@ -1249,7 +1258,8 @@ const res = await fetch(API_URL, {
 method: "POST", 
 body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) 
 });
-if ((await res.json()).status === "success") {
+const result = await res.json();
+if (result.status === "success") {
 await loadDashboard();
 }
 } catch(e) { alert("Penyimpanan gagal."); }
@@ -1290,12 +1300,12 @@ kontenLihat.classList.add("hidden");
 function renderDaftarCeramahInstan() {
 const container = document.getElementById("konten-lihat-ceramah");
 container.innerHTML = "";
-const belumSelesai = globalCeramah.filter(item => item.status.toUpperCase() === "BELUM");
+const belumSelesai = globalCeramah.filter(function(item) { return item.status.toUpperCase() === "BELUM"; });
 if (belumSelesai.length === 0) {
 container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada jadwal ceramah terdekat.</p>`;
 return;
 }
-belumSelesai.forEach(item => {
+belumSelesai.forEach(function(item) {
 const div = document.createElement("div");
 div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
 div.innerHTML = `
@@ -1311,12 +1321,12 @@ container.appendChild(div);
 }
 
 async function selesaikanCeramahOptimis(rowId) {
-const backupCeramah = [...globalCeramah];
-globalCeramah = globalCeramah.map(c => {
+const backupCeramah = [].concat(globalCeramah);
+globalCeramah = globalCeramah.map(function(c) {
 if (c.rowId === rowId) c.status = "SELESAI";
 return c;
 });
-const sisa = globalCeramah.filter(c => c.status === "BELUM").length;
+const sisa = globalCeramah.filter(function(c) { return c.status === "BELUM"; }).length;
 document.getElementById("badge-ceramah").innerText = sisa;
 renderDaftarCeramahInstan();
 
@@ -1326,7 +1336,8 @@ const res = await fetch(API_URL, {
 method: "POST", 
 body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) 
 });
-if ((await res.json()).status !== "success") throw new Error();
+const result = await res.json();
+if (result.status !== "success") throw new Error();
 } catch(e) {
 alert("Koneksi gagal. Mengembalikan data.");
 globalCeramah = backupCeramah;
@@ -1347,7 +1358,8 @@ const res = await fetch(API_URL, {
 method: "POST", 
 body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) 
 });
-if ((await res.json()).status === "success") {
+const result = await res.json();
+if (result.status === "success") {
 await loadDashboard();
 }
 } catch(e) { alert("Penyimpanan jadwal gagal."); }
@@ -1379,11 +1391,11 @@ const listKartu = document.querySelectorAll(".glass-card");
 if (modeMalamManual) {
 app.classList.add("dark-mode-bg");
 document.getElementById("time-indicator").innerText = "🌙";
-listKartu.forEach(k => k.classList.add("dark-card"));
+listKartu.forEach(function(k) { k.classList.add("dark-card"); });
 } else {
 app.classList.remove("dark-mode-bg");
 document.getElementById("time-indicator").innerText = "☀️";
-listKartu.forEach(k => k.classList.remove("dark-card"));
+listKartu.forEach(function(k) { k.classList.remove("dark-card"); });
 }
 }
 
