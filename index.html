@@ -828,100 +828,47 @@ function updateFinanceUI() {
 }
 
 function renderDataKeLayar(data) {
-  // Hanya jika API eksternal secara eksplisit mengesampingkan kalkulasi internal
-  if (data["HIJRIAH_FIXED"]) {
-    document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
-  }
+    // 1. Update Header & Mood
+    document.getElementById("user-mood").innerText = data.MOOD_STATUS || "STABIL";
+    
+    // 2. Update Metrics Grid (Singkron dengan Kolom JML/OK)
+    // Kalori Masuk (Tampilkan Kolom JML)
+    document.getElementById("val-kalori").innerText = data.KALORI_MASUK.jml || 0;
+    let progressKalori = ((data.KALORI_MASUK.jml || 0) / 2000) * 100;
+    document.getElementById("bar-kalori").style.width = Math.min(progressKalori, 100) + "%";
 
-  if (data["MOTIVASI"] && data["MOTIVASI"].value) {
-    document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}"`;
-  }
+    // Kalori Keluar
+    document.getElementById("val-kalori-keluar").innerText = data.KALORI_KELUAR.jml || 0;
 
-  globalTasks = data["LIST_TUGAS"] || [];
-  globalCeramah = data["LIST_CERAMAH"] || [];
-  globalRutinitas = data["RUTINITAS"] || [];
-  
-  const teksMoodAsli = data["MOOD_STATUS"]?.value || "STABIL";
-  currentMoodStatus = teksMoodAsli;
-  
-  let textMoodElement = document.getElementById("user-mood");
-  let textMustDoElement = document.getElementById("user-must-do");
-  
-  textMoodElement.innerText = teksMoodAsli;
+    // Hidrasi (Minum Air)
+    document.getElementById("val-air").innerText = data.MINUM_AIR.jml || 0;
 
-  if (teksMoodAsli.toUpperCase().includes("BURUK") || teksMoodAsli.toUpperCase().includes("TURUN")) {
-    textMoodElement.innerText = "😞 " + teksMoodAsli;
-    textMustDoElement.innerText = "INGAT: Kematian bisa datang kapan saja, bangkit!";
-    textMustDoElement.className = "text-[7px] font-black text-yellow-300 uppercase tracking-tight animate-pulse";
-  } else if (teksMoodAsli.toUpperCase().includes("STABIL")) {
-    textMoodElement.innerText = "😊 " + teksMoodAsli;
-    textMustDoElement.innerText = "Kondisi Stabil! Jaga ritme ibadah & produktivitas.";
-    textMustDoElement.className = "text-[7px] font-black text-emerald-200 uppercase tracking-tight";
-  } else {
-    textMoodElement.innerText = "🔥 " + teksMoodAsli;
-    textMustDoElement.innerText = "Fokus kejar target harianmu hari ini!";
-    textMustDoElement.className = "text-[7px] font-black text-rose-200 uppercase tracking-tight";
-  }
+    // Screen Time (Mengurangi HP)
+    document.getElementById("val-hp").innerText = data.SCREEN_TIME.jml || 0;
 
-  const aktualJamaah = Number(data["SHALAT JAMAAH"]?.value || 0);
-  const aktualMurojaah = Number(data["MUROJAAH"]?.value || 0);
-  
-  document.getElementById("val-shalat").innerText = aktualJamaah + "/7";
-  document.getElementById("val-murojaah").innerText = aktualMurojaah + "/3";
-  
-  const totalPoinAktual = aktualJamaah + aktualMurojaah;
-  let persentaseSpiritual = (totalPoinAktual / 10) * 100;
-  if (persentaseSpiritual > 100) persentaseSpiritual = 100;
-  
-  const labelKonsistensi = document.getElementById("val-konsistensi");
-  labelKonsistensi.innerText = persentaseSpiritual.toFixed(0) + "%";
+    // 3. English, Menulis
+    document.getElementById("val-english").innerText = (data.ENGLISH.ok || 0) + " M"; // Pakai Kolom OK untuk progres
+    document.getElementById("val-menulis").innerText = data.MENULIS.jml || 0;
 
-  if (persentaseSpiritual >= 100) {
-    labelKonsistensi.className = "text-[7px] font-black bg-emerald-500 text-white px-1.5 py-0.2 rounded-full animate-bounce";
-  } else if (persentaseSpiritual >= 50) {
-    labelKonsistensi.className = "text-[7px] font-black bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded-full";
-  } else {
-    labelKonsistensi.className = "text-[7px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded-full";
-  }
+    // 4. Spiritual & Ibadah (Format: OK / JML)
+    document.getElementById("val-shalat").innerText = `${data.SHALAT_JAMAAH.jml}/15`; // Sesuai target di foto (3/15)
+    document.getElementById("val-murojaah").innerText = `${data.MUROJAAH.jml}/3`;
+    
+    // Hitung Persentase Konsistensi
+    let totalTarget = 18; // 15 Shalat + 3 Murojaah
+    let totalOk = Number(data.SHALAT_JAMAAH.jml) + Number(data.MUROJAAH.jml);
+    document.getElementById("val-konsistensi").innerText = Math.round((totalOk/totalTarget)*100) + "%";
 
-  // Jika respon utama (UIN) mengirimkan tab keuangan terintegrasi, lakukan rendering langsung
-  if (data["KEUANGAN"] && Array.isArray(data["KEUANGAN"].transaksi) && data["KEUANGAN"].transaksi.length > 0) {
-    globalKeuangan.pemasukan = Number(data["KEUANGAN"].pemasukan || 0);
-    globalKeuangan.pengeluaran = Number(data["KEUANGAN"].pengeluaran || 0);
-    globalKeuangan.saldo = Number(data["KEUANGAN"].saldo || 0);
-    globalKeuangan.transaksi = data["KEUANGAN"].transaksi;
-    updateFinanceUI();
-  }
+    // 5. Badges
+    document.getElementById("badge-tugas").innerText = data.TUGAS_COUNT || 0;
+    document.getElementById("badge-ceramah").innerText = data.CERAMAH_COUNT || 0;
 
-  // Sinkronisasi log air dengan kunci lokal (anti-flicker)
-  const serverWater = Math.floor(Number(data["MINUM AIR"]?.value || 0));
-  const selisihWaktu = Date.now() - localWaterState.lastUpdated;
-  
-  if (selisihWaktu < 15000 && localWaterState.count > serverWater) {
-    document.getElementById("val-air").innerText = localWaterState.count;
-  } else {
-    document.getElementById("val-air").innerText = serverWater;
-    localWaterState.count = serverWater;
-    localStorage.setItem("fuqohak_local_water", JSON.stringify(localWaterState));
-  }
-
-  document.getElementById("val-kalori").innerText = data["KALORI MASUK"]?.value || 0;
-  document.getElementById("val-kalori-keluar").innerText = data["KALORI KELUAR"]?.value || 0;
-  document.getElementById("val-hp").innerText = data["MENGURANGI HP"]?.value || 0;
-  document.getElementById("val-english").innerText = (data["ENGLISH"]?.value || 0) + " M";
-  document.getElementById("val-menulis").innerText = data["MENULIS"]?.value || 0;
-  
-  document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
-  document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
-
-  const progressIn = ((data["KALORI MASUK"]?.value || 0) / 2000) * 100;
-  document.getElementById("bar-kalori").style.width = Math.min(progressIn, 100) + "%";
-
-  if (data["RIWAYAT"]) {
-    buildLineChart(data["RIWAYAT"]);
-  }
+    // 6. Keuangan (VIP Card)
+    const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
+    document.getElementById("keuangan-saldo").innerText = formatter.format(data.KEUANGAN.saldo);
+    document.getElementById("keuangan-pemasukan").innerText = formatter.format(data.KEUANGAN.pemasukan);
+    document.getElementById("keuangan-pengeluaran").innerText = formatter.format(data.KEUANGAN.pengeluaran);
 }
-
 // UPDATE LOG HIDRASI AIR (INSTAN TANPA JEDA)
 async function tambahAir() {
   let airElement = document.getElementById("val-air");
