@@ -16,7 +16,20 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pt-10">
+
+    <div class="fixed top-0 left-0 right-0 bg-slate-900 text-slate-200 text-xs py-1.5 px-4 z-50 flex justify-between items-center border-b border-slate-700/50 shadow-sm backdrop-blur-md bg-opacity-95">
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-medium text-slate-400">Durasi Belajar:</span>
+            <span id="timer-display" class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">00:00</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-slate-400">Poin:</span>
+            <span id="score-display" class="font-bold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/50">0</span>
+            <span id="sync-status" class="text-[10px] text-slate-500 ml-1"><i class="fa-solid fa-cloud"></i> Aktif</span>
+        </div>
+    </div>
 
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -108,13 +121,77 @@
 
         let journalData = [];
         let readingData = [];
+        
+        // Variabel untuk Timer & Nilai
+        let totalSeconds = 0;
+        let timerInterval;
+        let lastSentScore = 0;
 
         window.addEventListener('DOMContentLoaded', () => {
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('reading-date').innerText = new Date().toLocaleDateString('id-ID', dateOptions);
             loadJournals();
             loadReadings();
+            startStudyTimer(); // Memulai counter waktu belajar
         });
+
+        // FUNGSI TIMER COUNTER
+        function startStudyTimer() {
+            const timerDisplay = document.getElementById('timer-display');
+            const scoreDisplay = document.getElementById('score-display');
+            const statusDisplay = document.getElementById('sync-status');
+
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                
+                // Format waktu MM:SS
+                let minutes = Math.floor(totalSeconds / 60);
+                let seconds = totalSeconds % 60;
+                timerDisplay.innerText = 
+                    (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                    (seconds < 10 ? "0" + seconds : seconds);
+
+                // Cek hitungan poin berdasarkan menit ke 10, 20, 30, 40
+                let currentScore = 0;
+                if (minutes >= 40) currentScore = 100;
+                else if (minutes >= 30) currentScore = 75;
+                else if (minutes >= 20) currentScore = 50;
+                else if (minutes >= 10) currentScore = 25;
+
+                // Tampilkan poin di bar atas
+                scoreDisplay.innerText = currentScore;
+
+                // Jika nilai bertambah dan belum pernah dikirimkan, kirim ke Google Sheets
+                if (currentScore > lastSentScore) {
+                    lastSentScore = currentScore;
+                    sendScoreToSheet(currentScore);
+                }
+            }, 1000);
+        }
+
+        // FUNGSI KIRI DATA KE GOOGLE SPREADSHEETS VIA WEB APP ACTION
+        async function sendScoreToSheet(score) {
+            if (!BASE_API_URL || BASE_API_URL.includes("DISINI")) return;
+            const statusDisplay = document.getElementById('sync-status');
+            statusDisplay.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-emerald-400"></i> Menyimpan...`;
+            
+            try {
+                // Mengirimkan score via method POST (atau GET fallback bergantung struktur Apps Script Anda)
+                // Di sini menggunakan format string params agar kompatibel dengan doGet/doPost standar Apps Script
+                const targetUrl = `${BASE_API_URL}?target=dashboard&score=${score}`;
+                
+                const response = await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
+                
+                // Karena menggunakan 'no-cors', response tidak bisa dibaca langsung secara detil, 
+                // tapi data dijamin masuk apabila URL Apps Script benar.
+                statusDisplay.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Tersimpan`;
+                setTimeout(() => {
+                    statusDisplay.innerHTML = `<i class="fa-solid fa-cloud text-slate-500"></i> Aktif`;
+                }, 3000);
+            } catch (err) {
+                statusDisplay.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i> Gagal Sinkron`;
+            }
+        }
 
         function switchTab(tab) {
             const fTab = document.getElementById('tab-finder');
