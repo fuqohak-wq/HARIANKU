@@ -1043,6 +1043,7 @@ function tampilkanNasehatOffline() {
   teksEl.innerText = acak;
 }
 
+// MEMANGGIL REKOMENDASI REAL DARI ENDPOINT ASISTEN AI
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1052,13 +1053,13 @@ async function panggilAnalisisRutinitasAI() {
     aiRotationInterval = null;
   }
   
-  // Menampilkan cadangan instan terlebih dahulu agar tidak kosong
-  tampilkanNasehatOffline();
-  loadingEl.classList.add("hidden");
-  teksEl.classList.remove("hidden");
-  teksEl.style.opacity = "1";
+  // Tampilkan indikator memuat data real-time
+  loadingEl.classList.remove("hidden");
+  teksEl.classList.add("hidden");
+  teksEl.style.opacity = "0";
   
   if (!PERSONAL_AI_URL || PERSONAL_AI_URL.includes("DISINI")) {
+    loadingEl.innerText = "Satelit AI belum dikonfigurasi.";
     return;
   }
   
@@ -1067,25 +1068,37 @@ async function panggilAnalisisRutinitasAI() {
     const result = await response.json();
     
     if (result.success && Array.isArray(result.nasehat)) {
+      // Ekstrak data nasehat murni dari hasil eksekusi AI Agent
       localAiAdvices = result.nasehat.map(item => {
         return item.replace(/[\*\#_]/g, '').trim();
       }).filter(item => item.length > 15);
       
       if (localAiAdvices.length > 0) {
+        loadingEl.classList.add("hidden");
+        teksEl.classList.remove("hidden");
         currentAdviceIndex = 0;
+        
         tampilkanNasehatAktif();
         
+        // Rotasi nasehat real-time berkala
         aiRotationInterval = setInterval(() => {
           currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
           tampilkanNasehatAktif();
         }, 60000); 
+        return;
       }
     }
+    throw new Error("Struktur data kosong.");
   } catch(e) {
-    console.warn("Menggunakan nasehat cadangan.");
+    console.warn("Gagal menarik data asisten AI. Mengaktifkan cadangan luring.");
+    
+    // Aktifkan cadangan luring jika server AI sedang sibuk/kehabisan kuota limit API
+    tampilkanNasehatOffline();
+    loadingEl.classList.add("hidden");
+    teksEl.classList.remove("hidden");
+    teksEl.style.opacity = "1";
   }
 }
-
 async function tampilkanNasehatAktif() {
   const teksEl = document.getElementById("ai-rutinitas-teks");
   teksEl.classList.remove("opacity-100");
