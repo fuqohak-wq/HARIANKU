@@ -16,7 +16,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pb-24 relative">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -43,8 +43,33 @@
 
     <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow">
         
+        <!-- KOTAK KECIL TRACKER MEMBACA (DITEMPATKAN DI ATAS AGAR SANGAT NYAMAN) -->
+        <div class="bg-white border border-emerald-100 rounded-2xl p-3.5 shadow-sm mb-6 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-50 text-emerald-700 p-2.5 rounded-xl">
+                    <i class="fa-solid fa-hourglass-start animate-pulse"></i>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Waktu Sesi Membaca</p>
+                    <div class="flex items-center gap-2 mt-1 leading-none">
+                        <span id="timer-display" class="text-xl font-extrabold text-slate-800 leading-none">00:00</span>
+                        <span id="reading-points" class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full leading-none">SKOR B10: 0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="btn-timer-control" onclick="toggleReadingTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-play"></i> Mulai
+                </button>
+                <button id="btn-timer-sync" onclick="selesaiMembacaDanKirim()" disabled class="bg-slate-100 text-slate-400 font-bold py-2 px-4 rounded-xl text-xs transition-all cursor-not-allowed flex items-center gap-1.5 border border-slate-200/50">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Selesai
+                </button>
+            </div>
+        </div>
+
         <section id="tab-reader" class="block animate-fade-in">
-            <div class="mb-6 flex flex-col sm:sm:row justify-between items-start sm:items-center gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                 <div>
                     <h3 class="font-bold text-emerald-900 flex items-center gap-2"><i class="fa-solid fa-sparkles"></i> Telaah Akademik Harian</h3>
                     <p class="text-xs text-emerald-700">Artikel rekomendasi kurasi AI berdasarkan bidang Studi Islam.</p>
@@ -96,33 +121,6 @@
 
     </main>
 
-    <!-- FLOATING READING TIMER WIDGET (INTEGRASI BARU) -->
-    <div class="fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur-md shadow-2xl border border-emerald-100 rounded-2xl p-4 w-72 transition-all duration-300">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
-            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                <i class="fa-solid fa-clock-rotate-left animate-pulse text-emerald-600"></i> Reading Tracker
-            </span>
-            <span id="reading-points" class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">SCORE: 0</span>
-        </div>
-        
-        <div class="text-center my-3">
-            <div id="timer-display" class="text-3xl font-extrabold tracking-widest text-slate-800">00:00</div>
-            <p id="timer-status" class="text-[8px] font-extrabold text-slate-400 mt-1 uppercase">Sesi Belum Dimulai</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-            <button id="btn-timer-control" onclick="toggleReadingTimer()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-play"></i> Mulai
-            </button>
-            <button id="btn-timer-sync" onclick="selesaiMembacaDanKirim()" disabled class="w-full bg-slate-100 text-slate-400 font-bold py-2 rounded-xl text-xs transition-all cursor-not-allowed flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Selesai
-            </button>
-        </div>
-        <div class="text-center mt-2.5">
-            <a href="index.html" class="text-[9px] text-slate-400 hover:text-emerald-700 font-bold"> Kembali ke Dashboard ➔</a>
-        </div>
-    </div>
-
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 w-full mt-auto">
         <p>© 2026 Islamic Scholar Hub. Ditenagai oleh Google Apps Script & Gemini AI.</p>
     </footer>
@@ -134,7 +132,7 @@
         let journalData = [];
         let readingData = [];
 
-        // Logika Variabel Timer Membaca
+        // Logika Pengukur Waktu Sesi Membaca
         let timerSeconds = 0;
         let timerInterval = null;
         let isTimerRunning = false;
@@ -146,22 +144,18 @@
             loadReadings();
         });
 
-        // KONTROL TIMER MEMBACA (PLAY / PAUSE)
+        // FUNGSI MEMULAI / JEDA WAKTU
         function toggleReadingTimer() {
             const btn = document.getElementById("btn-timer-control");
             const btnSync = document.getElementById("btn-timer-sync");
-            const statusText = document.getElementById("timer-status");
 
             if (!isTimerRunning) {
                 isTimerRunning = true;
                 btn.innerHTML = `<i class="fa-solid fa-pause"></i> Jeda`;
-                btn.className = "w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5";
-                statusText.innerText = "Sedang Membaca...";
-                statusText.className = "text-[8px] font-extrabold text-emerald-500 mt-1 uppercase animate-pulse";
+                btn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
 
-                // Aktifkan tombol selesai
                 btnSync.disabled = false;
-                btnSync.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5";
+                btnSync.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm border border-emerald-500/20";
 
                 timerInterval = setInterval(() => {
                     timerSeconds++;
@@ -170,14 +164,11 @@
             } else {
                 isTimerRunning = false;
                 btn.innerHTML = `<i class="fa-solid fa-play"></i> Mulai`;
-                btn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5";
-                statusText.innerText = "Sesi Dijeda";
-                statusText.className = "text-[8px] font-extrabold text-amber-500 mt-1 uppercase";
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-sm";
                 clearInterval(timerInterval);
             }
         }
 
-        // UPDATE TAMPILAN TIMER & ESTIMASI SKOR B10
         function updateTimerDisplay() {
             const minutes = Math.floor(timerSeconds / 60);
             const remainingSeconds = timerSeconds % 60;
@@ -187,23 +178,22 @@
 
             document.getElementById("timer-display").innerText = `${displayMin}:${displaySec}`;
 
-            // Hitung estimasi skor berdasarkan konversi waktu baca yang ditentukan
             let calculatedScore = 0;
             if (minutes >= 40) calculatedScore = 100;
             else if (minutes >= 30) calculatedScore = 75;
             else if (minutes >= 20) calculatedScore = 50;
             else if (minutes >= 10) calculatedScore = 25;
 
-            document.getElementById("reading-points").innerText = `SCORE: ${calculatedScore}`;
+            document.getElementById("reading-points").innerText = `SKOR B10: ${calculatedScore}`;
         }
 
-        // KIRIM SINKRONISASI SKOR B10 KEMBALI KE SPREADSHEET
+        // SELESAI DAN KIRIM DURASI KE GOOGLE SHEETS
         async function selesaiMembacaDanKirim() {
             clearInterval(timerInterval);
             const minutes = Math.floor(timerSeconds / 60);
             const btnSync = document.getElementById("btn-timer-sync");
             
-            btnSync.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Kirim...`;
+            btnSync.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Mengirim...`;
             btnSync.disabled = true;
 
             try {
@@ -216,19 +206,25 @@
                 });
                 const result = await response.json();
                 if (result.status === "success") {
-                    alert(`Sesi Berhasil Disimpan! Nilai progres membaca (B10) diperbarui: ${result.score} Poin.`);
+                    alert(`Skor B10 berhasil diperbarui ke spreadsheet: ${result.score} Poin.`);
                     window.location.href = "index.html";
                 } else {
-                    alert("Koneksi berhasil tetapi server mengembalikan respon gagal.");
+                    alert("Koneksi berhasil, gagal memperbarui spreadsheet.");
+                    resetSyncBtn();
                 }
             } catch (err) {
-                alert("Gagal mengirim data. Pastikan koneksi internet stabil.");
-                btnSync.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Selesai`;
-                btnSync.disabled = false;
+                alert("Kesalahan transmisi jaringan. Gagal memperbarui data.");
+                resetSyncBtn();
             }
         }
 
-        // MEKANISME PENGUBAH TAB
+        function resetSyncBtn() {
+            const btnSync = document.getElementById("btn-timer-sync");
+            btnSync.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Selesai`;
+            btnSync.disabled = false;
+        }
+
+        // MEKANISME TAB SWITCHER ASLI
         function switchTab(tab) {
             const fTab = document.getElementById('tab-finder');
             const rTab = document.getElementById('tab-reader');
@@ -246,7 +242,7 @@
             }
         }
 
-        // AMBIL DATA TAB BACAAN HARIAN
+        // SINKRONISASI BACAAN HARIAN ASLI
         async function loadReadings() {
             try {
                 const response = await fetch(`${BASE_API_URL}?target=bacaan`);
@@ -259,7 +255,6 @@
             }
         }
 
-        // TAMPILKAN BACAAN HARIAN
         function displayReadings(data) {
             const container = document.getElementById('reader-container');
             container.innerHTML = '';
@@ -329,7 +324,7 @@
             });
         }
 
-        // AMBIL DATA TAB DAFTAR JURNAL
+        // DAFTAR JURNAL APC 0$ ASLI
         async function loadJournals() {
             try {
                 const response = await fetch(`${BASE_API_URL}?target=jurnal`);
@@ -342,7 +337,6 @@
             }
         }
 
-        // TAMPILKAN JURNAL
         function displayJournals(data) {
             const listContainer = document.getElementById('journal-list');
             listContainer.innerHTML = '';
@@ -375,7 +369,6 @@
             });
         }
 
-        // FILTER PENCARIAN JURNAL
         function filterJournals() {
             const searchKey = document.getElementById('search-journal').value.toLowerCase();
             const repFilter = document.getElementById('filter-reputasi').value;
