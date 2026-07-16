@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fuqohak Executive Tracker</title>
-<meta name="theme-color" content="#070d19">
+<meta name="theme-color" content="#1e56e3">
 
-<!-- PWA Meta Tags untuk Android, Huawei, dan iOS -->
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
+<!-- Meta PWA iOS/Android & Huawei compatibility -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fuqohak Tracker">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
@@ -524,7 +525,7 @@ Buka Dashboard Bekerja ➔
 
 <script>
 // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
-const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzfFxfuEbVuN0CEmBzQbaLGywsacI7gPBue45eCKadELkN6mypef1rJ233Xt4FUybXxIQ/exec";
+const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
 const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
 
 const API_URL = BASE_WEB_APP_URL;
@@ -582,23 +583,50 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-window.onload = async function() {
-initWaterLocal();
-tentukanKalenderDasar();
-terapkanSistemTema();
-evaluasiVisualModeMalam();
-muatDataDariOffline(); 
-await loadDashboard();
-await fetchFinanceData();
-setTimeout(() => {
-panggilAnalisisRutinitasAI();
-}, 1200);
+// ==================== INITIALIZATION (OPTIMIZED FOR MOBILE / NON-BLOCKING) ====================
+window.onload = function() {
+  // 1. Inisialisasi visual dan state lokal secara instan (0 milidetik pemuatan)
+  initWaterLocal();
+  tentukanKalenderDasar();
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  
+  // 2. Muat data cadangan lokal agar langsung tampil di layar tanpa delay
+  muatDataDariOffline(); 
+  inisialisasiRotasiNasehatLokal();
 
-setInterval(async () => {
-await loadDashboard();
-await fetchFinanceData();
-}, 25000);
+  // 3. Sinkronisasi data jaringan secara paralel di latar belakang (Tidak Menghambat UI)
+  sinkronisasiDataLatarBelakang();
+
+  // 4. Atur interval sinkronisasi periodik
+  setInterval(sinkronisasiDataLatarBelakang, 25000);
+
+  // 5. Daftarkan Service Worker untuk kapabilitas PWA
+  daftarkanServiceWorker();
 };
+
+// Fungsi gabungan sinkronisasi data paralel
+async function sinkronisasiDataLatarBelakang() {
+  try {
+    await Promise.allSettled([
+      loadDashboard(),
+      fetchFinanceData()
+    ]);
+    console.log("Sinkronisasi latar belakang selesai.");
+  } catch (err) {
+    console.warn("Sinkronisasi latar belakang mengalami penundaan.");
+  }
+}
+
+// PWA Service Worker Registration
+function daftarkanServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker terdaftar di skop:', reg.scope))
+      .catch(err => console.error('Pendaftaran Service Worker gagal:', err));
+  }
+}
+// ==============================================================================================
 
 function initWaterLocal() {
 const stored = localStorage.getItem("fuqohak_local_water");
@@ -668,8 +696,7 @@ localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
 renderDataKeLayar(json.data);
 }
 } catch (e) {
-console.warn("Memulai dalam Mode Offline.");
-muatDataDariOffline();
+console.warn("Koneksi bermasalah saat memuat dasbor.");
 }
 }
 
@@ -990,14 +1017,94 @@ labelContainer.appendChild(el);
 });
 }
 
-async function panggilAnalisisRutinitasAI() {
+let daftarPotonganKalimat = [];
+let indeksKalimatAktif = 0;
+let intervalRotasiKalimat = null;
+
+function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
+  let hasilPotongan = [];
+  
+  daftarNasehat.forEach(paragraf => {
+    let teksBersih = paragraf.replace(/[\[\]"'\*#_]/g, '').trim();
+    let kalimatList = teksBersih.match(/[^.!?]+[.!?]+/g) || [teksBersih];
+    let penampungPotongan = "";
+    
+    kalimatList.forEach(kalimat => {
+      let kalimatTrimmed = kalimat.trim();
+      if (!kalimatTrimmed) return;
+      
+      if ((penampungPotongan + " " + kalimatTrimmed).length <= 140) {
+        penampungPotongan += (penampungPotongan ? " " : "") + kalimatTrimmed;
+      } else {
+        if (penampungPotongan) {
+          hasilPotongan.push(penampungPotongan);
+        }
+        penampungPotongan = kalimatTrimmed;
+      }
+    });
+    
+    if (penampungPotongan) {
+      hasilPotongan.push(penampungPotongan);
+    }
+  });
+  
+  return hasilPotongan;
+}
+
+function inisialisasiRotasiNasehatLokal() {
+  const cachedAdvices = localStorage.getItem("fuqohak_ai_advices_cache");
+  let mentah = [];
+  if (cachedAdvices) {
+    try {
+      mentah = JSON.parse(cachedAdvices);
+    } catch(e) { mentah = []; }
+  }
+  
+  if (mentah.length === 0) {
+    mentah = [
+      "Hidrasi Darurat. Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil.",
+      "Kendalikan Screen Time. Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak pulih.",
+      "Hubungan Spiritual. Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini."
+    ];
+  }
+  
+  mulaiSiklusTampilan(mentah);
+}
+
+function mulaiSiklusTampilan(dataNasehat) {
+  if (intervalRotasiKalimat) {
+    clearInterval(intervalRotasiKalimat);
+  }
+  
+  daftarPotonganKalimat = pecahNasehatMenjadiPotonganPas(dataNasehat);
+  indeksKalimatAktif = 0;
+  eksekusiAnimasiTeks();
+  
+  intervalRotasiKalimat = setInterval(() => {
+    indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
+    eksekusiAnimasiTeks();
+  }, 30000); 
+}
+
+async function eksekusiAnimasiTeks() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
   
-  if (aiRotationInterval) {
-    clearInterval(aiRotationInterval);
-    aiRotationInterval = null;
-  }
+  loadingEl.classList.add("hidden");
+  teksEl.classList.remove("hidden");
+  teksEl.classList.remove("opacity-100");
+  teksEl.classList.add("opacity-0");
+  
+  await new Promise(r => setTimeout(r, 400));
+  
+  teksEl.innerText = daftarPotonganKalimat[indeksKalimatAktif] || "Menunggu koordinasi waktu harian...";
+  teksEl.classList.remove("opacity-0");
+  teksEl.classList.add("opacity-100");
+}
+
+async function panggilAnalisisRutinitasAI() {
+  const loadingEl = document.getElementById("ai-rutinitas-loading");
+  const teksEl = document.getElementById("ai-rutinitas-teks");
   
   loadingEl.classList.remove("hidden");
   teksEl.classList.add("hidden");
@@ -1006,67 +1113,44 @@ async function panggilAnalisisRutinitasAI() {
   
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(() => controller.abort(), 7000); 
-    const response = await fetch(PERSONAL_AI_URL, { signal: controller.signal });
-    clearTimeout(idTimeout);
+    const idTimeout = setTimeout(() => controller.abort(), 15000);
     
+    const urlDenganRefresh = PERSONAL_AI_URL.includes('?') 
+      ? `${PERSONAL_AI_URL}&refresh=true&_ts=${Date.now()}` 
+      : `${PERSONAL_AI_URL}?refresh=true&_ts=${Date.now()}`;
+
+    const response = await fetch(urlDenganRefresh, { signal: controller.signal });
     const result = await response.json();
+    
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
       nasehatDidapat = result.nasehat;
     }
   } catch (e) {
-    console.warn("Skenario 1 Gagal (Gemini Studio API), lanjut ke Skenario 2.", e);
+    console.warn("Skenario 1 gagal, mencoba server cadangan.");
   }
   
   if (nasehatDidapat.length === 0) {
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice", { signal: controller.signal });
-      clearTimeout(idTimeout);
+      const idTimeout = setTimeout(() => controller.abort(), 15000);
       
+      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { signal: controller.signal });
       const result = await response.json();
+      
       if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
         nasehatDidapat = result.nasehat;
       }
     } catch (e) {
-      console.warn("Skenario 2 Gagal (Server Terpadu), lanjut ke Skenario 3.", e);
+      console.warn("Skenario 2 gagal.");
     }
   }
   
-  if (nasehatDidapat.length === 0) {
-    nasehatDidapat = [
-      "💧 Hidrasi Darurat: Baru memulai? Segera penuhi target hidrasi 8 gelas air putih Anda agar fokus tetap stabil di sela-sela rutinitas.",
-      "📱 Kendalikan Screen Time: Jauhkan gawai Anda saat mulai merasa lelah, biarkan jaringan dopamin otak memulihkan fokus alaminya.",
-      "🕌 Hubungan Spiritual: Pastikan waktu ibadah dan murojaah tidak tergeser oleh hiruk-pikuk pekerjaan dunia hari ini.",
-      "📖 Konsistensi Belajar: Sisihkan waktu 15-30 menit untuk membaca jurnal keilmuan demi memperluas wawasan akademis Anda.",
-      "✍️ Goreskan Pena: Luangkan waktu untuk menulis target mingguan Anda, porsi kemajuan kecil yang konsisten bernilai sangat besar."
-    ];
+  if (nasehatDidapat.length > 0) {
+    localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
+    mulaiSiklusTampilan(nasehatDidapat);
+  } else {
+    inisialisasiRotasiNasehatLokal();
   }
-  
-  localAiAdvices = nasehatDidapat.map(item => {
-    return item.replace(/[\*\#_]/g, '').trim();
-  });
-  
-  loadingEl.classList.add("hidden");
-  teksEl.classList.remove("hidden");
-  currentAdviceIndex = 0;
-  tampilkanNasehatAktif();
-  
-  aiRotationInterval = setInterval(() => {
-    currentAdviceIndex = (currentAdviceIndex + 1) % localAiAdvices.length;
-    tampilkanNasehatAktif();
-  }, 45000); 
-}
-
-async function tampilkanNasehatAktif() {
-const teksEl = document.getElementById("ai-rutinitas-teks");
-teksEl.classList.remove("opacity-100");
-teksEl.classList.add("opacity-0");
-await new Promise(r => setTimeout(r, 400));
-teksEl.innerText = localAiAdvices[currentAdviceIndex];
-teksEl.classList.remove("opacity-0");
-teksEl.classList.add("opacity-100");
 }
 
 function bukaModalEnglish() {
@@ -1081,16 +1165,6 @@ function tutupModalEnglish() {
   document.getElementById("english-modal").style.display = "none";
 }
 
-// REGISTER SERVICE WORKER UNTUK INSTALASI PWA (SANGAT COMPATIBLE DENGAN HARMONYOS / EMUI / ANDROID)
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker terdaftar:', reg.scope))
-      .catch(err => console.error('Pendaftaran Service Worker gagal:', err));
-  });
-}
-
-// MODAL DAFTAR TUGAS
 function bukaModalTugas() { 
 document.getElementById("tugas-modal").style.display = "flex"; 
 pindahTabTugas('lihat'); 
@@ -1181,7 +1255,6 @@ await loadDashboard();
 } catch(e) { alert("Penyimpanan gagal."); }
 }
 
-// MODAL AGENDA CERAMAH
 function bukaModalCeramah() { 
 document.getElementById("ceramah-modal").style.display = "flex"; 
 pindahTabCeramah('lihat'); 
@@ -1276,7 +1349,6 @@ await loadDashboard();
 } catch(e) { alert("Penyimpanan jadwal gagal."); }
 }
 
-// MODAL DETAIL LAPORAN KEUANGAN
 function bukaModalKeuangan() {
 updateFinanceUI(); 
 document.getElementById("keuangan-modal").style.display = "flex";
@@ -1286,7 +1358,6 @@ function tutupModalKeuangan() {
 document.getElementById("keuangan-modal").style.display = "none";
 }
 
-// TEMA DAN VISUALISASI
 function terapkanSistemTema() {
 const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
 document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
