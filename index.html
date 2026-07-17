@@ -1125,40 +1125,61 @@ async function panggilAnalisisRutinitasAI() {
   
   let nasehatDidapat = [];
   
+  // --- SKENARIO 1: Google Apps Script Web App ---
+  let idTimeout1;
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(function() { controller.abort(); }, 15000);
+    idTimeout1 = setTimeout(function() { controller.abort(); }, 25000); // Naikkan ke 25 detik karena panggil Gemini butuh waktu
     
     const urlDenganRefresh = PERSONAL_AI_URL.indexOf('?') !== -1 
       ? PERSONAL_AI_URL + "&refresh=true&_ts=" + Date.now()
       : PERSONAL_AI_URL + "?refresh=true&_ts=" + Date.now();
 
-    const response = await fetch(urlDenganRefresh, { signal: controller.signal });
+    const response = await fetch(urlDenganRefresh, { 
+      method: "GET",
+      mode: "cors",           // Wajib diset cors
+      redirect: "follow",     // WAJIB: Mengikuti redirect otomatis dari Google (302)
+      signal: controller.signal 
+    });
+    
+    clearTimeout(idTimeout1);
     const result = await response.json();
     
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
       nasehatDidapat = result.nasehat;
     }
   } catch (e) {
-    console.warn("Skenario 1 gagal, mencoba server cadangan.");
+    if (idTimeout1) clearTimeout(idTimeout1);
+    console.warn("Skenario 1 gagal:", e);
   }
   
+  // --- SKENARIO 2 (CADANGAN) ---
   if (nasehatDidapat.length === 0) {
+    let idTimeout2;
     try {
       const controller = new AbortController();
-      const idTimeout = setTimeout(function() { controller.abort(); }, 15000);
+      idTimeout2 = setTimeout(function() { controller.abort(); }, 15000);
       
-      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { signal: controller.signal });
+      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { 
+        method: "GET",
+        mode: "cors",
+        redirect: "follow",
+        signal: controller.signal 
+      });
+      
+      clearTimeout(idTimeout2);
       const result = await response.json();
       
       if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
         nasehatDidapat = result.nasehat;
       }
     } catch (e) {
-      console.warn("Skenario 2 gagal.");
+      if (idTimeout2) clearTimeout(idTimeout2);
+      console.warn("Skenario 2 gagal:", e);
     }
   }
   
+  // --- OUTPUT ---
   if (nasehatDidapat.length > 0) {
     localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
     mulaiSiklusTampilan(nasehatDidapat);
