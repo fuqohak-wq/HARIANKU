@@ -1129,20 +1129,22 @@ async function panggilAnalisisRutinitasAI() {
   let idTimeout1;
   try {
     const controller = new AbortController();
-    idTimeout1 = setTimeout(function() { controller.abort(); }, 25000); // Naikkan ke 25 detik karena panggil Gemini butuh waktu
+    // Gunakan durasi aman 30 detik karena memanggil Gemini lewat GAS membutuhkan waktu respon cukup lama
+    idTimeout1 = setTimeout(function() { controller.abort(); }, 30000); 
     
+    // Sinkronisasi logika pembuatan URL persis seperti HTML Anda yang sukses
     const urlDenganRefresh = PERSONAL_AI_URL.indexOf('?') !== -1 
       ? PERSONAL_AI_URL + "&refresh=true&_ts=" + Date.now()
       : PERSONAL_AI_URL + "?refresh=true&_ts=" + Date.now();
 
+    // JANGAN menambahkan mode: "cors" karena Google Apps Script akan menolak preflight-nya
     const response = await fetch(urlDenganRefresh, { 
-      method: "GET",
-      mode: "cors",           // Wajib diset cors
-      redirect: "follow",     // WAJIB: Mengikuti redirect otomatis dari Google (302)
       signal: controller.signal 
     });
     
     clearTimeout(idTimeout1);
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     
     if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
@@ -1161,9 +1163,6 @@ async function panggilAnalisisRutinitasAI() {
       idTimeout2 = setTimeout(function() { controller.abort(); }, 15000);
       
       const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { 
-        method: "GET",
-        mode: "cors",
-        redirect: "follow",
         signal: controller.signal 
       });
       
