@@ -16,13 +16,19 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pt-10">
+<!-- pt-14 memastikan konten tidak tertutup bar atas di tablet Huawei -->
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pt-14">
 
-    <div class="fixed top-0 left-0 right-0 bg-slate-900 text-slate-200 text-xs py-1.5 px-4 z-50 flex justify-between items-center border-b border-slate-700/50 shadow-sm backdrop-blur-md bg-opacity-95">
+    <!-- BAR ATAS UTK TIMER & POIN -->
+    <div class="fixed top-0 left-0 right-0 bg-slate-900 text-slate-200 text-xs py-2 px-4 z-50 flex justify-between items-center border-b border-slate-700/50 shadow-sm backdrop-blur-md bg-opacity-95">
         <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-medium text-slate-400">Durasi Belajar:</span>
-            <span id="timer-display" class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">00:00</span>
+            <span id="timer-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-medium text-slate-400">Durasi:</span>
+            <!-- Tombol timer bisa di-klik untuk play/pause -->
+            <button id="timer-btn" onclick="toggleTimer()" class="font-mono font-bold text-white bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded border border-slate-700 cursor-pointer flex items-center gap-1.5 transition-all">
+                <span id="timer-display">00:00</span>
+                <i id="timer-icon" class="fa-solid fa-pause text-[10px] text-emerald-400"></i>
+            </button>
         </div>
         <div class="flex items-center gap-2">
             <span class="text-slate-400">Poin:</span>
@@ -33,21 +39,30 @@
 
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-emerald-700 p-2.5 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-book-quran text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight">Islamic Scholar Hub</h1>
-                    <p class="text-xs text-emerald-100">Pencari Jurnal Gratis & Navigator Bacaan Studi Islam</p>
+            
+            <!-- Logo & Tombol Kembali -->
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <!-- Tombol Kembali ke harianku-cyan.vercel.app -->
+                <a href="https://harianku-cyan.vercel.app" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm" title="Kembali ke Harianku">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </a>
+                
+                <div class="flex items-center gap-3">
+                    <div class="bg-white text-emerald-700 p-2.5 rounded-xl shadow-inner shrink-0">
+                        <i class="fa-solid fa-book-quran text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold tracking-tight">Islamic Scholar Hub</h1>
+                        <p class="text-xs text-emerald-100">Pencari Jurnal Gratis & Navigator Bacaan Studi Islam</p>
+                    </div>
                 </div>
             </div>
             
             <nav class="flex bg-emerald-800/40 p-1 rounded-xl border border-emerald-500/30 shadow-sm">
-                <button id="btn-tab-reader" onclick="switchTab('reader')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow">
+                <button id="btn-tab-reader" onclick="switchTab('reader')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow cursor-pointer">
                     <i class="fa-solid fa-newspaper mr-2"></i>Bacaan Hari Ini
                 </button>
-                <button id="btn-tab-finder" onclick="switchTab('finder')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white">
+                <button id="btn-tab-finder" onclick="switchTab('finder')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white cursor-pointer">
                     <i class="fa-solid fa-magnifying-glass mr-2"></i>Cari Jurnal APC 0$
                 </button>
             </nav>
@@ -115,56 +130,67 @@
 
     <script>
         // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
-        // 1. URL Web App untuk memuat data Jurnal & Bacaan (Database Jurnal)
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbztkUU6inK9QwPFklkN7hoFGsiphV0rxc97Jr837pkLGxMfZMPrDXp8pi-oH32kQecW/exec"; 
-        
-        // 2. URL Web App khusus untuk mengirimkan Skor ke sel DASHBOARD: B10
         const SCORE_API_URL = "https://script.google.com/macros/s/AKfycbznU2T3T_JZtcZKy2QR2VWAK8OhBh-lCoVsz9_efRei4Bgq_V10PYaHsBShnP_t2zwSIg/exec";
         // ===========================================================================
 
         let journalData = [];
         let readingData = [];
         
-        // Variabel untuk Timer & Nilai
-        let totalSeconds = 0;
+        // Logika Timer Latar Belakang (Real-Time Timestamp)
+        let isTimerRunning = true;
         let timerInterval;
         let lastSentScore = 0;
+        
+        // Membaca progres belajar sebelumnya dari LocalStorage agar tidak reset saat halaman ter-refresh sengaja/tidak sengaja
+        let accumulatedSeconds = parseInt(localStorage.getItem('accumulated_seconds')) || 0;
+        let startTime = isTimerRunning ? (Date.now() - accumulatedSeconds * 1000) : null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             document.getElementById('reading-date').innerText = new Date().toLocaleDateString('id-ID', dateOptions);
             loadJournals();
             loadReadings();
-            startStudyTimer(); // Memulai counter waktu belajar
+            initStudyTimer();
         });
 
-        // FUNGSI TIMER COUNTER
-        function startStudyTimer() {
+        // INISIALISASI TIMER SISTEM (DENGAN INTEGRASI BACKGROUND ACCURACY)
+        function initStudyTimer() {
             const timerDisplay = document.getElementById('timer-display');
             const scoreDisplay = document.getElementById('score-display');
-            const statusDisplay = document.getElementById('sync-status');
+            const dot = document.getElementById('timer-dot');
+
+            if (isTimerRunning && !startTime) {
+                startTime = Date.now() - (accumulatedSeconds * 1000);
+            }
 
             timerInterval = setInterval(() => {
-                totalSeconds++;
+                if (!isTimerRunning) return;
+
+                // Menghitung selisih waktu nyata dari perangkat (tahan banting walau HP dimatikan)
+                let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                accumulatedSeconds = elapsedSeconds;
                 
-                // Format waktu MM:SS
-                let minutes = Math.floor(totalSeconds / 60);
-                let seconds = totalSeconds % 60;
+                // Simpan cadangan ke memori lokal browser
+                localStorage.setItem('accumulated_seconds', accumulatedSeconds);
+
+                let minutes = Math.floor(elapsedSeconds / 60);
+                let seconds = elapsedSeconds % 60;
+                
                 timerDisplay.innerText = 
                     (minutes < 10 ? "0" + minutes : minutes) + ":" + 
                     (seconds < 10 ? "0" + seconds : seconds);
 
-                // Cek hitungan poin berdasarkan menit ke 10, 20, 30, 40
+                // Klasifikasi akumulasi poin
                 let currentScore = 0;
                 if (minutes >= 40) currentScore = 100;
                 else if (minutes >= 30) currentScore = 75;
                 else if (minutes >= 20) currentScore = 50;
                 else if (minutes >= 10) currentScore = 25;
 
-                // Tampilkan poin di bar atas
                 scoreDisplay.innerText = currentScore;
 
-                // Jika nilai bertambah dan belum pernah dikirimkan, kirim ke Google Sheets
+                // Sinkronisasi otomatis ke Google Sheets
                 if (currentScore > lastSentScore) {
                     lastSentScore = currentScore;
                     sendScoreToSheet(currentScore);
@@ -172,17 +198,38 @@
             }, 1000);
         }
 
-        // FUNGSI KIRIM DATA KE GOOGLE SPREADSHEETS VIA WEB APP ACTION
+        // FUNGSI UNTUK PLAY & PAUSE JIKA DI-KLIK KEMBALI
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            const icon = document.getElementById('timer-icon');
+            const dot = document.getElementById('timer-dot');
+
+            if (isTimerRunning) {
+                // Mengubah status menjadi BERHENTI (Pause)
+                isTimerRunning = false;
+                localStorage.setItem('accumulated_seconds', accumulatedSeconds);
+                icon.className = "fa-solid fa-play text-[10px] text-amber-400";
+                dot.classList.remove('bg-emerald-500', 'animate-pulse');
+                dot.classList.add('bg-amber-500');
+            } else {
+                // Mengaktifkan kembali (Play)
+                isTimerRunning = true;
+                startTime = Date.now() - (accumulatedSeconds * 1000);
+                icon.className = "fa-solid fa-pause text-[10px] text-emerald-400";
+                dot.classList.remove('bg-amber-500');
+                dot.classList.add('bg-emerald-500', 'animate-pulse');
+            }
+        }
+
+        // SINKRONISASI KE GOOGLE SHEETS
         async function sendScoreToSheet(score) {
             if (!SCORE_API_URL || SCORE_API_URL.includes("DISINI")) return;
             const statusDisplay = document.getElementById('sync-status');
             statusDisplay.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-emerald-400"></i> Menyimpan...`;
             
             try {
-                // Mengirimkan score ke SCORE_API_URL yang telah diperbaiki
                 const targetUrl = `${SCORE_API_URL}?target=dashboard&score=${score}`;
-                
-                const response = await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
+                await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
                 
                 statusDisplay.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Tersimpan`;
                 setTimeout(() => {
@@ -201,12 +248,12 @@
 
             if (tab === 'reader') {
                 rTab.classList.remove('hidden'); fTab.classList.add('hidden');
-                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow";
-                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white";
+                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow cursor-pointer";
+                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white cursor-pointer";
             } else {
                 fTab.classList.remove('hidden'); rTab.classList.add('hidden');
-                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow";
-                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white";
+                fBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow cursor-pointer";
+                rBtn.className = "px-5 py-2 rounded-lg font-medium text-sm transition-all text-emerald-100 hover:text-white cursor-pointer";
             }
         }
 
