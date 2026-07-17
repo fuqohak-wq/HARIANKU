@@ -16,19 +16,18 @@
         }
     </style>
 </head>
-<!-- pt-14 memastikan konten tidak tertutup bar atas di tablet Huawei -->
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col pt-14">
 
-    <!-- BAR ATAS UTK TIMER & POIN - DIKUNCI PAKAI INLINE STYLE AGAR PASTI HITAM DI HUAWEI -->
+    <!-- BAR ATAS UTK TIMER & POIN - DIKUNCI WARNA HITAM #0f172a UNTUK HUAWEI -->
     <div style="background-color: #0f172a !important; color: #e2e8f0 !important; display: flex !important;" class="fixed top-0 left-0 right-0 py-2 px-4 z-50 justify-between items-center border-b border-slate-700/50 shadow-sm">
         <div class="flex items-center gap-2">
             <span id="timer-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="font-medium" style="color: #94a3b8 !important;">Durasi:</span>
-            <!-- Tombol timer dikunci warna abu-abu gelap (#1e293b) -->
-            <button id="timer-btn" onclick="toggleTimer()" style="background-color: #1e293b !important; color: #ffffff !important; border: 1px solid #475569 !important;" class="font-mono font-bold px-2.5 py-1 rounded cursor-pointer flex items-center gap-1.5 transition-all">
+            <span class="font-medium" style="color: #94a3b8 !important;">Durasi Belajar:</span>
+            <!-- Menampilkan timer (Tidak perlu tombol pause lagi karena sudah otomatis) -->
+            <div id="timer-btn" style="background-color: #1e293b !important; color: #ffffff !important; border: 1px solid #475569 !important;" class="font-mono font-bold px-3 py-1 rounded flex items-center gap-1.5">
                 <span id="timer-display">00:00</span>
-                <i id="timer-icon" class="fa-solid fa-pause text-[10px]" style="color: #34d399 !important;"></i>
-            </button>
+                <i id="timer-icon" class="fa-solid fa-circle text-[8px]" style="color: #34d399 !important;"></i>
+            </div>
         </div>
         <div class="flex items-center gap-2">
             <span style="color: #94a3b8 !important;">Poin:</span>
@@ -39,14 +38,10 @@
 
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            
-            <!-- Logo & Tombol Kembali -->
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <!-- Tombol Kembali ke harianku-cyan.vercel.app -->
-                <a href="https://harianku-cyan.vercel.app" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm" title="Kembali ke Harianku">
+                <a href="https://harianku-cyan.vercel.app" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </a>
-                
                 <div class="flex items-center gap-3">
                     <div class="bg-white text-emerald-700 p-2.5 rounded-xl shadow-inner shrink-0">
                         <i class="fa-solid fa-book-quran text-2xl"></i>
@@ -57,7 +52,6 @@
                     </div>
                 </div>
             </div>
-            
             <nav class="flex bg-emerald-800/40 p-1 rounded-xl border border-emerald-500/30 shadow-sm">
                 <button id="btn-tab-reader" onclick="switchTab('reader')" class="px-5 py-2 rounded-lg font-medium text-sm transition-all bg-white text-emerald-800 shadow cursor-pointer">
                     <i class="fa-solid fa-newspaper mr-2"></i>Bacaan Hari Ini
@@ -70,7 +64,6 @@
     </header>
 
     <main class="max-w-6xl w-full mx-auto px-4 py-8 flex-grow">
-        
         <section id="tab-reader" class="block animate-fade-in">
             <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                 <div>
@@ -79,12 +72,10 @@
                 </div>
                 <span id="reading-date" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-xs font-semibold"></span>
             </div>
-
             <div id="loader-reader" class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm">
                 <i class="fa-solid fa-spinner animate-spin text-4xl text-teal-600 mb-3"></i>
                 <p class="text-slate-500 text-sm">Mengekstrak abstrak & memuat terjemahan AI harian...</p>
             </div>
-
             <div id="reader-container" class="space-y-6 hidden"></div>
         </section>
 
@@ -113,15 +104,12 @@
                     </select>
                 </div>
             </div>
-
             <div id="loader-journal" class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm">
                 <i class="fa-solid fa-spinner animate-spin text-4xl text-emerald-600 mb-3"></i>
                 <p class="text-slate-500 text-sm">Menghubungkan ke database AI Agent...</p>
             </div>
-
             <div id="journal-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
         </section>
-
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 w-full mt-auto">
@@ -129,20 +117,25 @@
     </footer>
 
     <script>
-        // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
         const BASE_API_URL = "https://script.google.com/macros/s/AKfycbztkUU6inK9QwPFklkN7hoFGsiphV0rxc97Jr837pkLGxMfZMPrDXp8pi-oH32kQecW/exec"; 
         const SCORE_API_URL = "https://script.google.com/macros/s/AKfycbznU2T3T_JZtcZKy2QR2VWAK8OhBh-lCoVsz9_efRei4Bgq_V10PYaHsBShnP_t2zwSIg/exec";
-        // ===========================================================================
 
         let journalData = [];
         let readingData = [];
         
-        let isTimerRunning = true;
         let timerInterval;
+        let isTabActive = true;
+        let accumulatedSeconds = 0;
         let lastSentScore = 0;
-        
-        let accumulatedSeconds = parseInt(localStorage.getItem('accumulated_seconds')) || 0;
-        let startTime = isTimerRunning ? (Date.now() - accumulatedSeconds * 1000) : null;
+
+        // Mendapatkan penanda tanggal hari ini (format: YYYY-MM-DD)
+        function getTodayString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -157,25 +150,37 @@
             const scoreDisplay = document.getElementById('score-display');
             const dot = document.getElementById('timer-dot');
 
-            if (isTimerRunning && !startTime) {
-                startTime = Date.now() - (accumulatedSeconds * 1000);
+            const todayStr = getTodayString();
+            const savedDate = localStorage.getItem('timer_saved_date');
+
+            // LOGIKA RESET 24.00 (Ganti Hari):
+            if (savedDate !== todayStr) {
+                // Jika hari sudah berbeda, reset timer ke 0
+                accumulatedSeconds = 0;
+                localStorage.setItem('accumulated_seconds', 0);
+                localStorage.setItem('timer_saved_date', todayStr);
+                localStorage.setItem('last_sent_score', 0);
+            } else {
+                // Jika hari yang sama, ambil hitungan terakhir
+                accumulatedSeconds = parseInt(localStorage.getItem('accumulated_seconds')) || 0;
+                lastSentScore = parseInt(localStorage.getItem('last_sent_score')) || 0;
             }
 
-            timerInterval = setInterval(() => {
-                if (!isTimerRunning) return;
+            // Tampilkan data awal yang berhasil dilanjutkan
+            updateTimerUI(accumulatedSeconds);
 
-                let elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                accumulatedSeconds = elapsedSeconds;
-                
+            // Jalankan interval hitungan mundur/maju setiap 1 detik
+            timerInterval = setInterval(() => {
+                // AUTO-PAUSE: Jika tab tidak aktif (sedang diminimalkan/pindah aplikasi), jangan tambah waktu
+                if (!isTabActive) return;
+
+                accumulatedSeconds++;
                 localStorage.setItem('accumulated_seconds', accumulatedSeconds);
 
-                let minutes = Math.floor(elapsedSeconds / 60);
-                let seconds = elapsedSeconds % 60;
-                
-                timerDisplay.innerText = 
-                    (minutes < 10 ? "0" + minutes : minutes) + ":" + 
-                    (seconds < 10 ? "0" + seconds : seconds);
+                updateTimerUI(accumulatedSeconds);
 
+                // Hitung skor berdasarkan menit belajar
+                let minutes = Math.floor(accumulatedSeconds / 60);
                 let currentScore = 0;
                 if (minutes >= 40) currentScore = 100;
                 else if (minutes >= 30) currentScore = 75;
@@ -186,32 +191,54 @@
 
                 if (currentScore > lastSentScore) {
                     lastSentScore = currentScore;
+                    localStorage.setItem('last_sent_score', lastSentScore);
                     sendScoreToSheet(currentScore);
                 }
             }, 1000);
         }
 
-        function toggleTimer() {
-            const btn = document.getElementById('timer-btn');
-            const icon = document.getElementById('timer-icon');
-            const dot = document.getElementById('timer-dot');
-
-            if (isTimerRunning) {
-                isTimerRunning = false;
-                localStorage.setItem('accumulated_seconds', accumulatedSeconds);
-                icon.className = "fa-solid fa-play text-[10px]";
-                icon.style.color = "#fbbf24"; // Kuning hangat saat pause
-                dot.classList.remove('bg-emerald-500', 'animate-pulse');
-                dot.style.backgroundColor = "#fbbf24"; // Kuning di Huawei
-            } else {
-                isTimerRunning = true;
-                startTime = Date.now() - (accumulatedSeconds * 1000);
-                icon.className = "fa-solid fa-pause text-[10px]";
-                icon.style.color = "#34d399"; // Hijau saat aktif kembali
-                dot.style.backgroundColor = ""; // Kembalikan ke class default Tailwind
-                dot.classList.add('bg-emerald-500', 'animate-pulse');
-            }
+        function updateTimerUI(totalSeconds) {
+            const timerDisplay = document.getElementById('timer-display');
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+            timerDisplay.innerText = 
+                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                (seconds < 10 ? "0" + seconds : seconds);
         }
+
+        // ==================== FITUR AUTO-PAUSE (DETEKSI AKTIVITAS USER) ====================
+        // Otomatis pause jika HP dikunci, pengguna keluar browser, atau ganti tab.
+        document.addEventListener('visibilitychange', () => {
+            const dot = document.getElementById('timer-dot');
+            const icon = document.getElementById('timer-icon');
+
+            if (document.hidden) {
+                isTabActive = false; // Otomatis Jeda (Pause)
+                dot.classList.remove('bg-emerald-500', 'animate-pulse');
+                dot.style.backgroundColor = "#fbbf24"; // Warna kuning penanda pause
+                icon.className = "fa-solid fa-circle-pause text-[8px]";
+                icon.style.color = "#fbbf24";
+            } else {
+                isTabActive = true; // Otomatis Lanjut (Resume)
+                dot.style.backgroundColor = "";
+                dot.classList.add('bg-emerald-500', 'animate-pulse');
+                icon.className = "fa-solid fa-circle text-[8px]";
+                icon.style.color = "#34d399";
+                
+                // Cek lagi apakah hari sudah berganti saat browser dibuka kembali
+                const todayStr = getTodayString();
+                const savedDate = localStorage.getItem('timer_saved_date');
+                if (savedDate !== todayStr) {
+                    accumulatedSeconds = 0;
+                    lastSentScore = 0;
+                    localStorage.setItem('accumulated_seconds', 0);
+                    localStorage.setItem('timer_saved_date', todayStr);
+                    localStorage.setItem('last_sent_score', 0);
+                    updateTimerUI(0);
+                    document.getElementById('score-display').innerText = "0";
+                }
+            }
+        });
 
         async function sendScoreToSheet(score) {
             if (!SCORE_API_URL || SCORE_API_URL.includes("DISINI")) return;
@@ -219,6 +246,7 @@
             statusDisplay.innerHTML = `<i class="fa-solid fa-spinner animate-spin" style="color: #34d399;"></i> Menyimpan...`;
             
             try {
+                // Parameter target disesuaikan dengan kebutuhan database Sheets Anda
                 const targetUrl = `${SCORE_API_URL}?target=dashboard&score=${score}`;
                 await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
                 
@@ -266,7 +294,7 @@
             container.innerHTML = '';
 
             if (!data || data.length === 0 || data.error) {
-                container.innerHTML = '<div class="text-center text-slate-400 py-12 bg-white rounded-2xl border border-dashed border-slate-200">Belum ada daftar bacaan hari ini. Pastikan tab "Bacaan_Harian" di Sheets sudah terisi.</div>';
+                container.innerHTML = '<div class="text-center text-slate-400 py-12 bg-white rounded-2xl border border-dashed border-slate-200">Belum ada daftar bacaan hari ini.</div>';
                 return;
             }
 
