@@ -537,7 +537,7 @@ Buka Dashboard Bekerja ➔
 <script>
 // ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
 const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
-const PERSONAL_AI_URL = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
+const PERSONAL_AI_URL = "/api/nasehat";
 
 const API_URL = BASE_WEB_APP_URL;
 const FINANCE_API_URL = BASE_WEB_APP_URL;
@@ -1124,21 +1124,15 @@ async function panggilAnalisisRutinitasAI() {
   teksEl.classList.add("hidden");
   
   let nasehatDidapat = [];
-  
-  // --- SKENARIO 1: Google Apps Script Web App ---
   let idTimeout1;
+  
   try {
     const controller = new AbortController();
-    // Gunakan durasi aman 30 detik karena memanggil Gemini lewat GAS membutuhkan waktu respon cukup lama
+    // Beri waktu 30 detik karena proses di Google Apps Script + Gemini cukup memakan waktu
     idTimeout1 = setTimeout(function() { controller.abort(); }, 30000); 
     
-    // Sinkronisasi logika pembuatan URL persis seperti HTML Anda yang sukses
-    const urlDenganRefresh = PERSONAL_AI_URL.indexOf('?') !== -1 
-      ? PERSONAL_AI_URL + "&refresh=true&_ts=" + Date.now()
-      : PERSONAL_AI_URL + "?refresh=true&_ts=" + Date.now();
-
-    // JANGAN menambahkan mode: "cors" karena Google Apps Script akan menolak preflight-nya
-    const response = await fetch(urlDenganRefresh, { 
+    // Panggil API lokal kita sendiri (Aman 100% dari masalah CORS & CSP)
+    const response = await fetch("/api/nasehat?refresh=true", { 
       signal: controller.signal 
     });
     
@@ -1152,33 +1146,10 @@ async function panggilAnalisisRutinitasAI() {
     }
   } catch (e) {
     if (idTimeout1) clearTimeout(idTimeout1);
-    console.warn("Skenario 1 gagal:", e);
+    console.warn("Skenario Utama (Proxy Backend) gagal:", e);
   }
   
-  // --- SKENARIO 2 (CADANGAN) ---
-  if (nasehatDidapat.length === 0) {
-    let idTimeout2;
-    try {
-      const controller = new AbortController();
-      idTimeout2 = setTimeout(function() { controller.abort(); }, 15000);
-      
-      const response = await fetch(BASE_WEB_APP_URL + "?target=ai_advice&refresh=true", { 
-        signal: controller.signal 
-      });
-      
-      clearTimeout(idTimeout2);
-      const result = await response.json();
-      
-      if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
-        nasehatDidapat = result.nasehat;
-      }
-    } catch (e) {
-      if (idTimeout2) clearTimeout(idTimeout2);
-      console.warn("Skenario 2 gagal:", e);
-    }
-  }
-  
-  // --- OUTPUT ---
+  // Jika gagal, gunakan mekanisme cache/lokal seperti biasa
   if (nasehatDidapat.length > 0) {
     localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
     mulaiSiklusTampilan(nasehatDidapat);
