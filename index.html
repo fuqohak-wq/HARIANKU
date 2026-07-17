@@ -603,6 +603,7 @@ window.onload = function() {
   
   muatDataDariOffline(); 
   inisialisasiRotasiNasehatLokal();
+  muatNasehatLatarBelakang();
 
   // Pengganti Promise.allSettled yang tidak didukung Webview Huawei lama
   sinkronisasiDataLatarBelakangLegacy();
@@ -1116,6 +1117,26 @@ async function eksekusiAnimasiTeks() {
   teksEl.classList.add("opacity-100");
 }
 
+async function muatNasehatLatarBelakang() {
+  try {
+    let url = PERSONAL_AI_URL;
+    if (window.location.protocol === "file:") {
+      url = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec";
+    }
+    const response = await fetch(url);
+    if (response.ok) {
+      const result = await response.json();
+      if (result && result.success && result.nasehat) {
+        const nasehatList = Array.isArray(result.nasehat) ? result.nasehat : [result.nasehat];
+        localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatList));
+        mulaiSiklusTampilan(nasehatList);
+      }
+    }
+  } catch (e) {
+    console.warn("Gagal memuat nasehat di latar belakang:", e);
+  }
+}
+
 async function panggilAnalisisRutinitasAI() {
   const loadingEl = document.getElementById("ai-rutinitas-loading");
   const teksEl = document.getElementById("ai-rutinitas-teks");
@@ -1128,11 +1149,14 @@ async function panggilAnalisisRutinitasAI() {
   
   try {
     const controller = new AbortController();
-    // Beri waktu 30 detik karena proses di Google Apps Script + Gemini cukup memakan waktu
     idTimeout1 = setTimeout(function() { controller.abort(); }, 30000); 
     
-    // Panggil API lokal kita sendiri (Aman 100% dari masalah CORS & CSP)
-    const response = await fetch("/api/nasehat?refresh=true", { 
+    let url = PERSONAL_AI_URL + "?refresh=true";
+    if (window.location.protocol === "file:") {
+      url = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
+    }
+    
+    const response = await fetch(url, { 
       signal: controller.signal 
     });
     
@@ -1141,15 +1165,28 @@ async function panggilAnalisisRutinitasAI() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     
-    if (result && result.success && Array.isArray(result.nasehat) && result.nasehat.length > 0) {
-      nasehatDidapat = result.nasehat;
+    if (result && result.success && result.nasehat) {
+      nasehatDidapat = Array.isArray(result.nasehat) ? result.nasehat : [result.nasehat];
     }
   } catch (e) {
     if (idTimeout1) clearTimeout(idTimeout1);
     console.warn("Skenario Utama (Proxy Backend) gagal:", e);
+    
+    // Failsafe langsung menggunakan URL Google Apps Script yang berfungsi
+    try {
+      const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
+      const directRes = await fetch(directUrl);
+      if (directRes.ok) {
+        const result = await directRes.json();
+        if (result && result.success && result.nasehat) {
+          nasehatDidapat = Array.isArray(result.nasehat) ? result.nasehat : [result.nasehat];
+        }
+      }
+    } catch (errDirect) {
+      console.error("Failsafe Direct GAS gagal:", errDirect);
+    }
   }
   
-  // Jika gagal, gunakan mekanisme cache/lokal seperti biasa
   if (nasehatDidapat.length > 0) {
     localStorage.setItem("fuqohak_ai_advices_cache", JSON.stringify(nasehatDidapat));
     mulaiSiklusTampilan(nasehatDidapat);
