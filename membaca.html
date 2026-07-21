@@ -23,7 +23,6 @@
         <div class="flex items-center gap-2">
             <span id="timer-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span class="font-medium" style="color: #94a3b8 !important;">Durasi Belajar:</span>
-            <!-- Menampilkan timer (Tidak perlu tombol pause lagi karena sudah otomatis) -->
             <div id="timer-btn" style="background-color: #1e293b !important; color: #ffffff !important; border: 1px solid #475569 !important;" class="font-mono font-bold px-3 py-1 rounded flex items-center gap-1.5">
                 <span id="timer-display">00:00</span>
                 <i id="timer-icon" class="fa-solid fa-circle text-[8px]" style="color: #34d399 !important;"></i>
@@ -39,7 +38,8 @@
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <a href="https://harianku-cyan.vercel.app" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm">
+                <!-- TOMBOL KEMBALI: Ditambahkan onclick="resetStudyTimer()" agar timer reset saat diklik -->
+                <a href="https://harianku-cyan.vercel.app" onclick="resetStudyTimer()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </a>
                 <div class="flex items-center gap-3">
@@ -124,7 +124,6 @@
         let readingData = [];
         
         let timerInterval;
-        let isTabActive = true;
         let accumulatedSeconds = 0;
         let lastSentScore = 0;
 
@@ -145,41 +144,35 @@
             initStudyTimer();
         });
 
+        // ==================== LOGIKA TIMER REAL-TIME (BACKGROUND SAFE) ====================
         function initStudyTimer() {
-            const timerDisplay = document.getElementById('timer-display');
             const scoreDisplay = document.getElementById('score-display');
-            const dot = document.getElementById('timer-dot');
-
             const todayStr = getTodayString();
             const savedDate = localStorage.getItem('timer_saved_date');
 
-            // LOGIKA RESET 24.00 (Ganti Hari):
+            // Reset otomatis jika sudah berganti hari
             if (savedDate !== todayStr) {
-                // Jika hari sudah berbeda, reset timer ke 0
-                accumulatedSeconds = 0;
-                localStorage.setItem('accumulated_seconds', 0);
+                localStorage.setItem('start_time_ms', Date.now());
                 localStorage.setItem('timer_saved_date', todayStr);
                 localStorage.setItem('last_sent_score', 0);
-            } else {
-                // Jika hari yang sama, ambil hitungan terakhir
-                accumulatedSeconds = parseInt(localStorage.getItem('accumulated_seconds')) || 0;
-                lastSentScore = parseInt(localStorage.getItem('last_sent_score')) || 0;
+                lastSentScore = 0;
+            } 
+            // Buat waktu mulai baru jika belum terdaftar
+            else if (!localStorage.getItem('start_time_ms')) {
+                localStorage.setItem('start_time_ms', Date.now());
             }
 
-            // Tampilkan data awal yang berhasil dilanjutkan
-            updateTimerUI(accumulatedSeconds);
+            lastSentScore = parseInt(localStorage.getItem('last_sent_score')) || 0;
 
-            // Jalankan interval hitungan mundur/maju setiap 1 detik
+            // Hitung interval berdasarkan selisih jam (bisa jalan meskipun app ditutup)
             timerInterval = setInterval(() => {
-                // AUTO-PAUSE: Jika tab tidak aktif (sedang diminimalkan/pindah aplikasi), jangan tambah waktu
-                if (!isTabActive) return;
-
-                accumulatedSeconds++;
-                localStorage.setItem('accumulated_seconds', accumulatedSeconds);
-
+                const startTime = parseInt(localStorage.getItem('start_time_ms')) || Date.now();
+                const now = Date.now();
+                
+                accumulatedSeconds = Math.floor((now - startTime) / 1000);
                 updateTimerUI(accumulatedSeconds);
 
-                // Hitung skor berdasarkan menit belajar
+                // Hitung Skor Poin
                 let minutes = Math.floor(accumulatedSeconds / 60);
                 let currentScore = 0;
                 if (minutes >= 40) currentScore = 100;
@@ -197,6 +190,12 @@
             }, 1000);
         }
 
+        // Dipanggil saat tombol Kembali diklik
+        function resetStudyTimer() {
+            localStorage.removeItem('start_time_ms');
+            localStorage.removeItem('last_sent_score');
+        }
+
         function updateTimerUI(totalSeconds) {
             const timerDisplay = document.getElementById('timer-display');
             let minutes = Math.floor(totalSeconds / 60);
@@ -206,36 +205,16 @@
                 (seconds < 10 ? "0" + seconds : seconds);
         }
 
-        // ==================== FITUR AUTO-PAUSE (DETEKSI AKTIVITAS USER) ====================
-        // Otomatis pause jika HP dikunci, pengguna keluar browser, atau ganti tab.
+        // Cek reset hari saat user kembali membuka aplikasi
         document.addEventListener('visibilitychange', () => {
-            const dot = document.getElementById('timer-dot');
-            const icon = document.getElementById('timer-icon');
-
-            if (document.hidden) {
-                isTabActive = false; // Otomatis Jeda (Pause)
-                dot.classList.remove('bg-emerald-500', 'animate-pulse');
-                dot.style.backgroundColor = "#fbbf24"; // Warna kuning penanda pause
-                icon.className = "fa-solid fa-circle-pause text-[8px]";
-                icon.style.color = "#fbbf24";
-            } else {
-                isTabActive = true; // Otomatis Lanjut (Resume)
-                dot.style.backgroundColor = "";
-                dot.classList.add('bg-emerald-500', 'animate-pulse');
-                icon.className = "fa-solid fa-circle text-[8px]";
-                icon.style.color = "#34d399";
-                
-                // Cek lagi apakah hari sudah berganti saat browser dibuka kembali
+            if (!document.hidden) {
                 const todayStr = getTodayString();
                 const savedDate = localStorage.getItem('timer_saved_date');
                 if (savedDate !== todayStr) {
-                    accumulatedSeconds = 0;
-                    lastSentScore = 0;
-                    localStorage.setItem('accumulated_seconds', 0);
+                    localStorage.setItem('start_time_ms', Date.now());
                     localStorage.setItem('timer_saved_date', todayStr);
                     localStorage.setItem('last_sent_score', 0);
-                    updateTimerUI(0);
-                    document.getElementById('score-display').innerText = "0";
+                    lastSentScore = 0;
                 }
             }
         });
@@ -246,7 +225,6 @@
             statusDisplay.innerHTML = `<i class="fa-solid fa-spinner animate-spin" style="color: #34d399;"></i> Menyimpan...`;
             
             try {
-                // Parameter target disesuaikan dengan kebutuhan database Sheets Anda
                 const targetUrl = `${SCORE_API_URL}?target=dashboard&score=${score}`;
                 await fetch(targetUrl, { method: 'POST', mode: 'no-cors' });
                 
