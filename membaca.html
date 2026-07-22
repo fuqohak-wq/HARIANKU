@@ -38,8 +38,8 @@
     <header class="bg-gradient-to-r from-emerald-700 to-teal-600 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3 w-full sm:w-auto">
-                <!-- TOMBOL KEMBALI: Ditambahkan onclick="resetStudyTimer()" agar timer reset saat diklik -->
-                <a href="https://harianku-cyan.vercel.app" onclick="resetStudyTimer()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm">
+                <!-- Tombol kembali sekarang menyimpan progres, TIDAK MENGHAPUS/RESET -->
+                <a href="https://harianku-cyan.vercel.app" onclick="saveProgressBeforeLeave()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition-all border border-white/10 flex items-center justify-center shrink-0 shadow-sm">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </a>
                 <div class="flex items-center gap-3">
@@ -127,7 +127,6 @@
         let accumulatedSeconds = 0;
         let lastSentScore = 0;
 
-        // Mendapatkan penanda tanggal hari ini (format: YYYY-MM-DD)
         function getTodayString() {
             const d = new Date();
             const year = d.getFullYear();
@@ -144,41 +143,41 @@
             initStudyTimer();
         });
 
-        // ==================== LOGIKA TIMER REAL-TIME (BACKGROUND SAFE) ====================
+        // ==================== LOGIKA TIMER AKUMULATIF (MELANJUTKAN) ====================
         function initStudyTimer() {
             const scoreDisplay = document.getElementById('score-display');
             const todayStr = getTodayString();
             const savedDate = localStorage.getItem('timer_saved_date');
 
-            // Reset otomatis jika sudah berganti hari
+            // HANYA RESET JIKA TANGGAL HARI INI BERBEDAT (GANTI HARI)
             if (savedDate !== todayStr) {
-                localStorage.setItem('start_time_ms', Date.now());
+                accumulatedSeconds = 0;
+                lastSentScore = 0;
+                localStorage.setItem('accumulated_seconds', 0);
                 localStorage.setItem('timer_saved_date', todayStr);
                 localStorage.setItem('last_sent_score', 0);
-                lastSentScore = 0;
-            } 
-            // Buat waktu mulai baru jika belum terdaftar
-            else if (!localStorage.getItem('start_time_ms')) {
-                localStorage.setItem('start_time_ms', Date.now());
+            } else {
+                // HARI SAMA: Melanjutkan dari detik terakhir yang tersimpan
+                accumulatedSeconds = parseInt(localStorage.getItem('accumulated_seconds')) || 0;
+                lastSentScore = parseInt(localStorage.getItem('last_sent_score')) || 0;
             }
 
-            lastSentScore = parseInt(localStorage.getItem('last_sent_score')) || 0;
+            updateTimerUI(accumulatedSeconds);
 
-            // Hitung interval berdasarkan selisih jam (bisa jalan meskipun app ditutup)
+            // Tampilkan poin tersimpan awal
+            let initialMinutes = Math.floor(accumulatedSeconds / 60);
+            let initialScore = calculateScore(initialMinutes);
+            scoreDisplay.innerText = initialScore;
+
+            // Timer berjalan per detik hanya ketika halaman ini sedang aktif/terbuka
             timerInterval = setInterval(() => {
-                const startTime = parseInt(localStorage.getItem('start_time_ms')) || Date.now();
-                const now = Date.now();
-                
-                accumulatedSeconds = Math.floor((now - startTime) / 1000);
+                accumulatedSeconds++;
+                localStorage.setItem('accumulated_seconds', accumulatedSeconds);
+
                 updateTimerUI(accumulatedSeconds);
 
-                // Hitung Skor Poin
                 let minutes = Math.floor(accumulatedSeconds / 60);
-                let currentScore = 0;
-                if (minutes >= 40) currentScore = 100;
-                else if (minutes >= 30) currentScore = 75;
-                else if (minutes >= 20) currentScore = 50;
-                else if (minutes >= 10) currentScore = 25;
+                let currentScore = calculateScore(minutes);
 
                 scoreDisplay.innerText = currentScore;
 
@@ -190,10 +189,18 @@
             }, 1000);
         }
 
-        // Dipanggil saat tombol Kembali diklik
-        function resetStudyTimer() {
-            localStorage.removeItem('start_time_ms');
-            localStorage.removeItem('last_sent_score');
+        function calculateScore(minutes) {
+            if (minutes >= 40) return 100;
+            if (minutes >= 30) return 75;
+            if (minutes >= 20) return 50;
+            if (minutes >= 10) return 25;
+            return 0;
+        }
+
+        function saveProgressBeforeLeave() {
+            // Memastikan data terbaru tersimpan sebelum pindah halaman
+            localStorage.setItem('accumulated_seconds', accumulatedSeconds);
+            localStorage.setItem('timer_saved_date', getTodayString());
         }
 
         function updateTimerUI(totalSeconds) {
@@ -205,16 +212,22 @@
                 (seconds < 10 ? "0" + seconds : seconds);
         }
 
-        // Cek reset hari saat user kembali membuka aplikasi
+        // Jika tab di-minimize atau berpindah app di HP
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
+            if (document.hidden) {
+                saveProgressBeforeLeave();
+            } else {
+                // Saat dibuka lagi di hari yang sama, sinkronkan ulang dari storage
                 const todayStr = getTodayString();
                 const savedDate = localStorage.getItem('timer_saved_date');
                 if (savedDate !== todayStr) {
-                    localStorage.setItem('start_time_ms', Date.now());
+                    accumulatedSeconds = 0;
+                    lastSentScore = 0;
+                    localStorage.setItem('accumulated_seconds', 0);
                     localStorage.setItem('timer_saved_date', todayStr);
                     localStorage.setItem('last_sent_score', 0);
-                    lastSentScore = 0;
+                    updateTimerUI(0);
+                    document.getElementById('score-display').innerText = "0";
                 }
             }
         });
