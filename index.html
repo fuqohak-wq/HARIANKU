@@ -646,9 +646,22 @@ function initWaterLocal() {
     }
   }
 
+  // Filter membuang ID rusak (seperti "NaN" atau "undefined") dari memori lokal peramban
   try {
-    locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]");
-    locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]");
+    locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]")
+      .map(String)
+      .filter(function(id) { 
+        return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
+      });
+      
+    locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]")
+      .map(String)
+      .filter(function(id) { 
+        return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
+      });
+      
+    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
   } catch(e) {
     locallyCompletedTasks = [];
     locallyCompletedCeramah = [];
@@ -871,7 +884,7 @@ globalRutinitas = data["RUTINITAS"] || [];
 globalTasks.forEach(function(item) {
   if (item.status.toUpperCase() === "SELESAI") {
     locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
-      return String(id) !== String(item.rowId);
+      return id && id !== "NaN" && String(id) !== String(item.rowId);
     });
   }
 });
@@ -880,7 +893,7 @@ localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedT
 globalCeramah.forEach(function(item) {
   if (item.status.toUpperCase() === "SELESAI") {
     locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) {
-      return String(id) !== String(item.rowId);
+      return id && id !== "NaN" && String(id) !== String(item.rowId);
     });
   }
 });
@@ -948,18 +961,20 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Menghitung sisa tugas aktif dengan pencocokan string ID yang aman
+// Menghitung sisa tugas aktif dengan proteksi validasi ID un-corrupted
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = t.status.toUpperCase() === "BELUM";
-  const isLokalSelesai = locallyCompletedTasks.includes(String(t.rowId));
+  const hasValidId = t.rowId && String(t.rowId) !== "NaN" && String(t.rowId).trim() !== "";
+  const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(t.rowId));
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Menghitung sisa ceramah aktif dengan pencocokan string ID yang aman
+// Menghitung sisa ceramah aktif dengan proteksi validasi ID un-corrupted
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = c.status.toUpperCase() === "BELUM";
-  const isLokalSelesai = locallyCompletedCeramah.includes(String(c.rowId));
+  const hasValidId = c.rowId && String(c.rowId) !== "NaN" && String(c.rowId).trim() !== "";
+  const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(c.rowId));
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
@@ -1292,10 +1307,11 @@ function renderDaftarTugasInstan() {
   const container = document.getElementById("konten-lihat-tugas");
   container.innerHTML = "";
   
-  // Tampilkan hanya tugas yang berstatus BELUM dan tidak terdaftar di cache lokal penyelesaian
+  // Tampilkan tugas berstatus BELUM dengan verifikasi ID tidak rusak
   const belumSelesai = globalTasks.filter(function(item) { 
     const isBelum = item.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedTasks.includes(String(item.rowId));
+    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
+    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(item.rowId));
     return isBelum && !isLokalSelesai;
   });
   
@@ -1306,7 +1322,6 @@ function renderDaftarTugasInstan() {
   belumSelesai.forEach(function(item) {
     const div = document.createElement("div");
     div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-    // ID dilewatkan sebagai literal string murni ('${item.rowId}') agar tidak rusak oleh koma atau spasi
     div.innerHTML = `
     <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
     <button onclick="selesaikanTugasOptimis('${item.rowId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
@@ -1326,7 +1341,7 @@ async function selesaikanTugasOptimis(rowId) {
   });
   
   // 2. Kunci ke dalam cache penyelesaian lokal agar tidak bisa di-overwrite sinkronisasi tertunda
-  if (!locallyCompletedTasks.includes(idStr)) {
+  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedTasks.includes(idStr)) {
     locallyCompletedTasks.push(idStr);
     localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
   }
@@ -1334,7 +1349,8 @@ async function selesaikanTugasOptimis(rowId) {
   // 3. Update UI instan (tanpa kedipan/muncul kembali)
   const sisaTugas = globalTasks.filter(function(t) {
     const isBelum = t.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedTasks.includes(String(t.rowId));
+    const hasValidId = t.rowId && String(t.rowId) !== "NaN" && String(t.rowId).trim() !== "";
+    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(t.rowId));
     return isBelum && !isLokalSelesai;
   }).length;
   
@@ -1416,7 +1432,8 @@ function renderDaftarCeramahInstan() {
   
   const belumSelesai = globalCeramah.filter(function(item) { 
     const isBelum = item.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedCeramah.includes(String(item.rowId));
+    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
+    const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(item.rowId));
     return isBelum && !isLokalSelesai;
   });
   
@@ -1448,14 +1465,15 @@ async function selesaikanCeramahOptimis(rowId) {
     return c;
   });
   
-  if (!locallyCompletedCeramah.includes(idStr)) {
+  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedCeramah.includes(idStr)) {
     locallyCompletedCeramah.push(idStr);
     localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
   }
   
   const sisa = globalCeramah.filter(function(c) {
     const isBelum = c.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedCeramah.includes(String(c.rowId));
+    const hasValidId = c.rowId && String(c.rowId) !== "NaN" && String(c.rowId).trim() !== "";
+    const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(c.rowId));
     return isBelum && !isLokalSelesai;
   }).length;
   
