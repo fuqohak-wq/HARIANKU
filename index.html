@@ -496,7 +496,7 @@ Menghubungkan satelit harian...
 </div>
 
 <div class="space-y-1.5 mt-2">
-<p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Jurnal Transaksi Aktif (Real-Time Sheet):</p>
+<p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">Jurnal Transaktif (Real-Time Sheet):</p>
 <div id="daftar-transaksi-konten" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
 <p class="text-[9px] text-slate-500 italic text-center py-4 animate-pulse">Menghubungkan & membaca data sheet...</p>
 </div>
@@ -583,7 +583,7 @@ let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
-// Local Cache untuk menghindari tabrakan state saat sinkronisasi API tertunda (race condition)
+// Local Cache (Penampung String ID)
 let locallyCompletedTasks = [];
 let locallyCompletedCeramah = [];
 
@@ -598,7 +598,7 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-// ==================== INITIALIZATION (HIGH COMPATIBILITY FOR OLDER EMUI/WEBVIEW) ====================
+// ==================== INITIALIZATION ====================
 window.onload = function() {
   initWaterLocal();
   tentukanKalenderDasar();
@@ -609,15 +609,11 @@ window.onload = function() {
   inisialisasiRotasiNasehatLokal();
   muatNasehatLatarBelakang();
 
-  // Pengganti Promise.allSettled yang tidak didukung Webview Huawei lama
   sinkronisasiDataLatarBelakangLegacy();
-
   setInterval(sinkronisasiDataLatarBelakangLegacy, 25000);
-
   daftarkanServiceWorker();
 };
 
-// Fungsi sinkronisasi aman yang kompatibel dengan mesin peramban lama
 function sinkronisasiDataLatarBelakangLegacy() {
   loadDashboard().catch(function(e) {
     console.warn("Gagal memuat dasbor:", e);
@@ -639,7 +635,6 @@ function daftarkanServiceWorker() {
       });
   }
 }
-// ==============================================================================================
 
 function initWaterLocal() {
   const stored = localStorage.getItem("fuqohak_local_water");
@@ -651,7 +646,6 @@ function initWaterLocal() {
     }
   }
 
-  // Muat status cache selesai lokal untuk kelancaran transisi UI
   try {
     locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]");
     locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]");
@@ -860,7 +854,6 @@ containerLog.appendChild(div);
 }
 }
 
-// ==================== REMOVED MODERN ES2020 OPTIONAL CHAINING (?.) ====================
 function renderDataKeLayar(data) {
 if (data["HIJRIAH_FIXED"]) {
 document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
@@ -874,11 +867,11 @@ globalTasks = data["LIST_TUGAS"] || [];
 globalCeramah = data["LIST_CERAMAH"] || [];
 globalRutinitas = data["RUTINITAS"] || [];
 
-// Bersihkan item cache lokal jika status di server sudah dikonfirmasi "SELESAI"
+// Bersihkan item cache lokal jika status di server sudah terkonfirmasi "SELESAI"
 globalTasks.forEach(function(item) {
   if (item.status.toUpperCase() === "SELESAI") {
     locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
-      return Number(id) !== Number(item.rowId);
+      return String(id) !== String(item.rowId);
     });
   }
 });
@@ -887,7 +880,7 @@ localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedT
 globalCeramah.forEach(function(item) {
   if (item.status.toUpperCase() === "SELESAI") {
     locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) {
-      return Number(id) !== Number(item.rowId);
+      return String(id) !== String(item.rowId);
     });
   }
 });
@@ -955,18 +948,18 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Hitung total sisa tugas aktif (server BELUM minus yang lokal sudah dicentang SELESAI)
+// Menghitung sisa tugas aktif dengan pencocokan string ID yang aman
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = t.status.toUpperCase() === "BELUM";
-  const isLokalSelesai = locallyCompletedTasks.includes(Number(t.rowId));
+  const isLokalSelesai = locallyCompletedTasks.includes(String(t.rowId));
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Hitung total sisa ceramah aktif (server BELUM minus yang lokal sudah dicentang SELESAI)
+// Menghitung sisa ceramah aktif dengan pencocokan string ID yang aman
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = c.status.toUpperCase() === "BELUM";
-  const isLokalSelesai = locallyCompletedCeramah.includes(Number(c.rowId));
+  const isLokalSelesai = locallyCompletedCeramah.includes(String(c.rowId));
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
@@ -1302,7 +1295,7 @@ function renderDaftarTugasInstan() {
   // Tampilkan hanya tugas yang berstatus BELUM dan tidak terdaftar di cache lokal penyelesaian
   const belumSelesai = globalTasks.filter(function(item) { 
     const isBelum = item.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedTasks.includes(Number(item.rowId));
+    const isLokalSelesai = locallyCompletedTasks.includes(String(item.rowId));
     return isBelum && !isLokalSelesai;
   });
   
@@ -1313,34 +1306,35 @@ function renderDaftarTugasInstan() {
   belumSelesai.forEach(function(item) {
     const div = document.createElement("div");
     div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    // ID dilewatkan sebagai literal string murni ('${item.rowId}') agar tidak rusak oleh koma atau spasi
     div.innerHTML = `
     <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
-    <button onclick="selesaikanTugasOptimis(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    <button onclick="selesaikanTugasOptimis('${item.rowId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
     `;
     container.appendChild(div);
   });
 }
 
 async function selesaikanTugasOptimis(rowId) {
-  const idNum = Number(rowId);
+  const idStr = String(rowId).trim();
   const taskBackup = [].concat(globalTasks);
   
   // 1. Update status global state di browser secara instan
   globalTasks = globalTasks.map(function(t) {
-    if (Number(t.rowId) === idNum) t.status = "SELESAI";
+    if (String(t.rowId) === idStr) t.status = "SELESAI";
     return t;
   });
   
   // 2. Kunci ke dalam cache penyelesaian lokal agar tidak bisa di-overwrite sinkronisasi tertunda
-  if (!locallyCompletedTasks.includes(idNum)) {
-    locallyCompletedTasks.push(idNum);
+  if (!locallyCompletedTasks.includes(idStr)) {
+    locallyCompletedTasks.push(idStr);
     localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
   }
   
   // 3. Update UI instan (tanpa kedipan/muncul kembali)
   const sisaTugas = globalTasks.filter(function(t) {
     const isBelum = t.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedTasks.includes(Number(t.rowId));
+    const isLokalSelesai = locallyCompletedTasks.includes(String(t.rowId));
     return isBelum && !isLokalSelesai;
   }).length;
   
@@ -1351,14 +1345,14 @@ async function selesaikanTugasOptimis(rowId) {
   try {
     const res = await fetch(API_URL, { 
       method: "POST", 
-      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idNum }) 
+      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idStr }) 
     });
     const result = await res.json();
     if (result.status !== "success") throw new Error();
   } catch(e) {
     alert("Koneksi terputus. Mengembalikan status sebelumnya.");
     // Rollback status lokal jika pengiriman ke API gagal
-    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idNum; });
+    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idStr; });
     localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
     globalTasks = taskBackup;
     renderDaftarTugasInstan();
@@ -1420,10 +1414,9 @@ function renderDaftarCeramahInstan() {
   const container = document.getElementById("konten-lihat-ceramah");
   container.innerHTML = "";
   
-  // Tampilkan hanya jadwal yang berstatus BELUM dan tidak terdaftar di cache lokal
   const belumSelesai = globalCeramah.filter(function(item) { 
     const isBelum = item.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedCeramah.includes(Number(item.rowId));
+    const isLokalSelesai = locallyCompletedCeramah.includes(String(item.rowId));
     return isBelum && !isLokalSelesai;
   });
   
@@ -1440,32 +1433,29 @@ function renderDaftarCeramahInstan() {
     <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
     <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
     </div>
-    <button onclick="selesaikanCeramahOptimis(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    <button onclick="selesaikanCeramahOptimis('${item.rowId}')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
     `;
     container.appendChild(div);
   });
 }
 
 async function selesaikanCeramahOptimis(rowId) {
-  const idNum = Number(rowId);
+  const idStr = String(rowId).trim();
   const backupCeramah = [].concat(globalCeramah);
   
-  // 1. Update status global state instan
   globalCeramah = globalCeramah.map(function(c) {
-    if (Number(c.rowId) === idNum) c.status = "SELESAI";
+    if (String(c.rowId) === idStr) c.status = "SELESAI";
     return c;
   });
   
-  // 2. Kunci ceramah ke dalam cache lokal
-  if (!locallyCompletedCeramah.includes(idNum)) {
-    locallyCompletedCeramah.push(idNum);
+  if (!locallyCompletedCeramah.includes(idStr)) {
+    locallyCompletedCeramah.push(idStr);
     localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
   }
   
-  // 3. Update UI instan
   const sisa = globalCeramah.filter(function(c) {
     const isBelum = c.status.toUpperCase() === "BELUM";
-    const isLokalSelesai = locallyCompletedCeramah.includes(Number(c.rowId));
+    const isLokalSelesai = locallyCompletedCeramah.includes(String(c.rowId));
     return isBelum && !isLokalSelesai;
   }).length;
   
@@ -1476,13 +1466,13 @@ async function selesaikanCeramahOptimis(rowId) {
   try {
     const res = await fetch(API_URL, { 
       method: "POST", 
-      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId: idNum }) 
+      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId: idStr }) 
     });
     const result = await res.json();
     if (result.status !== "success") throw new Error();
   } catch(e) {
     alert("Koneksi gagal. Mengembalikan data.");
-    locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) { return id !== idNum; });
+    locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) { return id !== idStr; });
     localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
     globalCeramah = backupCeramah;
     renderDaftarCeramahInstan();
