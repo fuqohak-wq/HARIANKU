@@ -28,7 +28,6 @@ display: flex;
 justify-content: center; 
 overflow-x: hidden; 
 }
-/* Layout Fleksibel: Penuh di Mobile & Tablet, Terpusat di Desktop */
 .app-container { 
 width: 100%; 
 max-width: 100%; 
@@ -45,21 +44,18 @@ position: relative;
 box-sizing: border-box;
 }
 
-/* Pembatasan lebar hanya diterapkan pada layar desktop besar */
 @media (min-width: 1024px) {
   .app-container {
     max-width: 480px;
   }
 }
 
-/* Dark Mode Premium & Glassmorphism */
 .dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
 .dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
 .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-/* Scrollbar Halus Asisten AI */
 .scroll-ai::-webkit-scrollbar { width: 3px; }
 .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
-#ai-result-modal, #ceramah-modal, #tugas-modal, #keuangan-modal, #english-modal { 
+#ai-result-modal, #ceramah-modal, #keuangan-modal, #english-modal { 
 display: none; 
 position: fixed; 
 inset: 0; 
@@ -83,7 +79,6 @@ padding: 16px;
 overflow-y: auto; 
 }
 
-/* VIP Black Card Premium Neon Glow */
 @keyframes vip-neon-glow {
 0%, 100% {
 box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), 0 0 20px rgba(59, 130, 246, 0.15);
@@ -152,6 +147,7 @@ top: 100%;
 <p id="display-quote" class="text-[8px] font-medium italic text-slate-100 line-clamp-1 text-center">"Kesabaran panjang, menghasilkan kemenangan yang tidak semua orang dapat"</p>
 </div>
 </div>
+
 <!-- METRICS GRID -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
 <div class="glass-card p-1.5 pl-2.5 rounded-xl shadow-sm border-l-4 border-orange-500 flex flex-col justify-between" id="card-kalori">
@@ -240,7 +236,7 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH & TUGAS -->
+<!-- CERAMAH & TUGAS (DIARAHKAN KE TUGAS.HTML) -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
 <div onclick="bukaModalCeramah()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
 <div class="flex items-center gap-1">
@@ -250,16 +246,16 @@ top: 100%;
 <span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
 </div>
 
-<div onclick="bukaModalTugas()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
+<a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
 <div class="flex items-center gap-1">
 <span class="text-[10px]">📋</span>
 <span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Daftar Tugas</span>
 </div>
 <span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md">0</span>
-</div>
+</a>
 </div>
 
-<!-- GRAFIK TREN MOOD (BERSIH & MINIMALIS) -->
+<!-- GRAFIK TREN MOOD -->
 <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
 <div class="flex justify-between items-center mb-0.5">
 <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -267,7 +263,6 @@ top: 100%;
 </div>
 <div id="container-grafik" class="h-10 w-full relative flex items-end justify-between px-1">
 <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
-<!-- SVG Line chart -->
 </svg>
 </div>
 </div>
@@ -340,7 +335,7 @@ Menghubungkan satelit harian...
 
 </div>
 
-<!-- MODAL ENGLISH HUB (IFRAME INTEGRATED) -->
+<!-- MODAL ENGLISH HUB -->
 <div id="english-modal" onclick="tutupModalEnglish()">
 <div class="full-modal-content !p-0" onclick="event.stopPropagation()">
 <div class="flex justify-between items-center bg-slate-950 p-2.5 border-b border-white/10 shrink-0">
@@ -422,7 +417,6 @@ Menghubungkan satelit harian...
 <button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
 </div>
 <div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
-<!-- Terisi instan -->
 </div>
 <div id="konten-tambah-ceramah" class="hidden space-y-3">
 <div>
@@ -446,27 +440,6 @@ Menghubungkan satelit harian...
 <button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN JADWAL</button>
 </div>
 <button onclick="tutupModalCeramah()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl mt-3">TUTUP</button>
-</div>
-</div>
-
-<!-- MODAL TUGAS -->
-<div id="tugas-modal" onclick="tutupModalTugas()">
-<div class="full-modal-content" onclick="event.stopPropagation()">
-<div class="flex justify-around border-b border-white/10 pb-2 mb-3">
-<button onclick="pindahTabTugas('lihat')" id="tab-tugas-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">DAFTAR TUGAS</button>
-<button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
-</div>
-<div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
-<!-- Terisi instan -->
-</div>
-<div id="konten-tambah-tugas" class="hidden space-y-3">
-<div>
-<label class="text-[10px] text-slate-400 font-bold uppercase">Deskripsi Tugas Baru</label>
-<textarea id="t-deskripsi" rows="3" placeholder="Tuliskan detail tugas..." class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1 resize-none"></textarea>
-</div>
-<button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN TUGAS</button>
-</div>
-<button onclick="tutupModalTugas()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl mt-3">TUTUP</button>
 </div>
 </div>
 
@@ -535,13 +508,11 @@ Buka Dashboard Bekerja ➔
 </div>
 
 <script>
-// ==================== CONFIGURATION SYSTEM SINKRONISASI ====================
 const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
 const PERSONAL_AI_URL = "/api/nasehat";
 
 const API_URL = BASE_WEB_APP_URL;
 const FINANCE_API_URL = BASE_WEB_APP_URL;
-// ===========================================================================
 
 const KUMPULAN_TEMA = [
 "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
@@ -576,29 +547,24 @@ const FALLBACK_FINANCE_ROWS = [
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let dataAnalisaMakanTerakhir = null;
 
-// Global Memory State
 let globalTasks = [];
 let globalCeramah = [];
 let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
-// Local Cache (Penampung String ID)
 let locallyCompletedTasks = [];
 let locallyCompletedCeramah = [];
 
-// Optimistic State Hidrasi Air
 let localWaterState = {
 count: 0,
 lastUpdated: 0
 };
 
-// Asisten AI State
 let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-// ==================== INITIALIZATION ====================
 window.onload = function() {
   initWaterLocal();
   tentukanKalenderDasar();
@@ -646,7 +612,6 @@ function initWaterLocal() {
     }
   }
 
-  // Filter membuang ID rusak (seperti "NaN" atau "undefined") dari memori lokal peramban
   try {
     locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]")
       .map(String)
@@ -880,7 +845,6 @@ globalTasks = data["LIST_TUGAS"] || [];
 globalCeramah = data["LIST_CERAMAH"] || [];
 globalRutinitas = data["RUTINITAS"] || [];
 
-// Bersihkan item cache lokal jika status di server sudah terkonfirmasi "SELESAI"
 globalTasks.forEach(function(item) {
   if (item.status.toUpperCase() === "SELESAI") {
     locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
@@ -961,7 +925,7 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Menghitung sisa tugas aktif dengan proteksi validasi ID un-corrupted
+// Menghitung sisa tugas aktif (memverifikasi data dari tugas)
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = t.status.toUpperCase() === "BELUM";
   const hasValidId = t.rowId && String(t.rowId) !== "NaN" && String(t.rowId).trim() !== "";
@@ -970,7 +934,6 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Menghitung sisa ceramah aktif dengan proteksi validasi ID un-corrupted
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = c.status.toUpperCase() === "BELUM";
   const hasValidId = c.rowId && String(c.rowId) !== "NaN" && String(c.rowId).trim() !== "";
@@ -1013,15 +976,11 @@ console.error("Gagal mengirim data hidrasi ke server:", e);
 }
 }
 
-// ==================== DYNAMIC CHRONOLOGICAL LINE CHART (LEFT-TO-RIGHT) ====================
 function buildLineChart(riwayat) {
   if (!riwayat || riwayat.length < 2) return;
 
   const svg = document.getElementById("grafik-svg");
-  
-  // Membalikkan data riwayat dari server agar kronologis berurutan dari kiri ke kanan
   const chronologicalData = [].concat(riwayat).reverse();
-  
   const values = chronologicalData.map(function(item) { return item.jumlah; });
   const minVal = Math.min.apply(null, [].concat(values, [0]));
   const maxVal = Math.max.apply(null, [].concat(values, [50])); 
@@ -1038,7 +997,6 @@ function buildLineChart(riwayat) {
     return { x: x, y: y, val: item.jumlah, date: item.tanggal };
   });
 
-  // Pembuatan spline bezier kubik halus
   let pathD = "M " + points[0].x + " " + points[0].y;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i];
@@ -1067,7 +1025,6 @@ function buildLineChart(riwayat) {
     badgeTren.className = "text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.2 rounded";
   }
 
-  // Pengaturan gradien warna baru (Merah Muda -> Kuning Amber -> Hijau Produktif)
   svg.innerHTML = `
   <defs>
     <linearGradient id="gradien-area-energetic" x1="0" y1="0" x2="0" y2="1">
@@ -1084,7 +1041,6 @@ function buildLineChart(riwayat) {
   <path d="${pathD}" fill="none" stroke="url(#gradien-stroke-energetic)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
   `;
 }
-// ==================================================================================================
 
 let daftarPotonganKalimat = [];
 let indeksKalimatAktif = 0;
@@ -1240,7 +1196,6 @@ async function panggilAnalisisRutinitasAI() {
     if (idTimeout1) clearTimeout(idTimeout1);
     console.warn("Skenario Utama (Proxy Backend) gagal:", e);
     
-    // Failsafe langsung menggunakan URL Google Apps Script yang berfungsi
     try {
       const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
       const directRes = await fetch(directUrl);
@@ -1275,125 +1230,6 @@ function tutupModalEnglish() {
   document.getElementById("english-modal").style.display = "none";
 }
 
-function bukaModalTugas() { 
-document.getElementById("tugas-modal").style.display = "flex"; 
-pindahTabTugas('lihat'); 
-}
-
-function tutupModalTugas() { 
-document.getElementById("tugas-modal").style.display = "none"; 
-}
-
-function pindahTabTugas(tab) {
-const tabLihat = document.getElementById("tab-tugas-lihat");
-const tabTambah = document.getElementById("tab-tugas-tambah");
-const kontenLihat = document.getElementById("konten-lihat-tugas");
-const kontenTambah = document.getElementById("konten-tambah-tugas");
-if (tab === 'lihat') {
-tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
-kontenLihat.classList.remove("hidden");
-kontenTambah.classList.add("hidden");
-renderDaftarTugasInstan();
-} else {
-tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
-kontenTambah.classList.remove("hidden");
-kontenLihat.classList.add("hidden");
-}
-}
-
-function renderDaftarTugasInstan() {
-  const container = document.getElementById("konten-lihat-tugas");
-  container.innerHTML = "";
-  
-  // Tampilkan tugas berstatus BELUM dengan verifikasi ID tidak rusak
-  const belumSelesai = globalTasks.filter(function(item) { 
-    const isBelum = item.status.toUpperCase() === "BELUM";
-    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
-    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(item.rowId));
-    return isBelum && !isLokalSelesai;
-  });
-  
-  if (belumSelesai.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua target pekerjaan rampung!</p>`;
-    return;
-  }
-  belumSelesai.forEach(function(item) {
-    const div = document.createElement("div");
-    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-    div.innerHTML = `
-    <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
-    <button onclick="selesaikanTugasOptimis('${item.rowId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-async function selesaikanTugasOptimis(rowId) {
-  const idStr = String(rowId).trim();
-  const taskBackup = [].concat(globalTasks);
-  
-  // 1. Update status global state di browser secara instan
-  globalTasks = globalTasks.map(function(t) {
-    if (String(t.rowId) === idStr) t.status = "SELESAI";
-    return t;
-  });
-  
-  // 2. Kunci ke dalam cache penyelesaian lokal agar tidak bisa di-overwrite sinkronisasi tertunda
-  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedTasks.includes(idStr)) {
-    locallyCompletedTasks.push(idStr);
-    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
-  }
-  
-  // 3. Update UI instan (tanpa kedipan/muncul kembali)
-  const sisaTugas = globalTasks.filter(function(t) {
-    const isBelum = t.status.toUpperCase() === "BELUM";
-    const hasValidId = t.rowId && String(t.rowId) !== "NaN" && String(t.rowId).trim() !== "";
-    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(t.rowId));
-    return isBelum && !isLokalSelesai;
-  }).length;
-  
-  document.getElementById("badge-tugas").innerText = sisaTugas;
-  renderDaftarTugasInstan();
-
-  if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-  try {
-    const res = await fetch(API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idStr }) 
-    });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error();
-  } catch(e) {
-    alert("Koneksi terputus. Mengembalikan status sebelumnya.");
-    // Rollback status lokal jika pengiriman ke API gagal
-    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idStr; });
-    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
-    globalTasks = taskBackup;
-    renderDaftarTugasInstan();
-  }
-}
-
-async function simpanTugasBaruDariModal() {
-const tInput = document.getElementById("t-deskripsi");
-const tugasText = tInput.value.trim();
-if(!tugasText) return;
-tInput.value = "";
-tutupModalTugas();
-if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-try {
-const res = await fetch(API_URL, { 
-method: "POST", 
-body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) 
-});
-const result = await res.json();
-if (result.status === "success") {
-await loadDashboard();
-}
-} catch(e) { alert("Penyimpanan gagal."); }
-}
-
 function bukaModalCeramah() { 
 document.getElementById("ceramah-modal").style.display = "flex"; 
 pindahTabCeramah('lihat'); 
@@ -1401,10 +1237,6 @@ pindahTabCeramah('lihat');
 
 function tutupModalCeramah() { 
 document.getElementById("ceramah-modal").style.display = "none"; 
-}
-
-function phtmlTabCeramah(tab) {
-pindahTabCeramah(tab);
 }
 
 function pindahTabCeramah(tab) {
