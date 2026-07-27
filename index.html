@@ -286,7 +286,8 @@ top: 100%;
 <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
 Mengkalkulasi koordinasi waktu produktif Anda...
 </div>
-<p id="ai-rutinitas-teks" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify">
+<!-- Atribut onclick ditambah untuk aksi pergantian manual instan ketika diklik -->
+<p id="ai-rutinitas-teks" onclick="tampilkanNasehatBerikutnya()" title="Klik untuk nasehat berikutnya" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify cursor-pointer select-none active:scale-[0.99] hover:text-purple-600 dark:hover:text-purple-400">
 Menghubungkan satelit harian...
 </p>
 </div>
@@ -847,7 +848,6 @@ containerLog.appendChild(div);
 }
 }
 
-// ==================== REMOVED MODERN ES2020 OPTIONAL CHAINING (?.) ====================
 function renderDataKeLayar(data) {
 if (data["HIJRIAH_FIXED"]) {
 document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
@@ -1095,10 +1095,29 @@ function mulaiSiklusTampilan(dataNasehat) {
   indeksKalimatAktif = 0;
   eksekusiAnimasiTeks();
   
+  // Diubah menjadi 60000 ms (1 menit) sesuai permintaan
   intervalRotasiKalimat = setInterval(function() {
     indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
     eksekusiAnimasiTeks();
-  }, 30000); 
+  }, 60000); 
+}
+
+// Fungsi tambahan agar teks bisa diganti manual saat diklik tanpa merusak siklus interval
+function tampilkanNasehatBerikutnya() {
+  if (!daftarPotonganKalimat || daftarPotonganKalimat.length <= 1) return;
+  
+  // Pindah ke indeks berikutnya
+  indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
+  eksekusiAnimasiTeks();
+  
+  // Setel ulang interval waktu agar timer berhitung kembali dari nol setelah interaksi klik manual
+  if (intervalRotasiKalimat) {
+    clearInterval(intervalRotasiKalimat);
+  }
+  intervalRotasiKalimat = setInterval(function() {
+    indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
+    eksekusiAnimasiTeks();
+  }, 60000); // 1 menit
 }
 
 async function eksekusiAnimasiTeks() {
@@ -1174,7 +1193,7 @@ async function panggilAnalisisRutinitasAI() {
     
     // Failsafe langsung menggunakan URL Google Apps Script yang berfungsi
     try {
-      const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
+      const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkWuCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
       const directRes = await fetch(directUrl);
       if (directRes.ok) {
         const result = await directRes.json();
