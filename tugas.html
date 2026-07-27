@@ -63,9 +63,7 @@ box-sizing: border-box;
   </div>
 
   <!-- CONTENT TABS -->
-  <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
-    <p class="text-[10px] text-slate-400 text-center py-8 italic animate-pulse">Menghubungkan data sheet harian...</p>
-  </div>
+  <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2"></div>
 
   <div id="konten-tambah-tugas" class="hidden space-y-3">
     <div class="glass-card p-3 rounded-xl">
@@ -82,45 +80,40 @@ const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b
 const API_URL = BASE_WEB_APP_URL;
 
 let globalTasks = [];
-let locallyCompletedTasks = [];
 
-window.onload = function() {
-  initWaterLocal();
-  loadTasksData();
-};
+// Berjalan secara synchronous begitu script dibaca
+initLocalCache();
 
-function initWaterLocal() {
-  try {
-    locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]")
-      .map(String)
-      .filter(function(id) { 
-        return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
-      });
-  } catch(e) {
-    locallyCompletedTasks = [];
+function initLocalCache() {
+  const localData = localStorage.getItem("fuqohak_tracker_cache");
+  if (localData) {
+    try {
+      const parsed = JSON.parse(localData);
+      globalTasks = parsed.LIST_TUGAS || parsed || [];
+    } catch(e) {
+      globalTasks = [];
+    }
   }
 }
 
-async function loadTasksData() {
+// Langsung Tampilkan Data Dulu Sebelum Render Lengkap Dom Loaded
+document.addEventListener("DOMContentLoaded", function() {
+  renderDaftarTugasInstan(); // Tampilkan INSTAN tanpa loading animasi
+  syncTugasDariServer();     // Sync diam-diam di background
+});
+
+async function syncTugasDariServer() {
   try {
     const res = await fetch(API_URL);
     const json = await res.json();
     if (json.status === "success" && json.data) {
-      globalTasks = json.data.LIST_TUGAS || [];
+      const serverTasks = json.data.LIST_TUGAS || [];
+      globalTasks = serverTasks;
+      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(json.data));
       renderDaftarTugasInstan();
     }
   } catch (e) {
-    // Membaca fallback dari cache utama jika luring
-    const cacheData = localStorage.getItem("fuqohak_tracker_cache");
-    if (cacheData) {
-      try {
-        const parsed = JSON.parse(cacheData);
-        globalTasks = parsed.LIST_TUGAS || [];
-        renderDaftarTugasInstan();
-      } catch(err) {
-        document.getElementById("konten-lihat-tugas").innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Gagal memuat cache.</p>`;
-      }
-    }
+    console.log("Menggunakan cache offline");
   }
 }
 
@@ -147,11 +140,9 @@ function renderDaftarTugasInstan() {
   const container = document.getElementById("konten-lihat-tugas");
   container.innerHTML = "";
   
-  const belumSelesai = globalTasks.filter(function(item) { 
-    const isBelum = item.status.toUpperCase() === "BELUM";
-    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
-    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(item.rowId));
-    return isBelum && !isLokalSelesai;
+  // Filter hanya tugas dengan status BELUM
+  const belumSelesai = globalTasks.filter(item => {
+    return String(item.status).toUpperCase() === "BELUM";
   });
   
   if (belumSelesai.length === 0) {
@@ -162,43 +153,54 @@ function renderDaftarTugasInstan() {
   belumSelesai.forEach(function(item) {
     const div = document.createElement("div");
     div.className = "glass-card rounded-2xl p-3 flex justify-between items-center gap-3";
+    div.id = `task-row-${item.rowId}`;
     div.innerHTML = `
       <p class="text-xs text-white flex-1 break-words font-medium leading-relaxed">${item.tugas}</p>
-      <button onclick="selesaikanTugasOptimis('${item.rowId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-3 py-2 rounded-xl transition active:scale-95 shrink-0">SELESAI</button>
+      <button onclick="selesaikanTugasOptimis(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-3 py-2 rounded-xl transition active:scale-95 shrink-0">SELESAI</button>
     `;
     container.appendChild(div);
   });
 }
 
 async function selesaikanTugasOptimis(rowId) {
-  const idStr = String(rowId).trim();
-  const taskBackup = [].concat(globalTasks);
-  
-  globalTasks = globalTasks.map(function(t) {
-    if (String(t.rowId) === idStr) t.status = "SELESAI";
-    return t;
-  });
-  
-  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedTasks.includes(idStr)) {
-    locallyCompletedTasks.push(idStr);
-    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+  // 1. Hapus/Hilangkan item spesifik dari UI secara langsung tanpa re-render semua
+  const elem = document.getElementById(`task-row-${rowId}`);
+  if (elem) {
+    elem.remove();
+  }
+
+  // 2. Update status tugas spesifik di cache memori & localStorage
+  const index = globalTasks.findIndex(t => Number(t.rowId) === Number(rowId));
+  if (index !== -1) {
+    globalTasks[index].status = "SELESAI";
   }
   
-  renderDaftarTugasInstan();
+  const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+  if (cacheData) {
+    try {
+      const parsed = JSON.parse(cacheData);
+      parsed.LIST_TUGAS = globalTasks;
+      localStorage.setItem("fuqohak_tracker_cache", JSON.stringify(parsed));
+    } catch(e){}
+  }
 
+  // Tampilkan teks jika tidak ada tugas lagi
+  const container = document.getElementById("konten-lihat-tugas");
+  if (container.children.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-12 italic">Semua target pekerjaan telah rampung! Tambahkan tugas baru jika diperlukan.</p>`;
+  }
+
+  // 3. Sync ke Apps Script Server
   try {
     const res = await fetch(API_URL, { 
       method: "POST", 
-      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idStr }) 
+      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: rowId }) 
     });
     const result = await res.json();
-    if (result.status !== "success") throw new Error();
+    if (result.status !== "success") throw new Error("Gagal di server");
   } catch(e) {
-    alert("Koneksi terputus. Mengembalikan status sebelumnya.");
-    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idStr; });
-    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
-    globalTasks = taskBackup;
-    renderDaftarTugasInstan();
+    alert("Gagal memperbarui server, status dikembalikan.");
+    syncTugasDariServer(); // Kembalikan data server jika gagal
   }
 }
 
@@ -215,9 +217,8 @@ async function simpanTugasBaruDariModal() {
     });
     const result = await res.json();
     if (result.status === "success") {
-      alert("Tugas berhasil disimpan.");
       pindahTabTugas('lihat');
-      loadTasksData();
+      syncTugasDariServer();
     }
   } catch(e) { 
     alert("Penyimpanan gagal."); 
