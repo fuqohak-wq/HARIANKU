@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fuqohak Tracker">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link class="apple-touch-icon" href="icon-192.png">
 
 <!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
@@ -286,7 +286,6 @@ top: 100%;
 <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
 Mengkalkulasi koordinasi waktu produktif Anda...
 </div>
-<!-- Atribut onclick ditambah untuk aksi pergantian manual instan ketika diklik -->
 <p id="ai-rutinitas-teks" onclick="tampilkanNasehatBerikutnya()" title="Klik untuk nasehat berikutnya" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify cursor-pointer select-none active:scale-[0.99] hover:text-purple-600 dark:hover:text-purple-400">
 Menghubungkan satelit harian...
 </p>
@@ -584,6 +583,10 @@ let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
+// Local Cache untuk menghindari tabrakan state saat sinkronisasi API tertunda (race condition)
+let locallyCompletedTasks = [];
+let locallyCompletedCeramah = [];
+
 // Optimistic State Hidrasi Air
 let localWaterState = {
 count: 0,
@@ -639,14 +642,23 @@ function daftarkanServiceWorker() {
 // ==============================================================================================
 
 function initWaterLocal() {
-const stored = localStorage.getItem("fuqohak_local_water");
-if (stored) {
-try {
-localWaterState = JSON.parse(stored);
-} catch(e) {
-console.warn("Mereset penyimpanan log air.");
-}
-}
+  const stored = localStorage.getItem("fuqohak_local_water");
+  if (stored) {
+    try {
+      localWaterState = JSON.parse(stored);
+    } catch(e) {
+      console.warn("Mereset penyimpanan log air.");
+    }
+  }
+
+  // Muat status cache selesai lokal untuk kelancaran transisi UI
+  try {
+    locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]");
+    locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]");
+  } catch(e) {
+    locallyCompletedTasks = [];
+    locallyCompletedCeramah = [];
+  }
 }
 
 function muatDataDariOffline() {
@@ -848,6 +860,7 @@ containerLog.appendChild(div);
 }
 }
 
+// ==================== REMOVED MODERN ES2020 OPTIONAL CHAINING (?.) ====================
 function renderDataKeLayar(data) {
 if (data["HIJRIAH_FIXED"]) {
 document.getElementById("date-hijriah").innerText = data["HIJRIAH_FIXED"];
@@ -860,6 +873,25 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 globalTasks = data["LIST_TUGAS"] || [];
 globalCeramah = data["LIST_CERAMAH"] || [];
 globalRutinitas = data["RUTINITAS"] || [];
+
+// Bersihkan item cache lokal jika status di server sudah dikonfirmasi "SELESAI"
+globalTasks.forEach(function(item) {
+  if (item.status.toUpperCase() === "SELESAI") {
+    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
+      return Number(id) !== Number(item.rowId);
+    });
+  }
+});
+localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+
+globalCeramah.forEach(function(item) {
+  if (item.status.toUpperCase() === "SELESAI") {
+    locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) {
+      return Number(id) !== Number(item.rowId);
+    });
+  }
+});
+localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
 
 const teksMoodAsli = (data["MOOD_STATUS"] && data["MOOD_STATUS"].value) ? data["MOOD_STATUS"].value : "STABIL";
 currentMoodStatus = teksMoodAsli;
@@ -922,8 +954,22 @@ document.getElementById("val-kalori-keluar").innerText = (data["KALORI KELUAR"] 
 document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["MENGURANGI HP"].value) ? data["MENGURANGI HP"].value : 0;
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
-document.getElementById("badge-tugas").innerText = (data["TUGAS_COUNT"] || 0);
-document.getElementById("badge-ceramah").innerText = (data["CERAMAH_COUNT"] || 0);
+
+// Hitung total sisa tugas aktif (server BELUM minus yang lokal sudah dicentang SELESAI)
+const sisaTugasAktif = globalTasks.filter(function(t) {
+  const isBelum = t.status.toUpperCase() === "BELUM";
+  const isLokalSelesai = locallyCompletedTasks.includes(Number(t.rowId));
+  return isBelum && !isLokalSelesai;
+}).length;
+document.getElementById("badge-tugas").innerText = sisaTugasAktif;
+
+// Hitung total sisa ceramah aktif (server BELUM minus yang lokal sudah dicentang SELESAI)
+const sisaCeramahAktif = globalCeramah.filter(function(c) {
+  const isBelum = c.status.toUpperCase() === "BELUM";
+  const isLokalSelesai = locallyCompletedCeramah.includes(Number(c.rowId));
+  return isBelum && !isLokalSelesai;
+}).length;
+document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
 
 const rawKaloriMasuk = (data["KALORI MASUK"] && data["KALORI MASUK"].value) ? data["KALORI MASUK"].value : 0;
 const progressIn = (Number(rawKaloriMasuk) / 2000) * 100;
@@ -1095,29 +1141,24 @@ function mulaiSiklusTampilan(dataNasehat) {
   indeksKalimatAktif = 0;
   eksekusiAnimasiTeks();
   
-  // Diubah menjadi 60000 ms (1 menit) sesuai permintaan
   intervalRotasiKalimat = setInterval(function() {
     indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
     eksekusiAnimasiTeks();
   }, 60000); 
 }
 
-// Fungsi tambahan agar teks bisa diganti manual saat diklik tanpa merusak siklus interval
 function tampilkanNasehatBerikutnya() {
   if (!daftarPotonganKalimat || daftarPotonganKalimat.length <= 1) return;
-  
-  // Pindah ke indeks berikutnya
   indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
   eksekusiAnimasiTeks();
   
-  // Setel ulang interval waktu agar timer berhitung kembali dari nol setelah interaksi klik manual
   if (intervalRotasiKalimat) {
     clearInterval(intervalRotasiKalimat);
   }
   intervalRotasiKalimat = setInterval(function() {
     indeksKalimatAktif = (indeksKalimatAktif + 1) % daftarPotonganKalimat.length;
     eksekusiAnimasiTeks();
-  }, 60000); // 1 menit
+  }, 60000);
 }
 
 async function eksekusiAnimasiTeks() {
@@ -1193,7 +1234,7 @@ async function panggilAnalisisRutinitasAI() {
     
     // Failsafe langsung menggunakan URL Google Apps Script yang berfungsi
     try {
-      const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkWuCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
+      const directUrl = "https://script.google.com/macros/s/AKfycbzUg2PbvCWboeldk3_cgcDDfMHP7BbtXVvPVzpbKMZkDwUCIdNVqXXX6Oj1KvkxnEIJvw/exec?refresh=true";
       const directRes = await fetch(directUrl);
       if (directRes.ok) {
         const result = await directRes.json();
@@ -1255,47 +1296,73 @@ kontenLihat.classList.add("hidden");
 }
 
 function renderDaftarTugasInstan() {
-const container = document.getElementById("konten-lihat-tugas");
-container.innerHTML = "";
-const belumSelesai = globalTasks.filter(function(item) { return item.status.toUpperCase() === "BELUM"; });
-if (belumSelesai.length === 0) {
-container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua target pekerjaan rampung!</p>`;
-return;
-}
-belumSelesai.forEach(function(item) {
-const div = document.createElement("div");
-div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-div.innerHTML = `
-<p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
-<button onclick="selesaikanTugasOptimis(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-`;
-container.appendChild(div);
-});
+  const container = document.getElementById("konten-lihat-tugas");
+  container.innerHTML = "";
+  
+  // Tampilkan hanya tugas yang berstatus BELUM dan tidak terdaftar di cache lokal penyelesaian
+  const belumSelesai = globalTasks.filter(function(item) { 
+    const isBelum = item.status.toUpperCase() === "BELUM";
+    const isLokalSelesai = locallyCompletedTasks.includes(Number(item.rowId));
+    return isBelum && !isLokalSelesai;
+  });
+  
+  if (belumSelesai.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Semua target pekerjaan rampung!</p>`;
+    return;
+  }
+  belumSelesai.forEach(function(item) {
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    div.innerHTML = `
+    <p class="text-xs text-white max-w-[220px] break-words">${item.tugas}</p>
+    <button onclick="selesaikanTugasOptimis(${item.rowId})" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    `;
+    container.appendChild(div);
+  });
 }
 
 async function selesaikanTugasOptimis(rowId) {
-const taskBackup = [].concat(globalTasks);
-globalTasks = globalTasks.map(function(t) {
-if (t.rowId === rowId) t.status = "SELESAI";
-return t;
-});
-const sisaTugas = globalTasks.filter(function(t) { return t.status === "BELUM"; }).length;
-document.getElementById("badge-tugas").innerText = sisaTugas;
-renderDaftarTugasInstan();
+  const idNum = Number(rowId);
+  const taskBackup = [].concat(globalTasks);
+  
+  // 1. Update status global state di browser secara instan
+  globalTasks = globalTasks.map(function(t) {
+    if (Number(t.rowId) === idNum) t.status = "SELESAI";
+    return t;
+  });
+  
+  // 2. Kunci ke dalam cache penyelesaian lokal agar tidak bisa di-overwrite sinkronisasi tertunda
+  if (!locallyCompletedTasks.includes(idNum)) {
+    locallyCompletedTasks.push(idNum);
+    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+  }
+  
+  // 3. Update UI instan (tanpa kedipan/muncul kembali)
+  const sisaTugas = globalTasks.filter(function(t) {
+    const isBelum = t.status.toUpperCase() === "BELUM";
+    const isLokalSelesai = locallyCompletedTasks.includes(Number(t.rowId));
+    return isBelum && !isLokalSelesai;
+  }).length;
+  
+  document.getElementById("badge-tugas").innerText = sisaTugas;
+  renderDaftarTugasInstan();
 
-if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-try {
-const res = await fetch(API_URL, { 
-method: "POST", 
-body: JSON.stringify({ aksi: "selesaikanTugas", rowId }) 
-});
-const result = await res.json();
-if (result.status !== "success") throw new Error();
-} catch(e) {
-alert("Koneksi terputus. Mengembalikan status sebelumnya.");
-globalTasks = taskBackup;
-renderDaftarTugasInstan();
-}
+  if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
+  try {
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idNum }) 
+    });
+    const result = await res.json();
+    if (result.status !== "success") throw new Error();
+  } catch(e) {
+    alert("Koneksi terputus. Mengembalikan status sebelumnya.");
+    // Rollback status lokal jika pengiriman ke API gagal
+    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idNum; });
+    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+    globalTasks = taskBackup;
+    renderDaftarTugasInstan();
+  }
 }
 
 async function simpanTugasBaruDariModal() {
@@ -1350,51 +1417,76 @@ kontenLihat.classList.add("hidden");
 }
 
 function renderDaftarCeramahInstan() {
-const container = document.getElementById("konten-lihat-ceramah");
-container.innerHTML = "";
-const belumSelesai = globalCeramah.filter(function(item) { return item.status.toUpperCase() === "BELUM"; });
-if (belumSelesai.length === 0) {
-container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada jadwal ceramah terdekat.</p>`;
-return;
-}
-belumSelesai.forEach(function(item) {
-const div = document.createElement("div");
-div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
-div.innerHTML = `
-<div class="max-w-[200px]">
-<p class="text-xs font-black text-white truncate">${item.tema}</p>
-<p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
-<p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
-</div>
-<button onclick="selesaikanCeramahOptimis(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
-`;
-container.appendChild(div);
-});
+  const container = document.getElementById("konten-lihat-ceramah");
+  container.innerHTML = "";
+  
+  // Tampilkan hanya jadwal yang berstatus BELUM dan tidak terdaftar di cache lokal
+  const belumSelesai = globalCeramah.filter(function(item) { 
+    const isBelum = item.status.toUpperCase() === "BELUM";
+    const isLokalSelesai = locallyCompletedCeramah.includes(Number(item.rowId));
+    return isBelum && !isLokalSelesai;
+  });
+  
+  if (belumSelesai.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada jadwal ceramah terdekat.</p>`;
+    return;
+  }
+  belumSelesai.forEach(function(item) {
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    div.innerHTML = `
+    <div class="max-w-[200px]">
+    <p class="text-xs font-black text-white truncate">${item.tema}</p>
+    <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
+    <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
+    </div>
+    <button onclick="selesaikanCeramahOptimis(${item.rowId})" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+    `;
+    container.appendChild(div);
+  });
 }
 
 async function selesaikanCeramahOptimis(rowId) {
-const backupCeramah = [].concat(globalCeramah);
-globalCeramah = globalCeramah.map(function(c) {
-if (c.rowId === rowId) c.status = "SELESAI";
-return c;
-});
-const sisa = globalCeramah.filter(function(c) { return c.status === "BELUM"; }).length;
-document.getElementById("badge-ceramah").innerText = sisa;
-renderDaftarCeramahInstan();
+  const idNum = Number(rowId);
+  const backupCeramah = [].concat(globalCeramah);
+  
+  // 1. Update status global state instan
+  globalCeramah = globalCeramah.map(function(c) {
+    if (Number(c.rowId) === idNum) c.status = "SELESAI";
+    return c;
+  });
+  
+  // 2. Kunci ceramah ke dalam cache lokal
+  if (!locallyCompletedCeramah.includes(idNum)) {
+    locallyCompletedCeramah.push(idNum);
+    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+  }
+  
+  // 3. Update UI instan
+  const sisa = globalCeramah.filter(function(c) {
+    const isBelum = c.status.toUpperCase() === "BELUM";
+    const isLokalSelesai = locallyCompletedCeramah.includes(Number(c.rowId));
+    return isBelum && !isLokalSelesai;
+  }).length;
+  
+  document.getElementById("badge-ceramah").innerText = sisa;
+  renderDaftarCeramahInstan();
 
-if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-try {
-const res = await fetch(API_URL, { 
-method: "POST", 
-body: JSON.stringify({ aksi: "selesaikanCeramah", rowId }) 
-});
-const result = await res.json();
-if (result.status !== "success") throw new Error();
-} catch(e) {
-alert("Koneksi gagal. Mengembalikan data.");
-globalCeramah = backupCeramah;
-renderDaftarCeramahInstan();
-}
+  if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
+  try {
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId: idNum }) 
+    });
+    const result = await res.json();
+    if (result.status !== "success") throw new Error();
+  } catch(e) {
+    alert("Koneksi gagal. Mengembalikan data.");
+    locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) { return id !== idNum; });
+    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+    globalCeramah = backupCeramah;
+    renderDaftarCeramahInstan();
+  }
 }
 
 async function simpanJadwalCeramah() {
