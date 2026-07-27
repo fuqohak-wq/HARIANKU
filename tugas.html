@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Manajemen Tugas - Fuqohak Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { 
+font-family: 'Plus Jakarta Sans', sans-serif; 
+background: #070d19; 
+margin: 0; 
+padding: 0; 
+min-height: 100vh; 
+display: flex; 
+justify-content: center; 
+overflow-x: hidden; 
+}
+.app-container { 
+width: 100%; 
+max-width: 100%; 
+height: 100vh; 
+height: 100dvh; 
+background: #080f1e; 
+color: white;
+display: flex; 
+flex-direction: column; 
+justify-content: space-between; 
+padding: 16px; 
+overflow-y: auto; 
+position: relative; 
+box-sizing: border-box;
+}
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 480px;
+  }
+}
+.glass-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); }
+</style>
+</head>
+<body>
+
+<div class="app-container shadow-2xl">
+<div class="flex-1 flex flex-col gap-4 overflow-y-auto">
+  <!-- HEADER -->
+  <div class="flex justify-between items-center bg-slate-950/40 p-3 rounded-2xl border border-white/5 shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">📋</span>
+      <div>
+        <h1 class="text-xs font-black text-white tracking-wide uppercase">Daftar Tugas</h1>
+        <p class="text-[8px] text-slate-400 font-bold uppercase">Mas Fuqohak Executive</p>
+      </div>
+    </div>
+    <a href="index.html" class="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold px-3 py-1.5 rounded-xl transition active:scale-95">➔ KEMBALI</a>
+  </div>
+
+  <!-- TAB NAVIGATION -->
+  <div class="flex justify-around border-b border-white/10 pb-2 mb-1 shrink-0">
+    <button onclick="pindahTabTugas('lihat')" id="tab-tugas-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">DAFTAR TUGAS</button>
+    <button onclick="pindahTabTugas('tambah')" id="tab-tugas-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH TUGAS BARU</button>
+  </div>
+
+  <!-- CONTENT TABS -->
+  <div id="konten-lihat-tugas" class="flex-1 overflow-y-auto space-y-2">
+    <p class="text-[10px] text-slate-400 text-center py-8 italic animate-pulse">Menghubungkan data sheet harian...</p>
+  </div>
+
+  <div id="konten-tambah-tugas" class="hidden space-y-3">
+    <div class="glass-card p-3 rounded-xl">
+      <label class="text-[10px] text-slate-400 font-bold uppercase">Deskripsi Tugas Baru</label>
+      <textarea id="t-deskripsi" rows="4" placeholder="Tuliskan detail pekerjaan atau target hari ini..." class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1 resize-none focus:outline-none focus:border-blue-500"></textarea>
+    </div>
+    <button onclick="simpanTugasBaruDariModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black text-xs py-3 rounded-xl uppercase tracking-wider transition active:scale-95">SIMPAN TUGAS KE DATABASE</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
+const API_URL = BASE_WEB_APP_URL;
+
+let globalTasks = [];
+let locallyCompletedTasks = [];
+
+window.onload = function() {
+  initWaterLocal();
+  loadTasksData();
+};
+
+function initWaterLocal() {
+  try {
+    locallyCompletedTasks = JSON.parse(localStorage.getItem("fuqohak_completed_tasks") || "[]")
+      .map(String)
+      .filter(function(id) { 
+        return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
+      });
+  } catch(e) {
+    locallyCompletedTasks = [];
+  }
+}
+
+async function loadTasksData() {
+  try {
+    const res = await fetch(API_URL);
+    const json = await res.json();
+    if (json.status === "success" && json.data) {
+      globalTasks = json.data.LIST_TUGAS || [];
+      renderDaftarTugasInstan();
+    }
+  } catch (e) {
+    // Membaca fallback dari cache utama jika luring
+    const cacheData = localStorage.getItem("fuqohak_tracker_cache");
+    if (cacheData) {
+      try {
+        const parsed = JSON.parse(cacheData);
+        globalTasks = parsed.LIST_TUGAS || [];
+        renderDaftarTugasInstan();
+      } catch(err) {
+        document.getElementById("konten-lihat-tugas").innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Gagal memuat cache.</p>`;
+      }
+    }
+  }
+}
+
+function pindahTabTugas(tab) {
+  const tabLihat = document.getElementById("tab-tugas-lihat");
+  const tabTambah = document.getElementById("tab-tugas-tambah");
+  const kontenLihat = document.getElementById("konten-lihat-tugas");
+  const kontenTambah = document.getElementById("konten-tambah-tugas");
+  if (tab === 'lihat') {
+    tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenLihat.classList.remove("hidden");
+    kontenTambah.classList.add("hidden");
+    renderDaftarTugasInstan();
+  } else {
+    tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
+    tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
+    kontenTambah.classList.remove("hidden");
+    kontenLihat.classList.add("hidden");
+  }
+}
+
+function renderDaftarTugasInstan() {
+  const container = document.getElementById("konten-lihat-tugas");
+  container.innerHTML = "";
+  
+  const belumSelesai = globalTasks.filter(function(item) { 
+    const isBelum = item.status.toUpperCase() === "BELUM";
+    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
+    const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(item.rowId));
+    return isBelum && !isLokalSelesai;
+  });
+  
+  if (belumSelesai.length === 0) {
+    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-12 italic">Semua target pekerjaan telah rampung! Tambahkan tugas baru jika diperlukan.</p>`;
+    return;
+  }
+  
+  belumSelesai.forEach(function(item) {
+    const div = document.createElement("div");
+    div.className = "glass-card rounded-2xl p-3 flex justify-between items-center gap-3";
+    div.innerHTML = `
+      <p class="text-xs text-white flex-1 break-words font-medium leading-relaxed">${item.tugas}</p>
+      <button onclick="selesaikanTugasOptimis('${item.rowId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[9px] px-3 py-2 rounded-xl transition active:scale-95 shrink-0">SELESAI</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function selesaikanTugasOptimis(rowId) {
+  const idStr = String(rowId).trim();
+  const taskBackup = [].concat(globalTasks);
+  
+  globalTasks = globalTasks.map(function(t) {
+    if (String(t.rowId) === idStr) t.status = "SELESAI";
+    return t;
+  });
+  
+  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedTasks.includes(idStr)) {
+    locallyCompletedTasks.push(idStr);
+    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+  }
+  
+  renderDaftarTugasInstan();
+
+  try {
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "selesaikanTugas", rowId: idStr }) 
+    });
+    const result = await res.json();
+    if (result.status !== "success") throw new Error();
+  } catch(e) {
+    alert("Koneksi terputus. Mengembalikan status sebelumnya.");
+    locallyCompletedTasks = locallyCompletedTasks.filter(function(id) { return id !== idStr; });
+    localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
+    globalTasks = taskBackup;
+    renderDaftarTugasInstan();
+  }
+}
+
+async function simpanTugasBaruDariModal() {
+  const tInput = document.getElementById("t-deskripsi");
+  const tugasText = tInput.value.trim();
+  if(!tugasText) return;
+  tInput.value = "";
+  
+  try {
+    const res = await fetch(API_URL, { 
+      method: "POST", 
+      body: JSON.stringify({ aksi: "tambahTugas", tugas: tugasText }) 
+    });
+    const result = await res.json();
+    if (result.status === "success") {
+      alert("Tugas berhasil disimpan.");
+      pindahTabTugas('lihat');
+      loadTasksData();
+    }
+  } catch(e) { 
+    alert("Penyimpanan gagal."); 
+  }
+}
+</script>
+</body>
+</html>
