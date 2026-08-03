@@ -1299,7 +1299,7 @@ function formatJamBersih(jamStr) {
   }
   
   // Pencarian pola ekspresi jam (HH:MM)
-  const matchTime = jamStr.match(/(\d{2}):(\d{2})/);
+  const matchTime = jamStr.match(/(\d{2})[\.:](\d{2})/);
   if (matchTime) {
     return matchTime[1] + ":" + matchTime[2];
   }
@@ -1382,7 +1382,6 @@ function renderDaftarCeramahInstan() {
     container.appendChild(div);
   });
 }
-
 async function selesaikanCeramahOptimis(rowId) {
   const idStr = String(rowId).trim();
   const backupCeramah = [].concat(globalCeramah);
