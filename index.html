@@ -1258,6 +1258,56 @@ kontenLihat.classList.add("hidden");
 }
 }
 
+// HELPER: Konversi & Pemformatan Tanggal Masehi ke Hijriah secara Presisi
+function dapatkanTanggalLengkap(tglStr) {
+  if (!tglStr) return { masehi: "-", hijriah: "" };
+  try {
+    const dObj = new Date(tglStr);
+    if (isNaN(dObj.getTime())) {
+      return { masehi: tglStr, hijriah: "" };
+    }
+    
+    // Format tanggal masehi lokal (contoh: Jum'at, 21 Agustus 2026)
+    const optionsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const masehiStr = dObj.toLocaleDateString('id-ID', optionsMasehi);
+    
+    // Format penanggalan Hijriah menggunakan Intl API
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    let hijriahStr = formatterHijriah.format(dObj);
+    hijriahStr = hijriahStr.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
+    
+    return { masehi: masehiStr, hijriah: hijriahStr };
+  } catch (e) {
+    return { masehi: tglStr, hijriah: "" };
+  }
+}
+
+// HELPER: Membersihkan string waktu dari anomali format default (seperti format epoch 1899)
+function formatJamBersih(jamStr) {
+  if (!jamStr) return "-";
+  
+  // Jika formatnya ISO string bertanggal
+  if (jamStr.includes("T")) {
+    const parts = jamStr.split("T");
+    if (parts.length > 1) {
+      return parts[1].substring(0, 5); // Ambil HH:MM
+    }
+  }
+  
+  // Pencarian pola ekspresi jam (HH:MM)
+  const matchTime = jamStr.match(/(\d{2}):(\d{2})/);
+  if (matchTime) {
+    return matchTime[1] + ":" + matchTime[2];
+  }
+  
+  return jamStr;
+}
+
+// FUNGSI UTAMA: Render list ceramah dengan tampilan premium dan modern
 function renderDaftarCeramahInstan() {
   const container = document.getElementById("konten-lihat-ceramah");
   container.innerHTML = "";
@@ -1270,19 +1320,64 @@ function renderDaftarCeramahInstan() {
   });
   
   if (belumSelesai.length === 0) {
-    container.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-4 italic">Belum ada jadwal ceramah terdekat.</p>`;
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-8 text-center text-slate-500">
+        <span class="text-3xl mb-1">🎉</span>
+        <p class="text-[10px] font-bold uppercase tracking-wider">Semua Agenda Selesai</p>
+        <p class="text-[8px] italic text-slate-400 mt-0.5">Tidak ada jadwal ceramah aktif.</p>
+      </div>`;
     return;
   }
+  
   belumSelesai.forEach(function(item) {
+    const tglInfo = dapatkanTanggalLengkap(item.tanggal);
+    const jamInfo = formatJamBersih(item.jam);
+    
     const div = document.createElement("div");
-    div.className = "bg-white/5 border border-white/10 rounded-xl p-2 flex justify-between items-center";
+    // Class premium menggunakan perpaduan gradient gelap, border halus, and indicator kiri berwarna biru/indigo
+    div.className = "bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-white/5 rounded-2xl p-3.5 shadow-xl relative overflow-hidden flex flex-col gap-2 transition duration-300 hover:border-blue-500/20";
+    
     div.innerHTML = `
-    <div class="max-w-[200px]">
-    <p class="text-xs font-black text-white truncate">${item.tema}</p>
-    <p class="text-[9px] text-slate-400">${item.tanggal} - Pkl ${item.jam}</p>
-    <p class="text-[9px] text-slate-300 truncate font-semibold">📍 ${item.tempat}</p>
-    </div>
-    <button onclick="selesaikanCeramahOptimis('${item.rowId}')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] px-2 py-1 rounded-lg">SELESAI</button>
+      <!-- Accent Line Khas Premium -->
+      <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-indigo-600"></div>
+      
+      <div class="flex justify-between items-start gap-2 pl-1.5">
+        <div class="flex-1 min-w-0">
+          <!-- Judul Tema Acara -->
+          <h4 class="text-xs font-extrabold text-slate-100 tracking-tight leading-snug mb-1.5 break-words">
+            ${item.tema || "Acara Pengajian"}
+          </h4>
+          
+          <!-- Badge Ganda Tanggal (Masehi & Hijriah) -->
+          <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+            <span class="bg-blue-950/40 text-blue-400 text-[8px] font-black px-2 py-0.5 rounded-full border border-blue-900/30 flex items-center gap-1">
+              📅 ${tglInfo.masehi}
+            </span>
+            ${tglInfo.hijriah ? `
+            <span class="bg-emerald-950/40 text-emerald-400 text-[8px] font-black px-2 py-0.5 rounded-full border border-emerald-900/30 flex items-center gap-1">
+              🌙 ${tglInfo.hijriah}
+            </span>` : ''}
+          </div>
+          
+          <!-- Informasi Detil Waktu & Tempat -->
+          <div class="space-y-1">
+            <div class="flex items-center gap-1.5 text-[9px] text-slate-400 font-bold">
+              <span class="text-blue-500 text-[10px]">⏰</span> 
+              <span>Waktu: <span class="text-slate-200 font-extrabold">${jamInfo} WIB</span></span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[9px] text-slate-300 font-bold truncate">
+              <span class="text-rose-500 text-[10px]">📍</span>
+              <span class="truncate" title="${item.tempat}">${item.tempat || "-"}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tombol Aksi Selesai -->
+        <button onclick="selesaikanCeramahOptimis('${item.rowId}')" 
+          class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-[9px] tracking-wider px-3.5 py-2 rounded-xl shadow-md transition-all duration-300 active:scale-95 uppercase">
+          Selesai
+        </button>
+      </div>
     `;
     container.appendChild(div);
   });
