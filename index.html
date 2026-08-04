@@ -55,7 +55,7 @@ box-sizing: border-box;
 .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
 .scroll-ai::-webkit-scrollbar { width: 3px; }
 .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
-#ai-result-modal, #ceramah-modal, #keuangan-modal, #english-modal { 
+#ai-result-modal, #keuangan-modal, #english-modal { 
 display: none; 
 position: fixed; 
 inset: 0; 
@@ -236,15 +236,15 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH & TUGAS (DIARAHKAN KE TUGAS.HTML) -->
+<!-- CERAMAH & TUGAS (DIARAHKAN KE ceramah.html & tugas.html) -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
-<div onclick="bukaModalCeramah()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
+<a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
 <div class="flex items-center gap-1">
 <span class="text-[10px]">🎤</span>
 <span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
 </div>
 <span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
-</div>
+</a>
 
 <a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
 <div class="flex items-center gap-1">
@@ -406,40 +406,6 @@ Menghubungkan satelit harian...
 <button onclick="simpanHasilLogMakanan()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl uppercase tracking-wider">SIMPAN KE JURNAL MASUK</button>
 <button onclick="tutupModalHasil()" class="w-full bg-slate-800 text-slate-300 font-bold text-xs py-2.5 rounded-xl uppercase">BATAL</button>
 </div>
-</div>
-</div>
-
-<!-- MODAL CERAMAH -->
-<div id="ceramah-modal" onclick="tutupModalCeramah()">
-<div class="full-modal-content" onclick="event.stopPropagation()">
-<div class="flex justify-around border-b border-white/10 pb-2 mb-3">
-<button onclick="pindahTabCeramah('lihat')" id="tab-lihat" class="text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1">LIHAT JADWAL</button>
-<button onclick="pindahTabCeramah('tambah')" id="tab-tambah" class="text-xs font-bold text-slate-400 pb-1">TAMBAH JADWAL</button>
-</div>
-<div id="konten-lihat-ceramah" class="flex-1 overflow-y-auto space-y-2">
-</div>
-<div id="konten-tambah-ceramah" class="hidden space-y-3">
-<div>
-<label class="text-[10px] text-slate-400 font-bold uppercase">Tema Ceramah</label>
-<input type="text" id="c-tema" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
-</div>
-<div class="grid grid-cols-2 gap-2">
-<div>
-<label class="text-[10px] text-slate-400 font-bold uppercase">Tanggal</label>
-<input type="date" id="c-tanggal" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
-</div>
-<div>
-<label class="text-[10px] text-slate-400 font-bold uppercase">Waktu</label>
-<input type="time" id="c-jam" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
-</div>
-</div>
-<div>
-<label class="text-[10px] text-slate-400 font-bold uppercase">Lokasi / Tempat</label>
-<input type="text" id="c-tempat" class="w-full bg-white/5 rounded-xl p-2.5 text-xs text-white border border-white/10 mt-1">
-</div>
-<button onclick="simpanJadwalCeramah()" class="w-full bg-blue-600 text-white font-black text-xs py-2.5 rounded-xl">SIMPAN JADWAL</button>
-</div>
-<button onclick="tutupModalCeramah()" class="w-full bg-slate-800 text-slate-300 font-black text-xs py-2.5 rounded-xl mt-3">TUTUP</button>
 </div>
 </div>
 
@@ -1228,219 +1194,6 @@ function bukaModalEnglish() {
 
 function tutupModalEnglish() {
   document.getElementById("english-modal").style.display = "none";
-}
-
-function bukaModalCeramah() { 
-document.getElementById("ceramah-modal").style.display = "flex"; 
-pindahTabCeramah('lihat'); 
-}
-
-function tutupModalCeramah() { 
-document.getElementById("ceramah-modal").style.display = "none"; 
-}
-
-function pindahTabCeramah(tab) {
-const tabLihat = document.getElementById("tab-lihat");
-const tabTambah = document.getElementById("tab-tambah");
-const kontenLihat = document.getElementById("konten-lihat-ceramah");
-const kontenTambah = document.getElementById("konten-tambah-ceramah");
-if (tab === 'lihat') {
-tabLihat.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-tabTambah.className = "text-xs font-bold text-slate-400 pb-1";
-kontenLihat.classList.remove("hidden");
-kontenTambah.classList.add("hidden");
-renderDaftarCeramahInstan();
-} else {
-tabTambah.className = "text-xs font-black text-blue-400 border-b-2 border-blue-400 pb-1";
-tabLihat.className = "text-xs font-bold text-slate-400 pb-1";
-kontenTambah.classList.remove("hidden");
-kontenLihat.classList.add("hidden");
-}
-}
-
-// HELPER: Konversi & Pemformatan Tanggal Masehi ke Hijriah secara Presisi
-function dapatkanTanggalLengkap(tglStr) {
-  if (!tglStr) return { masehi: "-", hijriah: "" };
-  try {
-    const dObj = new Date(tglStr);
-    if (isNaN(dObj.getTime())) {
-      return { masehi: tglStr, hijriah: "" };
-    }
-    
-    // Format tanggal masehi lokal (contoh: Jum'at, 21 Agustus 2026)
-    const optionsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const masehiStr = dObj.toLocaleDateString('id-ID', optionsMasehi);
-    
-    // Format penanggalan Hijriah menggunakan Intl API
-    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    let hijriahStr = formatterHijriah.format(dObj);
-    hijriahStr = hijriahStr.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
-    
-    return { masehi: masehiStr, hijriah: hijriahStr };
-  } catch (e) {
-    return { masehi: tglStr, hijriah: "" };
-  }
-}
-
-// HELPER: Membersihkan string waktu dari anomali format default (seperti format epoch 1899)
-function formatJamBersih(jamStr) {
-  if (!jamStr) return "-";
-  
-  // Jika formatnya ISO string bertanggal
-  if (jamStr.includes("T")) {
-    const parts = jamStr.split("T");
-    if (parts.length > 1) {
-      return parts[1].substring(0, 5); // Ambil HH:MM
-    }
-  }
-  
-  // Pencarian pola ekspresi jam (HH:MM)
-  const matchTime = jamStr.match(/(\d{2})[\.:](\d{2})/);
-  if (matchTime) {
-    return matchTime[1] + ":" + matchTime[2];
-  }
-  
-  return jamStr;
-}
-
-// FUNGSI UTAMA: Render list ceramah dengan tampilan premium dan modern
-function renderDaftarCeramahInstan() {
-  const container = document.getElementById("konten-lihat-ceramah");
-  container.innerHTML = "";
-  
-  const belumSelesai = globalCeramah.filter(function(item) { 
-    const isBelum = item.status.toUpperCase() === "BELUM";
-    const hasValidId = item.rowId && String(item.rowId) !== "NaN" && String(item.rowId).trim() !== "";
-    const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(item.rowId));
-    return isBelum && !isLokalSelesai;
-  });
-  
-  if (belumSelesai.length === 0) {
-    container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-8 text-center text-slate-500">
-        <span class="text-3xl mb-1">🎉</span>
-        <p class="text-[10px] font-bold uppercase tracking-wider">Semua Agenda Selesai</p>
-        <p class="text-[8px] italic text-slate-400 mt-0.5">Tidak ada jadwal ceramah aktif.</p>
-      </div>`;
-    return;
-  }
-  
-  belumSelesai.forEach(function(item) {
-    const tglInfo = dapatkanTanggalLengkap(item.tanggal);
-    const jamInfo = formatJamBersih(item.jam);
-    
-    const div = document.createElement("div");
-    // Class premium menggunakan perpaduan gradient gelap, border halus, and indicator kiri berwarna biru/indigo
-    div.className = "bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border border-white/5 rounded-2xl p-3.5 shadow-xl relative overflow-hidden flex flex-col gap-2 transition duration-300 hover:border-blue-500/20";
-    
-    div.innerHTML = `
-      <!-- Accent Line Khas Premium -->
-      <div class="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-indigo-600"></div>
-      
-      <div class="flex justify-between items-start gap-2 pl-1.5">
-        <div class="flex-1 min-w-0">
-          <!-- Judul Tema Acara -->
-          <h4 class="text-xs font-extrabold text-slate-100 tracking-tight leading-snug mb-1.5 break-words">
-            ${item.tema || "Acara Pengajian"}
-          </h4>
-          
-          <!-- Badge Ganda Tanggal (Masehi & Hijriah) -->
-          <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
-            <span class="bg-blue-950/40 text-blue-400 text-[8px] font-black px-2 py-0.5 rounded-full border border-blue-900/30 flex items-center gap-1">
-              📅 ${tglInfo.masehi}
-            </span>
-            ${tglInfo.hijriah ? `
-            <span class="bg-emerald-950/40 text-emerald-400 text-[8px] font-black px-2 py-0.5 rounded-full border border-emerald-900/30 flex items-center gap-1">
-              🌙 ${tglInfo.hijriah}
-            </span>` : ''}
-          </div>
-          
-          <!-- Informasi Detil Waktu & Tempat -->
-          <div class="space-y-1">
-            <div class="flex items-center gap-1.5 text-[9px] text-slate-400 font-bold">
-              <span class="text-blue-500 text-[10px]">⏰</span> 
-              <span>Waktu: <span class="text-slate-200 font-extrabold">${jamInfo} WIB</span></span>
-            </div>
-            <div class="flex items-center gap-1.5 text-[9px] text-slate-300 font-bold truncate">
-              <span class="text-rose-500 text-[10px]">📍</span>
-              <span class="truncate" title="${item.tempat}">${item.tempat || "-"}</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Tombol Aksi Selesai -->
-        <button onclick="selesaikanCeramahOptimis('${item.rowId}')" 
-          class="shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-[9px] tracking-wider px-3.5 py-2 rounded-xl shadow-md transition-all duration-300 active:scale-95 uppercase">
-          Selesai
-        </button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-}
-async function selesaikanCeramahOptimis(rowId) {
-  const idStr = String(rowId).trim();
-  const backupCeramah = [].concat(globalCeramah);
-  
-  globalCeramah = globalCeramah.map(function(c) {
-    if (String(c.rowId) === idStr) c.status = "SELESAI";
-    return c;
-  });
-  
-  if (idStr !== "NaN" && idStr !== "" && !locallyCompletedCeramah.includes(idStr)) {
-    locallyCompletedCeramah.push(idStr);
-    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
-  }
-  
-  const sisa = globalCeramah.filter(function(c) {
-    const isBelum = c.status.toUpperCase() === "BELUM";
-    const hasValidId = c.rowId && String(c.rowId) !== "NaN" && String(c.rowId).trim() !== "";
-    const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(c.rowId));
-    return isBelum && !isLokalSelesai;
-  }).length;
-  
-  document.getElementById("badge-ceramah").innerText = sisa;
-  renderDaftarCeramahInstan();
-
-  if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-  try {
-    const res = await fetch(API_URL, { 
-      method: "POST", 
-      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId: idStr }) 
-    });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error();
-  } catch(e) {
-    alert("Koneksi gagal. Mengembalikan data.");
-    locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) { return id !== idStr; });
-    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
-    globalCeramah = backupCeramah;
-    renderDaftarCeramahInstan();
-  }
-}
-
-async function simpanJadwalCeramah() {
-const tema = document.getElementById("c-tema").value.trim();
-const tanggal = document.getElementById("c-tanggal").value;
-const jam = document.getElementById("c-jam").value;
-const tempat = document.getElementById("c-tempat").value.trim();
-if(!tema || !tanggal || !jam || !tempat) return;
-tutupModalCeramah();
-if (!BASE_WEB_APP_URL || BASE_WEB_APP_URL.includes("DISINI")) return;
-try {
-const res = await fetch(API_URL, { 
-method: "POST", 
-body: JSON.stringify({ aksi: "tambahCeramah", tema, tanggal, jam, tempat }) 
-});
-const result = await res.json();
-if (result.status === "success") {
-await loadDashboard();
-}
-} catch(e) { alert("Penyimpanan jadwal gagal."); }
 }
 
 function bukaModalKeuangan() {
