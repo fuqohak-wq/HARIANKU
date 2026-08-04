@@ -188,7 +188,6 @@ top: 100%;
 
 <!-- ENGLISH, MENULIS & MEMBACA -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
-<!-- ENGLISH HUB DENGAN FRAME INTERNAL -->
 <div onclick="bukaModalEnglish()" class="cursor-pointer block bg-gradient-to-r from-violet-600 to-indigo-700 rounded-xl p-2 shadow-sm hover:scale-[1.01] active:scale-95 transition text-white flex flex-col justify-between">
 <p class="text-[7.5px] font-bold text-indigo-100 uppercase tracking-wider">🇬🇧 English Hub</p>
 <div class="flex justify-between items-baseline leading-none mt-0.5">
@@ -236,7 +235,7 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH & TUGAS (DIARAHKAN KE ceramah.html & tugas.html) -->
+<!-- CERAMAH & TUGAS -->
 <div class="grid grid-cols-2 gap-1.5 shrink-0">
 <a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
 <div class="flex items-center gap-1">
@@ -808,22 +807,37 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 }
 
 globalTasks = data["LIST_TUGAS"] || [];
+
+// Optimasi pengambilan data ceramah: hubungkan dengan cache ceramah.html jika kosong
 globalCeramah = data["LIST_CERAMAH"] || [];
+if (globalCeramah.length === 0) {
+  const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
+  if (localCeramah) {
+    try {
+      globalCeramah = JSON.parse(localCeramah);
+    } catch(e) {}
+  }
+}
+
 globalRutinitas = data["RUTINITAS"] || [];
 
 globalTasks.forEach(function(item) {
-  if (item.status.toUpperCase() === "SELESAI") {
+  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
+  const rowIdVal = String(item.rowId || item.ROWID || "");
+  if (itemStatus === "SELESAI" && rowIdVal) {
     locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
-      return id && id !== "NaN" && String(id) !== String(item.rowId);
+      return id && id !== "NaN" && String(id) !== rowIdVal;
     });
   }
 });
 localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
 
 globalCeramah.forEach(function(item) {
-  if (item.status.toUpperCase() === "SELESAI") {
+  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
+  const rowIdVal = String(item.rowId || item.ROWID || "");
+  if (itemStatus === "SELESAI" && rowIdVal) {
     locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) {
-      return id && id !== "NaN" && String(id) !== String(item.rowId);
+      return id && id !== "NaN" && String(id) !== rowIdVal;
     });
   }
 });
@@ -891,19 +905,22 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Menghitung sisa tugas aktif (memverifikasi data dari tugas)
+// Kalkulasi Tugas dengan penanganan kondisi undefined/null yang aman
 const sisaTugasAktif = globalTasks.filter(function(t) {
-  const isBelum = t.status.toUpperCase() === "BELUM";
-  const hasValidId = t.rowId && String(t.rowId) !== "NaN" && String(t.rowId).trim() !== "";
-  const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(String(t.rowId));
+  const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
+  const rowIdVal = String(t.rowId || t.ROWID || "");
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(rowIdVal);
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
+// Kalkulasi Ceramah dengan penanganan kondisi undefined/null yang aman
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
-  const isBelum = c.status.toUpperCase() === "BELUM";
-  const hasValidId = c.rowId && String(c.rowId) !== "NaN" && String(c.rowId).trim() !== "";
-  const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(String(c.rowId));
+  const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
+  const rowIdVal = String(c.rowId || c.ROWID || "");
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(rowIdVal);
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
