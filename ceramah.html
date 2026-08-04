@@ -85,14 +85,8 @@ gap: 12px;
 
   <!-- TAB DAFTAR JADWAL -->
   <div id="konten-jadwal" class="flex flex-col gap-2.5 flex-1 overflow-y-auto">
-    <!-- Filter status -->
-    <div class="flex justify-between items-center px-1 shrink-0">
-      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-black">Agenda Mendatang</span>
-      <select id="filter-status" onchange="renderDaftarCeramah()" class="text-[8px] font-extrabold bg-transparent text-slate-600 dark:text-slate-300 border-none outline-none cursor-pointer">
-        <option value="BELUM">BELUM SELESAI</option>
-        <option value="SELESAI">SUDAH SELESAI</option>
-        <option value="SEMUA">SEMUA AGENDA</option>
-      </select>
+    <div class="px-1 shrink-0">
+      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-black">Agenda Ceramah Terdekat</span>
     </div>
 
     <!-- Loading State -->
@@ -131,6 +125,11 @@ gap: 12px;
     <div class="flex flex-col gap-1">
       <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Tempat / Lokasi</label>
       <input type="text" id="c-tempat" placeholder="Contoh: Masjid Assalafiyah, Kendal" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">No. HP / WhatsApp Panitia</label>
+      <input type="tel" id="c-nohp" placeholder="Contoh: 08123456789" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
     </div>
 
     <button onclick="kirimCeramahKeSheets()" id="btn-submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-[10px] tracking-wider py-3 rounded-xl shadow-lg mt-2 transition duration-300 active:scale-95 uppercase">
@@ -222,39 +221,59 @@ async function ambilDataCeramah() {
   }
 }
 
-// PARSING TANGGAL MASEHI & HIJRIAH
-function formatTanggalLengkap(tglStr) {
-  if (!tglStr) return { masehi: "-", hijriah: "" };
+// CONVERSION ALGORITHM GREGORIAN TO HIJRIAH (MURNI MATEMATIKA - SAMA PERSIS DI SEMUA PLATFORM)
+function hitungHijriahPresisi(tglStr) {
+  if (!tglStr) return "";
+  const dObj = new Date(tglStr);
+  if (isNaN(dObj.getTime())) return "";
+
+  let day = dObj.getDate();
+  let month = dObj.getMonth() + 1;
+  let year = dObj.getFullYear();
+
+  if (month < 3) {
+    year -= 1;
+    month += 12;
+  }
+  
+  let a = Math.floor(year / 100);
+  let b = 2 - a + Math.floor(a / 4);
+  let jd = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + b - 1524.5;
+  
+  let l = Math.floor(jd) - 1948440 + 10632;
+  let n = Math.floor((l - 1) / 10631);
+  l = l - 10631 * n + 354;
+  let j = (Math.floor((10985 - l) / 5316)) * (Math.floor((50 * l) / 17719)) + (Math.floor(l / 5670)) * (Math.floor((43 * l) / 15238));
+  l = l - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) - (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
+  
+  let m = Math.floor((24 * l) / 709);
+  let d = l - Math.floor((709 * m) / 24);
+  let y = 30 * n + j - 30;
+
+  const namaBulanHijriah = [
+    "Muharram", "Safar", "Rabiulawal", "Rabiulakhir", 
+    "Jumadilawal", "Jumadilakhir", "Rajab", "Syakban", 
+    "Ramadhan", "Syawal", "Zulkaidah", "Zulhijah"
+  ];
+  
+  return d + " " + namaBulanHijriah[m - 1] + " " + y + " H";
+}
+
+function formatTanggalMasehi(tglStr) {
+  if (!tglStr) return "-";
   try {
     const dObj = new Date(tglStr);
-    if (isNaN(dObj.getTime())) {
-      return { masehi: tglStr, hijriah: "" };
-    }
-    
-    // Masehi
+    if (isNaN(dObj.getTime())) return tglStr;
     const optionsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const masehiStr = dObj.toLocaleDateString('id-ID', optionsMasehi);
-    
-    // Hijriah
-    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    let hijriahStr = formatterHijriah.format(dObj);
-    hijriahStr = hijriahStr.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
-    
-    return { masehi: masehiStr, hijriah: hijriahStr };
+    return dObj.toLocaleDateString('id-ID', optionsMasehi);
   } catch (e) {
-    return { masehi: tglStr, hijriah: "" };
+    return tglStr;
   }
 }
 
-// PEMBERSIH ANOMALI TANGGAL EPOCH 1899 DARI CELL FORMAT SPREADSHEET
+// FORMAT JAM BERSIH (MENCEGAH ANOMALI TANGGAL EPOCH 1899)
 function bersihkanWaktu(jamStr) {
   if (!jamStr) return "-";
-  
-  // Ekstraksi pola waktu HH:MM atau HH.MM dari string panjang manapun
   const match = jamStr.match(/(\d{2})[:\.](\d{2})/);
   if (match) {
     return match[1] + ":" + match[2];
@@ -262,30 +281,34 @@ function bersihkanWaktu(jamStr) {
   return jamStr;
 }
 
-// RENDER JADWAL (Urutan menanjak/Ascending berdasarkan tanggal terdekat)
+// FORMAT NOMOR WA UNTUK LINK DIREKTORAT API
+function bersihkanNoHpWA(noHp) {
+  if (!noHp) return "";
+  let clean = noHp.replace(/\D/g, ""); // Ambil hanya angka saja
+  if (clean.startsWith("0")) {
+    clean = "62" + clean.slice(1);
+  } else if (clean.startsWith("8")) {
+    clean = "62" + clean;
+  }
+  return clean;
+}
+
+// RENDER JADWAL (Urutan Ascending & Tampilan Minimalis 2 Baris)
 function renderDaftarCeramah() {
   const container = document.getElementById("ceramah-list-container");
   container.innerHTML = "";
   
-  const filterSelected = document.getElementById("filter-status").value;
-  
-  const filtered = listCeramah.filter(item => {
-    const statusAktual = item.status.toUpperCase();
-    if (filterSelected === "SEMUA") return true;
-    return statusAktual === filterSelected;
-  });
-
-  if (filtered.length === 0) {
+  if (listCeramah.length === 0) {
     container.innerHTML = `
       <div class="glass-card rounded-2xl p-8 text-center text-slate-400">
         <span class="text-2xl block mb-1">🍃</span>
-        <p class="text-[10px] font-black uppercase tracking-wider">Tidak ada jadwal</p>
+        <p class="text-[10px] font-black uppercase tracking-wider">Belum ada agenda</p>
       </div>`;
     return;
   }
 
-  // URUTAN NAIK (ASCENDING): Tanggal terdekat ditaruh di paling atas
-  filtered.sort((a, b) => {
+  // URUTAN NAIK (ASCENDING): Agenda paling dekat tanggalnya berada di atas
+  listCeramah.sort((a, b) => {
     const dateA = new Date(a.tanggal);
     const dateB = new Date(b.tanggal);
     if (isNaN(dateA.getTime())) return 1;
@@ -293,23 +316,22 @@ function renderDaftarCeramah() {
     return dateA - dateB;
   });
 
-  filtered.forEach(item => {
-    const tglInfo = formatTanggalLengkap(item.tanggal);
+  listCeramah.forEach(item => {
+    const tglMasehi = formatTanggalMasehi(item.tanggal);
+    const tglHijriah = hitungHijriahPresisi(item.tanggal);
     const jamBersih = bersihkanWaktu(item.jam);
-    const isSelesai = item.status.toUpperCase() === "SELESAI";
+    const waBersih = bersihkanNoHpWA(item.noHp);
     
     const div = document.createElement("div");
-    // Gunakan border hijau untuk menandai riwayat yang telah selesai secara otomatis
-    div.className = `glass-card rounded-2xl p-3 px-3.5 border-l-4 relative overflow-hidden flex flex-col gap-2 transition duration-300 ${
-      isSelesai ? 'border-emerald-500 opacity-60' : 'border-blue-500 hover:border-blue-400'
-    }`;
+    // Layout minimalis, tipis, premium & responsif
+    div.className = "glass-card rounded-2xl p-3 px-3.5 border-l-4 border-blue-500 hover:border-blue-400 relative overflow-hidden flex flex-col gap-2 transition duration-300";
     if (modeMalamManual) div.classList.add("dark-card");
 
     div.innerHTML = `
-      <!-- BARIS 1: KIRI (TEMA & TEMPAT) | KANAN (JAM BADGE DI ATAS) -->
+      <!-- BARIS 1: TEMA, TEMPAT & JAM (BAGIAN ATAS) -->
       <div class="flex justify-between items-start gap-3 w-full">
         <div class="flex-1 min-w-0">
-          <h4 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words">
+          <h4 class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words">
             ${item.tema || "Acara Ceramah"}
           </h4>
           <p class="text-[8.5px] font-bold text-rose-500 dark:text-rose-400 flex items-center gap-1 mt-0.5 truncate">
@@ -323,30 +345,42 @@ function renderDaftarCeramah() {
         </div>
       </div>
       
-      <!-- BARIS 2: TANGGAL MASEHI & TANGGAL HIJRIAH -->
-      <div class="flex flex-wrap gap-1.5 border-t border-slate-200/40 dark:border-slate-800/40 pt-2 w-full">
-        <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
-          📅 ${tglInfo.masehi}
-        </span>
-        ${tglInfo.hijriah ? `
-        <span class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
-          🌙 ${tglInfo.hijriah}
-        </span>` : ''}
+      <!-- BARIS 2: TANGGAL (MASEHI & HIJRIAH) & HUBUNGI PANITIA WA -->
+      <div class="flex justify-between items-center border-t border-slate-200/40 dark:border-slate-800/40 pt-2 w-full gap-2">
+        <div class="flex flex-wrap gap-1.5 flex-1 min-w-0">
+          <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 truncate">
+            📅 ${tglMasehi}
+          </span>
+          ${tglHijriah ? `
+          <span class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 truncate">
+            🌙 ${tglHijriah}
+          </span>` : ''}
+        </div>
+        
+        <!-- BUTTON WHATSAPP -->
+        ${waBersih ? `
+          <a href="https://wa.me/${waBersih}?text=${encodeURIComponent('Assalamu\'alaikum Wr. Wb. Panitia ' + item.tema + ', mohon informasi terkait agenda ceramah tersebut...')}" 
+             target="_blank" 
+             class="shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-[8px] tracking-wider px-2.5 py-1 rounded-lg flex items-center gap-1 shadow transition duration-200 active:scale-95">
+            💬 WA PANITIA
+          </a>
+        ` : ''}
       </div>
     `;
     container.appendChild(div);
   });
 }
 
-// POST DATA AGENDA BARU
+// POST DATA AGENDA BARU KE GOOGLE SHEETS
 async function kirimCeramahKeSheets() {
   const tema = document.getElementById("c-tema").value.trim();
   const tanggal = document.getElementById("c-tanggal").value;
   const jam = document.getElementById("c-jam").value.trim();
   const tempat = document.getElementById("c-tempat").value.trim();
+  const noHp = document.getElementById("c-nohp").value.trim();
 
   if (!tema || !tanggal || !jam || !tempat) {
-    alert("Mohon lengkapi kolom isian.");
+    alert("Mohon lengkapi seluruh kolom formulir.");
     return;
   }
 
@@ -362,7 +396,8 @@ async function kirimCeramahKeSheets() {
         tema: tema,
         tanggal: tanggal,
         jam: jam,
-        tempat: tempat
+        tempat: tempat,
+        noHp: noHp
       })
     });
     
@@ -372,6 +407,7 @@ async function kirimCeramahKeSheets() {
       document.getElementById("c-tanggal").value = "";
       document.getElementById("c-jam").value = "";
       document.getElementById("c-tempat").value = "";
+      document.getElementById("c-nohp").value = "";
       
       switchTab('jadwal');
       await ambilDataCeramah();
@@ -379,7 +415,7 @@ async function kirimCeramahKeSheets() {
       throw new Error();
     }
   } catch(e) {
-    alert("Gagal mengirim data.");
+    alert("Gagal mengirim data ke Google Sheets.");
   } finally {
     btn.innerText = "SIMPAN KE SPREADSHEET";
     btn.disabled = false;
