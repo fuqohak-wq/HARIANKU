@@ -77,7 +77,7 @@ gap: 12px;
     </div>
   </div>
 
-  <!-- MENU TAB (Ditambahkan Menu MATERI) -->
+  <!-- MENU TAB -->
   <div class="glass-card rounded-2xl p-1 flex gap-1 shrink-0" id="card-tab">
     <button onclick="switchTab('jadwal')" id="tab-jadwal" class="flex-1 py-2 text-center text-[9px] font-black rounded-xl bg-blue-600 text-white transition duration-300">📋 JADWAL</button>
     <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 py-2 text-center text-[9px] font-bold rounded-xl text-slate-500 transition duration-300">📚 MATERI</button>
@@ -86,8 +86,10 @@ gap: 12px;
 
   <!-- TAB DAFTAR JADWAL -->
   <div id="konten-jadwal" class="flex flex-col gap-2.5 flex-1 overflow-y-auto">
-    <div class="px-1 shrink-0">
+    <!-- Diubah agar judul dan jumlah jadwal berada sejajar kiri dan kanan -->
+    <div class="px-1 shrink-0 flex justify-between items-center">
       <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-black">Agenda Ceramah Terdekat</span>
+      <span id="jumlah-jadwal-badge" class="bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[8px] font-black px-2 py-0.5 rounded-full hidden">0 JADWAL</span>
     </div>
 
     <!-- Loading State -->
@@ -100,9 +102,9 @@ gap: 12px;
     <div id="ceramah-list-container" class="flex flex-col gap-2.5"></div>
   </div>
 
-  <!-- TAB MATERI (Menggunakan Iframe Layar Penuh pada Frame Utama) -->
+  <!-- TAB MATERI (Iframe memuat langsung di latar belakang) -->
   <div id="konten-materi" class="glass-card rounded-2xl hidden flex-1 flex flex-col overflow-hidden">
-    <iframe id="iframe-materi" src="about:blank" class="w-full h-full border-0 rounded-2xl flex-1" allow="fullscreen"></iframe>
+    <iframe id="iframe-materi" src="https://ceramahku.vercel.app" class="w-full h-full border-0 rounded-2xl flex-1" allow="fullscreen"></iframe>
   </div>
 
   <!-- TAB TAMBAH JADWAL -->
@@ -196,9 +198,6 @@ function switchTab(tab) {
   const kMateri = document.getElementById("konten-materi");
   const kTambah = document.getElementById("konten-tambah");
 
-  const iframeMateri = document.getElementById("iframe-materi");
-
-  // Reset kelas semua tab ke kondisi tidak aktif
   const inactiveClass = "flex-1 py-2 text-center text-[9px] font-bold rounded-xl text-slate-500 transition duration-300";
   const activeClass = "flex-1 py-2 text-center text-[9px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
 
@@ -217,11 +216,7 @@ function switchTab(tab) {
   } else if (tab === 'materi') {
     tMateri.className = activeClass;
     kMateri.classList.remove("hidden");
-    
-    // Memuat konten ke iframe jika belum pernah dimuat
-    if (iframeMateri.src === "about:blank" || iframeMateri.src === "") {
-      iframeMateri.src = "https://ceramahku.vercel.app";
-    }
+    // Iframe src tidak diubah lagi lewat js agar isi materi tidak memuat ulang dari awal
   } else if (tab === 'tambah') {
     tTambah.className = activeClass;
     kTambah.classList.remove("hidden");
@@ -248,7 +243,6 @@ async function ambilDataCeramah() {
   }
 }
 
-// CONVERSION ALGORITHM GREGORIAN TO HIJRIAH (MURNI MATEMATIKA - SAMA PERSIS DI SEMUA PLATFORM)
 function hitungHijriahPresisi(tglStr) {
   if (!tglStr) return "";
   const dObj = new Date(tglStr);
@@ -298,7 +292,6 @@ function formatTanggalMasehi(tglStr) {
   }
 }
 
-// FORMAT JAM BERSIH (MENCEGAH ANOMALI TANGGAL EPOCH 1899)
 function bersihkanWaktu(jamStr) {
   if (!jamStr) return "-";
   const match = jamStr.match(/(\d{2})[:\.](\d{2})/);
@@ -308,10 +301,9 @@ function bersihkanWaktu(jamStr) {
   return jamStr;
 }
 
-// FORMAT NOMOR WA UNTUK LINK DIREKTORAT API
 function bersihkanNoHpWA(noHp) {
   if (!noHp) return "";
-  let clean = noHp.replace(/\D/g, ""); // Ambil hanya angka saja
+  let clean = noHp.replace(/\D/g, "");
   if (clean.startsWith("0")) {
     clean = "62" + clean.slice(1);
   } else if (clean.startsWith("8")) {
@@ -320,12 +312,13 @@ function bersihkanNoHpWA(noHp) {
   return clean;
 }
 
-// RENDER JADWAL (Urutan Ascending & Tampilan Minimalis 2 Baris)
 function renderDaftarCeramah() {
   const container = document.getElementById("ceramah-list-container");
+  const badgeJumlah = document.getElementById("jumlah-jadwal-badge");
   container.innerHTML = "";
   
   if (listCeramah.length === 0) {
+    badgeJumlah.classList.add("hidden");
     container.innerHTML = `
       <div class="glass-card rounded-2xl p-8 text-center text-slate-400">
         <span class="text-2xl block mb-1">🍃</span>
@@ -334,7 +327,10 @@ function renderDaftarCeramah() {
     return;
   }
 
-  // URUTAN NAIK (ASCENDING): Agenda paling dekat tanggalnya berada di atas
+  // Tampilkan badge jumlah jadwal terdekat
+  badgeJumlah.innerText = `${listCeramah.length} JADWAL`;
+  badgeJumlah.classList.remove("hidden");
+
   listCeramah.sort((a, b) => {
     const dateA = new Date(a.tanggal);
     const dateB = new Date(b.tanggal);
@@ -350,12 +346,10 @@ function renderDaftarCeramah() {
     const waBersih = bersihkanNoHpWA(item.noHp);
     
     const div = document.createElement("div");
-    // Layout minimalis, tipis, premium & responsif
     div.className = "glass-card rounded-2xl p-3 px-3.5 border-l-4 border-blue-500 hover:border-blue-400 relative overflow-hidden flex flex-col gap-2 transition duration-300";
     if (modeMalamManual) div.classList.add("dark-card");
 
     div.innerHTML = `
-      <!-- BARIS 1: TEMA, TEMPAT & JAM (BAGIAN ATAS) -->
       <div class="flex justify-between items-start gap-3 w-full">
         <div class="flex-1 min-w-0">
           <h4 class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words">
@@ -372,7 +366,6 @@ function renderDaftarCeramah() {
         </div>
       </div>
       
-      <!-- BARIS 2: TANGGAL (MASEHI & HIJRIAH) & HUBUNGI PANITIA WA -->
       <div class="flex justify-between items-center border-t border-slate-200/40 dark:border-slate-800/40 pt-2 w-full gap-2">
         <div class="flex flex-wrap gap-1.5 flex-1 min-w-0">
           <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 truncate">
@@ -384,7 +377,6 @@ function renderDaftarCeramah() {
           </span>` : ''}
         </div>
         
-        <!-- BUTTON WHATSAPP -->
         ${waBersih ? `
           <a href="https://wa.me/${waBersih}?text=${encodeURIComponent('Assalamu\'alaikum Wr. Wb. Panitia ' + item.tema + ', mohon informasi terkait agenda ceramah tersebut...')}" 
              target="_blank" 
@@ -398,7 +390,6 @@ function renderDaftarCeramah() {
   });
 }
 
-// POST DATA AGENDA BARU KE GOOGLE SHEETS
 async function kirimCeramahKeSheets() {
   const tema = document.getElementById("c-tema").value.trim();
   const tanggal = document.getElementById("c-tanggal").value;
