@@ -77,10 +77,11 @@ gap: 12px;
     </div>
   </div>
 
-  <!-- MENU TAB -->
+  <!-- MENU TAB (Ditambahkan Menu MATERI) -->
   <div class="glass-card rounded-2xl p-1 flex gap-1 shrink-0" id="card-tab">
-    <button onclick="switchTab('jadwal')" id="tab-jadwal" class="flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300">📋 JADWAL AKTIF</button>
-    <button onclick="switchTab('tambah')" id="tab-tambah" class="flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 transition duration-300">✍️ BUAT BARU</button>
+    <button onclick="switchTab('jadwal')" id="tab-jadwal" class="flex-1 py-2 text-center text-[9px] font-black rounded-xl bg-blue-600 text-white transition duration-300">📋 JADWAL</button>
+    <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 py-2 text-center text-[9px] font-bold rounded-xl text-slate-500 transition duration-300">📚 MATERI</button>
+    <button onclick="switchTab('tambah')" id="tab-tambah" class="flex-1 py-2 text-center text-[9px] font-bold rounded-xl text-slate-500 transition duration-300">✍️ BUAT BARU</button>
   </div>
 
   <!-- TAB DAFTAR JADWAL -->
@@ -97,6 +98,11 @@ gap: 12px;
 
     <!-- Container Utama List Ceramah -->
     <div id="ceramah-list-container" class="flex flex-col gap-2.5"></div>
+  </div>
+
+  <!-- TAB MATERI (Menggunakan Iframe Layar Penuh pada Frame Utama) -->
+  <div id="konten-materi" class="glass-card rounded-2xl hidden flex-1 flex flex-col overflow-hidden">
+    <iframe id="iframe-materi" src="about:blank" class="w-full h-full border-0 rounded-2xl flex-1" allow="fullscreen"></iframe>
   </div>
 
   <!-- TAB TAMBAH JADWAL -->
@@ -183,20 +189,41 @@ function evaluasiVisualModeMalam() {
 
 function switchTab(tab) {
   const tJadwal = document.getElementById("tab-jadwal");
+  const tMateri = document.getElementById("tab-materi");
   const tTambah = document.getElementById("tab-tambah");
+  
   const kJadwal = document.getElementById("konten-jadwal");
+  const kMateri = document.getElementById("konten-materi");
   const kTambah = document.getElementById("konten-tambah");
 
+  const iframeMateri = document.getElementById("iframe-materi");
+
+  // Reset kelas semua tab ke kondisi tidak aktif
+  const inactiveClass = "flex-1 py-2 text-center text-[9px] font-bold rounded-xl text-slate-500 transition duration-300";
+  const activeClass = "flex-1 py-2 text-center text-[9px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
+
+  tJadwal.className = inactiveClass;
+  tMateri.className = inactiveClass;
+  tTambah.className = inactiveClass;
+
+  kJadwal.classList.add("hidden");
+  kMateri.classList.add("hidden");
+  kTambah.classList.add("hidden");
+
   if (tab === 'jadwal') {
-    tJadwal.className = "flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
-    tTambah.className = "flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 transition duration-300";
+    tJadwal.className = activeClass;
     kJadwal.classList.remove("hidden");
-    kTambah.classList.add("hidden");
     renderDaftarCeramah();
-  } else {
-    tTambah.className = "flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
-    tJadwal.className = "flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 transition duration-300";
-    kJadwal.classList.add("hidden");
+  } else if (tab === 'materi') {
+    tMateri.className = activeClass;
+    kMateri.classList.remove("hidden");
+    
+    // Memuat konten ke iframe jika belum pernah dimuat
+    if (iframeMateri.src === "about:blank" || iframeMateri.src === "") {
+      iframeMateri.src = "https://ceramahku.vercel.app";
+    }
+  } else if (tab === 'tambah') {
+    tTambah.className = activeClass;
     kTambah.classList.remove("hidden");
   }
 }
