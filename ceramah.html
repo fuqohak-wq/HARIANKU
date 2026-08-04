@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Manajemen Ceramah - Mas Fuqohak</title>
+<meta name="theme-color" content="#1e56e3">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { 
+font-family: 'Plus Jakarta Sans', sans-serif; 
+background: #070d19; 
+margin: 0; 
+padding: 0; 
+min-height: 100vh; 
+display: flex; 
+justify-content: center; 
+overflow-x: hidden; 
+}
+.app-container { 
+width: 100%; 
+max-width: 100%; 
+min-height: 100vh; 
+min-height: 100dvh; 
+background: #f1f5f9; 
+display: flex; 
+flex-direction: column; 
+padding: 12px; 
+box-sizing: border-box;
+gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 480px;
+  }
+}
+
+.dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
+.dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
+.glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+
+/* Input field premium styling */
+.premium-input {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+.dark-mode-bg .premium-input {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+.premium-input:focus {
+  border-color: #1e56e3;
+  box-shadow: 0 0 0 2px rgba(30, 86, 227, 0.2);
+  outline: none;
+}
+</style>
+</head>
+<body>
+
+<div id="main-app" class="app-container shadow-2xl transition-all duration-500">
+
+  <!-- HEADER GRADIENT -->
+  <div id="header-gradient" class="p-3.5 rounded-2xl shadow-md text-white overflow-hidden flex items-center justify-between shrink-0" style="background: linear-gradient(135deg, #1e56e3 0%, #0369a1 100%);">
+    <div class="flex items-center gap-2.5">
+      <a href="index.html" class="bg-white/20 hover:bg-white/30 p-2 rounded-xl text-xs transition active:scale-95">◀</a>
+      <div>
+        <h1 class="text-xs font-extrabold tracking-tight">Agenda Ceramah</h1>
+        <p class="text-[8px] text-slate-200 font-bold uppercase tracking-wider">Executive Schedule Sync</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="switchModeSiangMalam()" id="time-indicator" class="bg-white/20 p-2 rounded-full text-xs hover:scale-105 active:scale-95 transition">☀️</button>
+    </div>
+  </div>
+
+  <!-- TAB KONTROL -->
+  <div class="glass-card rounded-2xl p-1 flex gap-1 shrink-0" id="card-tab">
+    <button onclick="switchTab('jadwal')" id="tab-jadwal" class="flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300">📋 DAFTAR JADWAL</button>
+    <button onclick="switchTab('tambah')" id="tab-tambah" class="flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 transition duration-300">✍️ BUAT BARU</button>
+  </div>
+
+  <!-- KONTEN TAB: LIHAT JADWAL -->
+  <div id="konten-jadwal" class="flex flex-col gap-2.5 flex-1 overflow-y-auto">
+    <!-- Filter status -->
+    <div class="flex justify-between items-center px-1 shrink-0">
+      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Urutan Agenda Terbaru</span>
+      <select id="filter-status" onchange="muatDaftarCeramahLokal()" class="text-[8px] font-extrabold bg-transparent text-slate-600 dark:text-slate-300 border-none outline-none cursor-pointer">
+        <option value="BELUM">AKTIF (BELUM)</option>
+        <option value="SELESAI">RIWAYAT (SELESAI)</option>
+        <option value="SEMUA">SEMUA AGENDA</option>
+      </select>
+    </div>
+
+    <!-- Container Loading -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-12 text-center">
+      <div class="w-8 h-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin mb-3"></div>
+      <p class="text-[10px] font-black tracking-wider text-slate-400 animate-pulse uppercase">Menghubungkan Server Spreadsheet...</p>
+    </div>
+
+    <!-- Container Ceramah List -->
+    <div id="ceramah-list-container" class="flex flex-col gap-2.5"></div>
+  </div>
+
+  <!-- KONTEN TAB: TAMBAH CERAMAH -->
+  <div id="konten-tambah" class="glass-card rounded-2xl p-4 hidden flex-col gap-3">
+    <div class="border-b border-slate-100 dark:border-slate-700/50 pb-2 mb-1">
+      <h3 class="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-wider">Buat Jadwal Ceramah Baru</h3>
+      <p class="text-[8px] text-slate-400 font-semibold mt-0.5">Sistem akan menyinkronkan data langsung ke Cloud.</p>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Tema / Judul Pengajian</label>
+      <input type="text" id="c-tema" placeholder="Contoh: Menjaga Aqidah di Era Digital" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
+    </div>
+
+    <div class="grid grid-cols-2 gap-2">
+      <div class="flex flex-col gap-1">
+        <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Tanggal Masehi</label>
+        <input type="date" id="c-tanggal" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Waktu / Jam</label>
+        <input type="time" id="c-jam" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Tempat / Lokasi</label>
+      <input type="text" id="c-tempat" placeholder="Contoh: Masjid Agung Al-Azhar" class="premium-input text-[11px] font-bold rounded-xl p-2.5">
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">Catatan Tambahan (Opsional)</label>
+      <textarea id="c-catatan" placeholder="Detail jamaah, kitab rujukan, dll..." rows="3" class="premium-input text-[11px] font-bold rounded-xl p-2.5 resize-none"></textarea>
+    </div>
+
+    <button onclick="kirimCeramahBaru()" id="btn-submit-ceramah" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-[10px] tracking-wider py-3 rounded-xl shadow-lg mt-2 transition duration-300 active:scale-95 uppercase">
+      SIMPAN KE GOOGLE SPREADSHEET
+    </button>
+  </div>
+
+</div>
+
+<script>
+// API Ceramah khusus sesuai instruksi
+const CERAMAH_API_URL = "https://script.google.com/macros/s/AKfycbzZM5RZHkf88kvcn5xp5Qn-5PBYeKGep4lDY-6_G0-y5CpwEvnMlv2as9rNxUW0-_tA/exec";
+
+let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
+let listDaftarCeramah = [];
+let locallyCompletedCeramah = [];
+
+window.onload = function() {
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  inisialisasiPenyimpananLokal();
+  ambilDataCeramahServer();
+};
+
+function inisialisasiPenyimpananLokal() {
+  try {
+    locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]")
+      .map(String)
+      .filter(id => id && id !== "NaN" && id !== "undefined");
+  } catch(e) {
+    locallyCompletedCeramah = [];
+  }
+}
+
+// RESTORASI TEMA SINKRON DARI HALAMAN UTAMA
+function terapkanSistemTema() {
+  const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
+  const KUMPULAN_TEMA = [
+    "linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
+    "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+    "linear-gradient(135deg, #047857 0%, #059669 100%)"
+  ];
+  document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
+}
+
+function switchModeSiangMalam() {
+  modeMalamManual = !modeMalamManual;
+  localStorage.setItem("manual_dark_mode", modeMalamManual);
+  evaluasiVisualModeMalam();
+}
+
+function evaluasiVisualModeMalam() {
+  const app = document.getElementById("main-app");
+  const listKartu = document.querySelectorAll(".glass-card");
+  if (modeMalamManual) {
+    app.classList.add("dark-mode-bg");
+    document.getElementById("time-indicator").innerText = "🌙";
+    listKartu.forEach(k => k.classList.add("dark-card"));
+  } else {
+    app.classList.remove("dark-mode-bg");
+    document.getElementById("time-indicator").innerText = "☀️";
+    listKartu.forEach(k => k.classList.remove("dark-card"));
+  }
+}
+
+function switchTab(tab) {
+  const tJadwal = document.getElementById("tab-jadwal");
+  const tTambah = document.getElementById("tab-tambah");
+  const kJadwal = document.getElementById("konten-jadwal");
+  const kTambah = document.getElementById("konten-tambah");
+
+  if (tab === 'jadwal') {
+    tJadwal.className = "flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
+    tTambah.className = "flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 dark:text-slate-400 transition duration-300";
+    kJadwal.classList.remove("hidden");
+    kTambah.classList.add("hidden");
+    kTambah.classList.remove("flex");
+    muatDaftarCeramahLokal();
+  } else {
+    tTambah.className = "flex-1 py-2 text-center text-[10px] font-black rounded-xl bg-blue-600 text-white transition duration-300";
+    tJadwal.className = "flex-1 py-2 text-center text-[10px] font-bold rounded-xl text-slate-500 dark:text-slate-400 transition duration-300";
+    kJadwal.classList.add("hidden");
+    kTambah.classList.remove("hidden");
+    kTambah.classList.add("flex");
+  }
+}
+
+// AMBIL DATA DARI APPS SCRIPT
+async function ambilDataCeramahServer() {
+  document.getElementById("loading-state").classList.remove("hidden");
+  document.getElementById("ceramah-list-container").innerHTML = "";
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    const response = await fetch(CERAMAH_API_URL, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    const resJson = await response.json();
+    if (resJson.status === "success" && Array.isArray(resJson.data)) {
+      listDaftarCeramah = resJson.data;
+      localStorage.setItem("fuqohak_ceramah_cache", JSON.stringify(listDaftarCeramah));
+    }
+  } catch (error) {
+    console.warn("Koneksi server bermasalah, memuat cadangan lokal...");
+    const cache = localStorage.getItem("fuqohak_ceramah_cache");
+    if (cache) {
+      listDaftarCeramah = JSON.parse(cache);
+    }
+  } finally {
+    document.getElementById("loading-state").classList.add("hidden");
+    muatDaftarCeramahLokal();
+  }
+}
+
+// FORMAT KALENDER MASEHI & HIJRIAH
+function dapatkanTanggalLengkap(tglStr) {
+  if (!tglStr) return { masehi: "-", hijriah: "" };
+  try {
+    const dObj = new Date(tglStr);
+    if (isNaN(dObj.getTime())) {
+      return { masehi: tglStr, hijriah: "" };
+    }
+    const optionsMasehi = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const masehiStr = dObj.toLocaleDateString('id-ID', optionsMasehi);
+    
+    const formatterHijriah = new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    let hijriahStr = formatterHijriah.format(dObj);
+    hijriahStr = hijriahStr.replace(/AH/g, 'H').replace(/Hijriah/g, 'H').trim();
+    
+    return { masehi: masehiStr, hijriah: hijriahStr };
+  } catch (e) {
+    return { masehi: tglStr, hijriah: "" };
+  }
+}
+
+function formatJamBersih(jamStr) {
+  if (!jamStr) return "-";
+  if (jamStr.includes("T")) {
+    const parts = jamStr.split("T");
+    if (parts.length > 1) return parts[1].substring(0, 5);
+  }
+  const matchTime = jamStr.match(/(\d{2})[\.:](\d{2})/);
+  if (matchTime) return matchTime[1] + ":" + matchTime[2];
+  return jamStr;
+}
+
+// RENDER DAFTAR CERAMAH
+function muatDaftarCeramahLokal() {
+  const container = document.getElementById("ceramah-list-container");
+  container.innerHTML = "";
+  
+  const filterSelected = document.getElementById("filter-status").value;
+  
+  const filtered = listDaftarCeramah.filter(item => {
+    const isBelum = item.status.toUpperCase() === "BELUM";
+    const isLokalSelesai = locallyCompletedCeramah.includes(String(item.rowId));
+    
+    // Status aktual setelah kalkulasi optimis lokal
+    const statusAktual = (isBelum && !isLokalSelesai) ? "BELUM" : "SELESAI";
+    
+    if (filterSelected === "SEMUA") return true;
+    return statusAktual === filterSelected;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card rounded-2xl p-8 text-center text-slate-400">
+        <span class="text-2xl block mb-1">🍃</span>
+        <p class="text-[10px] font-black uppercase tracking-wider">Tidak Ada Jadwal Ditemukan</p>
+        <p class="text-[8px] italic mt-0.5">Semua agenda telah selesai atau belum dibuat.</p>
+      </div>`;
+    return;
+  }
+
+  // Tampilkan list secara kronologis terbalik (terbaru di atas)
+  const listSorted = [].concat(filtered).reverse();
+
+  listSorted.forEach(item => {
+    const tglInfo = dapatkanTanggalLengkap(item.tanggal);
+    const jamInfo = formatJamBersih(item.jam);
+    const isSelesaiReal = item.status.toUpperCase() === "SELESAI" || locallyCompletedCeramah.includes(String(item.rowId));
+    
+    const div = document.createElement("div");
+    div.className = `glass-card rounded-2xl p-3.5 border-l-4 relative overflow-hidden flex flex-col gap-2 transition duration-300 ${
+      isSelesaiReal ? 'border-emerald-500 opacity-75' : 'border-blue-500 hover:border-blue-400'
+    }`;
+    
+    if (modeMalamManual) div.classList.add("dark-card");
+
+    div.innerHTML = `
+      <div class="flex justify-between items-start gap-2">
+        <div class="flex-1 min-w-0">
+          <h4 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-snug mb-1 break-words">
+            ${item.tema || "Acara Pengajian"}
+          </h4>
+          
+          <div class="flex flex-wrap items-center gap-1.5 mb-2">
+            <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              📅 ${tglInfo.masehi}
+            </span>
+            ${tglInfo.hijriah ? `
+            <span class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
+              🌙 ${tglInfo.hijriah}
+            </span>` : ''}
+          </div>
+          
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-1.5 text-[8.5px] text-slate-500 dark:text-slate-400 font-bold">
+              <span>⏰ Waktu:</span>
+              <span class="text-slate-700 dark:text-slate-200 font-extrabold">${jamInfo} WIB</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[8.5px] text-slate-500 dark:text-slate-400 font-bold">
+              <span>📍 Lokasi:</span>
+              <span class="text-slate-700 dark:text-slate-200 truncate font-semibold" title="${item.tempat}">${item.tempat || "-"}</span>
+            </div>
+            ${item.keterangan ? `
+            <div class="mt-1.5 text-[8px] italic text-slate-400 border-t border-slate-100 dark:border-slate-700/55 pt-1">
+              Catatan: ${item.keterangan}
+            </div>` : ''}
+          </div>
+        </div>
+        
+        <div class="shrink-0 flex flex-col items-end gap-1.5">
+          ${isSelesaiReal ? `
+            <span class="bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 text-[7.5px] font-black tracking-widest px-2.5 py-1 rounded-lg uppercase">SELESAI</span>
+          ` : `
+            <button onclick="selesaikanCeramahOptimis('${item.rowId}')" 
+              class="bg-blue-600 hover:bg-blue-500 text-white font-black text-[8px] tracking-wider px-3 py-1.5 rounded-lg shadow transition active:scale-95 uppercase">
+              SELESAI
+            </button>
+          `}
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// UPDATE STATUS OPTIMIS & ASINKRON
+async function selesaikanCeramahOptimis(rowId) {
+  const idStr = String(rowId).trim();
+  if (!idStr || idStr === "NaN") return;
+
+  const backupCeramah = [].concat(listDaftarCeramah);
+
+  // Update State Lokal Segera (Optimistik)
+  listDaftarCeramah = listDaftarCeramah.map(c => {
+    if (String(c.rowId) === idStr) c.status = "SELESAI";
+    return c;
+  });
+
+  if (!locallyCompletedCeramah.includes(idStr)) {
+    locallyCompletedCeramah.push(idStr);
+    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+  }
+
+  muatDaftarCeramahLokal();
+
+  try {
+    const res = await fetch(CERAMAH_API_URL, {
+      method: "POST",
+      body: JSON.stringify({ aksi: "selesaikanCeramah", rowId: idStr })
+    });
+    const result = await res.json();
+    if (result.status !== "success") throw new Error("Gagal");
+  } catch(e) {
+    alert("Koneksi gagal sinkron. Mengembalikan status agenda...");
+    locallyCompletedCeramah = locallyCompletedCeramah.filter(id => id !== idStr);
+    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+    listDaftarCeramah = backupCeramah;
+    muatDaftarCeramahLokal();
+  }
+}
+
+// KIRIM DATA KE GOOGLE APPS SCRIPT
+async function kirimCeramahBaru() {
+  const tema = document.getElementById("c-tema").value.trim();
+  const tanggal = document.getElementById("c-tanggal").value;
+  const jam = document.getElementById("c-jam").value;
+  const tempat = document.getElementById("c-tempat").value.trim();
+  const catatan = document.getElementById("c-catatan").value.trim();
+
+  if (!tema || !tanggal || !jam || !tempat) {
+    alert("Mohon isi seluruh kolom wajib (Tema, Tanggal, Jam, dan Tempat).");
+    return;
+  }
+
+  const btn = document.getElementById("btn-submit-ceramah");
+  btn.innerText = "SEDANG MENGIRIM...";
+  btn.disabled = true;
+
+  try {
+    const payload = {
+      aksi: "tambahCeramah",
+      tema: tema,
+      tanggal: tanggal,
+      jam: jam,
+      tempat: tempat,
+      keterangan: catatan
+    };
+
+    const res = await fetch(CERAMAH_API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+    if (result.status === "success") {
+      // Reset Formulir
+      document.getElementById("c-tema").value = "";
+      document.getElementById("c-tanggal").value = "";
+      document.getElementById("c-jam").value = "";
+      document.getElementById("c-tempat").value = "";
+      document.getElementById("c-catatan").value = "";
+      
+      switchTab('jadwal');
+      await ambilDataCeramahServer();
+    } else {
+      throw new Error("Gagal disimpan.");
+    }
+  } catch(e) {
+    alert("Gagal terhubung ke Cloud Database. Pastikan pengaturan Web App GAS Anda benar.");
+  } finally {
+    btn.innerText = "SIMPAN KE GOOGLE SPREADSHEET";
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
