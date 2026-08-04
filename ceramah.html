@@ -87,7 +87,7 @@ gap: 12px;
   <div id="konten-jadwal" class="flex flex-col gap-2.5 flex-1 overflow-y-auto">
     <!-- Filter status -->
     <div class="flex justify-between items-center px-1 shrink-0">
-      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Urutan Berdasarkan Jadwal</span>
+      <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-black">Agenda Mendatang</span>
       <select id="filter-status" onchange="renderDaftarCeramah()" class="text-[8px] font-extrabold bg-transparent text-slate-600 dark:text-slate-300 border-none outline-none cursor-pointer">
         <option value="BELUM">BELUM SELESAI</option>
         <option value="SELESAI">SUDAH SELESAI</option>
@@ -141,29 +141,16 @@ gap: 12px;
 </div>
 
 <script>
-// Url Apps Script dari akun Google Anda yang mengelola spreadsheet tujuan
 const SCRIPT_API_URL = "https://script.google.com/macros/s/AKfycbzZM5RZHkf88kvcn5xp5Qn-5PBYeKGep4lDY-6_G0-y5CpwEvnMlv2as9rNxUW0-_tA/exec";
 
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 let listCeramah = [];
-let locallyCompletedCeramah = [];
 
 window.onload = function() {
   terapkanSistemTema();
   evaluasiVisualModeMalam();
-  inisialisasiPenyimpananLokal();
   ambilDataCeramah();
 };
-
-function inisialisasiPenyimpananLokal() {
-  try {
-    locallyCompletedCeramah = JSON.parse(localStorage.getItem("fuqohak_completed_ceramah") || "[]")
-      .map(String)
-      .filter(id => id && id !== "NaN" && id !== "undefined");
-  } catch(e) {
-    locallyCompletedCeramah = [];
-  }
-}
 
 function terapkanSistemTema() {
   const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
@@ -215,7 +202,6 @@ function switchTab(tab) {
   }
 }
 
-// AMBIL DATA DARI APPS SCRIPT
 async function ambilDataCeramah() {
   document.getElementById("loading-state").classList.remove("hidden");
   try {
@@ -264,29 +250,19 @@ function formatTanggalLengkap(tglStr) {
   }
 }
 
-// BERSIHKAN ANOMALI WAKTU (12/30/1899) DAN FORMAT TITIK
+// PEMBERSIH ANOMALI TANGGAL EPOCH 1899 DARI CELL FORMAT SPREADSHEET
 function bersihkanWaktu(jamStr) {
   if (!jamStr) return "-";
   
-  // Jika mengandung pola Epoch Google Sheets
-  if (jamStr.includes("12/30/1899") || jamStr.includes("1899-12-30")) {
-    const matchTime = jamStr.match(/(\d{2})[\.:](\d{2})/);
-    if (matchTime) {
-      return matchTime[1] + ":" + matchTime[2];
-    }
+  // Ekstraksi pola waktu HH:MM atau HH.MM dari string panjang manapun
+  const match = jamStr.match(/(\d{2})[:\.](\d{2})/);
+  if (match) {
+    return match[1] + ":" + match[2];
   }
-  
-  // Format waktu dengan titik contoh "21.35.00" -> "21:35"
-  const cleanDot = jamStr.replace(/\./g, ":");
-  const parts = cleanDot.split(":");
-  if (parts.length >= 2) {
-    return parts[0].padStart(2, '0') + ":" + parts[1].padStart(2, '0');
-  }
-  
   return jamStr;
 }
 
-// RENDER DAFTAR CERAMAH SESUAI KEINGINAN USER (TEMA & TEMPAT PALING ATAS)
+// RENDER JADWAL (Urutan menanjak/Ascending berdasarkan tanggal terdekat)
 function renderDaftarCeramah() {
   const container = document.getElementById("ceramah-list-container");
   container.innerHTML = "";
@@ -294,10 +270,7 @@ function renderDaftarCeramah() {
   const filterSelected = document.getElementById("filter-status").value;
   
   const filtered = listCeramah.filter(item => {
-    const isSelesaiLokal = item.timestamp && locallyCompletedCeramah.includes(String(item.timestamp));
-    const isSelesaiDb = item.status.toUpperCase() === "SELESAI";
-    const statusAktual = (isSelesaiDb || isSelesaiLokal) ? "SELESAI" : "BELUM";
-    
+    const statusAktual = item.status.toUpperCase();
     if (filterSelected === "SEMUA") return true;
     return statusAktual === filterSelected;
   });
@@ -306,35 +279,52 @@ function renderDaftarCeramah() {
     container.innerHTML = `
       <div class="glass-card rounded-2xl p-8 text-center text-slate-400">
         <span class="text-2xl block mb-1">🍃</span>
-        <p class="text-[10px] font-black uppercase tracking-wider">Agenda Kosong</p>
+        <p class="text-[10px] font-black uppercase tracking-wider">Tidak ada jadwal</p>
       </div>`;
     return;
   }
 
+  // URUTAN NAIK (ASCENDING): Tanggal terdekat ditaruh di paling atas
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.tanggal);
+    const dateB = new Date(b.tanggal);
+    if (isNaN(dateA.getTime())) return 1;
+    if (isNaN(dateB.getTime())) return -1;
+    return dateA - dateB;
+  });
+
   filtered.forEach(item => {
     const tglInfo = formatTanggalLengkap(item.tanggal);
     const jamBersih = bersihkanWaktu(item.jam);
-    const isSelesai = item.status.toUpperCase() === "SELESAI" || (item.timestamp && locallyCompletedCeramah.includes(String(item.timestamp)));
+    const isSelesai = item.status.toUpperCase() === "SELESAI";
     
     const div = document.createElement("div");
-    div.className = `glass-card rounded-2xl p-4 border-l-4 relative overflow-hidden flex flex-col gap-2.5 transition duration-300 ${
-      isSelesai ? 'border-emerald-500 opacity-70' : 'border-blue-500 hover:border-blue-400'
+    // Gunakan border hijau untuk menandai riwayat yang telah selesai secara otomatis
+    div.className = `glass-card rounded-2xl p-3 px-3.5 border-l-4 relative overflow-hidden flex flex-col gap-2 transition duration-300 ${
+      isSelesai ? 'border-emerald-500 opacity-60' : 'border-blue-500 hover:border-blue-400'
     }`;
     if (modeMalamManual) div.classList.add("dark-card");
 
     div.innerHTML = `
-      <!-- BAGIAN ATAS: TEMA & TEMPAT -->
-      <div class="flex flex-col gap-0.5">
-        <h3 class="text-xs font-black text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words">
-          ${item.tema || "Acara Ceramah"}
-        </h3>
-        <p class="text-[9px] font-extrabold text-rose-500 dark:text-rose-400 flex items-center gap-1">
-          <span>📍</span> <span>${item.tempat || "Lokasi belum ditentukan"}</span>
-        </p>
+      <!-- BARIS 1: KIRI (TEMA & TEMPAT) | KANAN (JAM BADGE DI ATAS) -->
+      <div class="flex justify-between items-start gap-3 w-full">
+        <div class="flex-1 min-w-0">
+          <h4 class="text-xs font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-snug break-words">
+            ${item.tema || "Acara Ceramah"}
+          </h4>
+          <p class="text-[8.5px] font-bold text-rose-500 dark:text-rose-400 flex items-center gap-1 mt-0.5 truncate">
+            <span>📍</span> <span class="truncate" title="${item.tempat}">${item.tempat || "Lokasi belum diatur"}</span>
+          </p>
+        </div>
+        <div class="shrink-0 flex items-center">
+          <span class="bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[9px] font-black px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-sm border border-amber-200/30">
+            ⏰ ${jamBersih} WIB
+          </span>
+        </div>
       </div>
       
-      <!-- BAGIAN TENGAH: TANGGAL MASEHI & HIJRIAH (DIHITUNG OTOMATIS) -->
-      <div class="flex flex-wrap gap-1.5">
+      <!-- BARIS 2: TANGGAL MASEHI & TANGGAL HIJRIAH -->
+      <div class="flex flex-wrap gap-1.5 border-t border-slate-200/40 dark:border-slate-800/40 pt-2 w-full">
         <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[7.5px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5">
           📅 ${tglInfo.masehi}
         </span>
@@ -343,74 +333,12 @@ function renderDaftarCeramah() {
           🌙 ${tglInfo.hijriah}
         </span>` : ''}
       </div>
-      
-      <!-- BAGIAN BAWAH: JAM CERAMAH & TOMBOL AKSI -->
-      <div class="flex justify-between items-center border-t border-slate-200/50 dark:border-slate-800/50 pt-2.5 mt-1">
-        <div class="text-[9px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1">
-          <span>⏰ Jam:</span>
-          <span class="text-slate-700 dark:text-slate-200 font-black">${jamBersih} WIB</span>
-        </div>
-        
-        <div>
-          ${isSelesai ? `
-            <span class="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 text-[7.5px] font-black tracking-widest px-2.5 py-1 rounded-lg uppercase">SELESAI</span>
-          ` : `
-            <button onclick="selesaikanCeramahOptimis('${item.timestamp}', '${encodeURIComponent(item.tema)}', '${item.tanggal}')" 
-              class="bg-blue-600 hover:bg-blue-500 text-white font-black text-[8px] tracking-wider px-3.5 py-1.5 rounded-lg shadow transition active:scale-95 uppercase">
-              SELESAI
-            </button>
-          `}
-        </div>
-      </div>
     `;
     container.appendChild(div);
   });
 }
 
-// KIRIM ACTION SELESAI SECARA OPTIMIS
-async function selesaikanCeramahOptimis(timestamp, encodedTema, tanggal) {
-  const tema = decodeURIComponent(encodedTema);
-  
-  // Update UI secara lokal terlebih dahulu
-  if (timestamp && timestamp !== "" && !locallyCompletedCeramah.includes(String(timestamp))) {
-    locallyCompletedCeramah.push(String(timestamp));
-    localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
-  }
-  
-  listCeramah = listCeramah.map(c => {
-    if (timestamp && timestamp !== "" && c.timestamp === timestamp) {
-      c.status = "SELESAI";
-    } else if (c.tema === tema && c.tanggal === tanggal) {
-      c.status = "SELESAI";
-    }
-    return c;
-  });
-  
-  renderDaftarCeramah();
-
-  try {
-    const res = await fetch(SCRIPT_API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        aksi: "selesaikanCeramah",
-        timestamp: timestamp,
-        tema: tema,
-        tanggal: tanggal
-      })
-    });
-    const json = await res.json();
-    if (json.status !== "success") throw new Error("Gagal");
-  } catch (e) {
-    alert("Koneksi gagal sinkron. Mengembalikan status...");
-    if (timestamp) {
-      locallyCompletedCeramah = locallyCompletedCeramah.filter(id => id !== String(timestamp));
-      localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
-    }
-    ambilDataCeramah();
-  }
-}
-
-// INPUT DATA BARU
+// POST DATA AGENDA BARU
 async function kirimCeramahKeSheets() {
   const tema = document.getElementById("c-tema").value.trim();
   const tanggal = document.getElementById("c-tanggal").value;
@@ -418,7 +346,7 @@ async function kirimCeramahKeSheets() {
   const tempat = document.getElementById("c-tempat").value.trim();
 
   if (!tema || !tanggal || !jam || !tempat) {
-    alert("Mohon isi seluruh bidang formulir.");
+    alert("Mohon lengkapi kolom isian.");
     return;
   }
 
@@ -451,7 +379,7 @@ async function kirimCeramahKeSheets() {
       throw new Error();
     }
   } catch(e) {
-    alert("Gagal mengirim data ke Google Sheets.");
+    alert("Gagal mengirim data.");
   } finally {
     btn.innerText = "SIMPAN KE SPREADSHEET";
     btn.disabled = false;
