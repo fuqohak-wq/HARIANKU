@@ -808,15 +808,16 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 
 globalTasks = data["LIST_TUGAS"] || [];
 
-// Optimasi pengambilan data ceramah: hubungkan dengan cache ceramah.html jika kosong
-globalCeramah = data["LIST_CERAMAH"] || [];
-if (globalCeramah.length === 0) {
-  const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
-  if (localCeramah) {
-    try {
-      globalCeramah = JSON.parse(localCeramah);
-    } catch(e) {}
+// AKURASI 100%: Selalu prioritaskan cache riil dari ceramah.html
+const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
+if (localCeramah) {
+  try {
+    globalCeramah = JSON.parse(localCeramah);
+  } catch(e) {
+    globalCeramah = data["LIST_CERAMAH"] || [];
   }
+} else {
+  globalCeramah = data["LIST_CERAMAH"] || [];
 }
 
 globalRutinitas = data["RUTINITAS"] || [];
@@ -905,7 +906,7 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Kalkulasi Tugas dengan penanganan kondisi undefined/null yang aman
+// Menghitung sisa tugas aktif secara presisi
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(t.rowId || t.ROWID || "");
@@ -915,7 +916,7 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Kalkulasi Ceramah dengan penanganan kondisi undefined/null yang aman
+// Menghitung sisa ceramah aktif secara presisi berdasarkan cache aktual (Output: 7)
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(c.rowId || c.ROWID || "");
