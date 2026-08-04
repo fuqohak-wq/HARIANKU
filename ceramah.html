@@ -86,7 +86,6 @@ gap: 12px;
 
   <!-- TAB DAFTAR JADWAL -->
   <div id="konten-jadwal" class="flex flex-col gap-2.5 flex-1 overflow-y-auto">
-    <!-- Diubah agar judul dan jumlah jadwal berada sejajar kiri dan kanan -->
     <div class="px-1 shrink-0 flex justify-between items-center">
       <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-black">Agenda Ceramah Terdekat</span>
       <span id="jumlah-jadwal-badge" class="bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[8px] font-black px-2 py-0.5 rounded-full hidden">0 JADWAL</span>
@@ -102,7 +101,7 @@ gap: 12px;
     <div id="ceramah-list-container" class="flex flex-col gap-2.5"></div>
   </div>
 
-  <!-- TAB MATERI (Iframe memuat langsung di latar belakang) -->
+  <!-- TAB MATERI -->
   <div id="konten-materi" class="glass-card rounded-2xl hidden flex-1 flex flex-col overflow-hidden">
     <iframe id="iframe-materi" src="https://ceramahku.vercel.app" class="w-full h-full border-0 rounded-2xl flex-1" allow="fullscreen"></iframe>
   </div>
@@ -216,7 +215,6 @@ function switchTab(tab) {
   } else if (tab === 'materi') {
     tMateri.className = activeClass;
     kMateri.classList.remove("hidden");
-    // Iframe src tidak diubah lagi lewat js agar isi materi tidak memuat ulang dari awal
   } else if (tab === 'tambah') {
     tTambah.className = activeClass;
     kTambah.classList.remove("hidden");
@@ -224,22 +222,34 @@ function switchTab(tab) {
 }
 
 async function ambilDataCeramah() {
-  document.getElementById("loading-state").classList.remove("hidden");
+  // Ambil dari cache lokal terlebih dahulu agar langsung muncul instan
+  const cache = localStorage.getItem("fuqohak_ceramah_cache");
+  if (cache) {
+    try {
+      listCeramah = JSON.parse(cache);
+      renderDaftarCeramah();
+      document.getElementById("loading-state").classList.add("hidden");
+    } catch(e) {
+      console.warn("Gagal membaca cache ceramah");
+    }
+  } else {
+    // Tampilkan loading hanya jika cache kosong
+    document.getElementById("loading-state").classList.remove("hidden");
+  }
+
+  // Sinkronisasi data terbaru dari API di latar belakang (background sync)
   try {
     const res = await fetch(SCRIPT_API_URL);
     const json = await res.json();
     if (json.status === "success" && Array.isArray(json.data)) {
       listCeramah = json.data;
       localStorage.setItem("fuqohak_ceramah_cache", JSON.stringify(listCeramah));
+      renderDaftarCeramah();
     }
   } catch(e) {
-    const cache = localStorage.getItem("fuqohak_ceramah_cache");
-    if (cache) {
-      listCeramah = JSON.parse(cache);
-    }
+    console.warn("Koneksi gagal, menggunakan data cache.");
   } finally {
     document.getElementById("loading-state").classList.add("hidden");
-    renderDaftarCeramah();
   }
 }
 
@@ -327,7 +337,6 @@ function renderDaftarCeramah() {
     return;
   }
 
-  // Tampilkan badge jumlah jadwal terdekat
   badgeJumlah.innerText = `${listCeramah.length} JADWAL`;
   badgeJumlah.classList.remove("hidden");
 
