@@ -10,23 +10,61 @@
 
     <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center">
         <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
-        <p class="text-sm mt-2 opacity-90">Sistem Anti-Gagal: Rekam aman, bisa kirim ulang jika server AI Google sedang sibuk.</p>
+        <p class="text-sm mt-2 opacity-90">Sistem Anti-Gagal: Gunakan Perekam HP Anda untuk durasi panjang, lalu unggah di bawah.</p>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pb-12">
         
+        <!-- TARGET SURAH HINT (SEKARANG DI TARUH PALING ATAS KARENA BERLAKU UNTUK DUA METODE) -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-4">
+            <div class="space-y-1.5">
+                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block">🎯 Target Surah yang Dibaca Hari Ini (Sangat Membantu Akurasi AI):</label>
+                <input type="text" id="surahHint" placeholder="Contoh: Juz 30 lengkap, atau Sebagian Al-Baqarah ayat 183-200" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
+            </div>
+        </div>
+
+        <!-- FITUR UTAMA 1: UPLOAD FILE REKAMAN (TERATAS & UTAMA) -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200 mb-8 space-y-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow-sm">
+                Rekomendasi Utama (Anti Mati/Batasan)
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">🎵 Upload File Rekaman Eksternal (Hingga 1 Jam+)</h2>
+                <p class="text-xs text-gray-500 mt-1">Sangat disarankan! Rekam murojaah Anda menggunakan <strong>aplikasi perekam suara bawaan HP</strong> Anda saat layar mati agar tidak terganggu batasan sistem browser, lalu unggah filenya di bawah ini.</p>
+            </div>
+            
+            <form id="uploadForm" class="space-y-4">
+                <div class="border-2 border-dashed border-emerald-300 rounded-xl p-6 text-center hover:bg-emerald-50/50 transition cursor-pointer relative">
+                    <input type="file" id="audioFile" accept="audio/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div id="uploadPrompt" class="space-y-2">
+                        <span class="text-4xl">📁</span>
+                        <p class="text-sm text-gray-600 font-medium">Klik atau seret file audio rekamanmu ke sini</p>
+                        <p class="text-xs text-gray-400">Format yang didukung: MP3, M4A, WAV, dsb.</p>
+                    </div>
+                    <div id="fileSelectedName" class="hidden text-sm text-emerald-600 font-semibold truncate"></div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition flex justify-center items-center gap-2">
+                    🚀 Kirim File Ke AI Guru Ngaji
+                </button>
+            </form>
+
+            <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
+        </div>
+
+        <!-- FITUR UTAMA 2: ALAT PEREKAM LANGSUNG BROWSER (DIBAWAH DENGAN WARING WAKE-LOCK) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
             <div class="flex flex-wrap justify-between items-center border-b pb-3">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    🎙️ Alat Perekam Cerdas (Maks 3 Jam)
+                    🎙️ Alternatif: Perekam Langsung di Web Browser
                 </h2>
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
 
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-gray-500 block">🎯 Target Surah yang Dibaca Hari Ini (Opsional - Sangat Membantu Akurasi AI):</label>
-                <input type="text" id="surahHint" placeholder="Contoh: Sebagian An-Nisa & Al-Ma'idah sampai khatam" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
-            </div>
+            <p class="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                ⚠️ <strong>PENTING:</strong> Sistem operasi ponsel (Android/iOS) akan mematikan mic jika layar Anda mati atau Anda membuka aplikasi lain selama menggunakan fitur rekam langsung di browser ini. Kami telah menambahkan fitur <strong>Wake-Lock</strong> otomatis agar layar HP Anda tetap menyala selama merekam.
+            </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
                 <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
@@ -61,7 +99,7 @@
                 
                 <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
                     <p class="text-xs text-emerald-800">
-                        💡 <strong>Server AI Error/Macet?</strong> Jangan rekam ulang! Klik tombol kanan untuk menembak ulang file yang sama.
+                        💡 <strong>Server AI Error/Macet?</strong> Jangan rekam ulang! Klik tombol kanan untuk mengirim ulang file yang sama.
                     </p>
                     <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
                         🔄 Kirim Ulang Rekaman Ini
@@ -74,28 +112,7 @@
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">🎵 Atau Upload File Rekaman Luar</h2>
-            
-            <form id="uploadForm" class="space-y-4">
-                <div class="border-2 border-dashed border-emerald-300 rounded-xl p-6 text-center hover:bg-emerald-50/50 transition cursor-pointer relative">
-                    <input type="file" id="audioFile" accept="audio/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <div id="uploadPrompt" class="space-y-2">
-                        <span class="text-4xl">📁</span>
-                        <p class="text-sm text-gray-600 font-medium">Klik atau seret file audio rekamanmu ke sini</p>
-                        <p class="text-xs text-gray-400">Format: MP3, M4A, WAV, dll.</p>
-                    </div>
-                    <div id="fileSelectedName" class="hidden text-sm text-emerald-600 font-semibold truncate"></div>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition flex justify-center items-center gap-2">
-                    🚀 Kirim File Ke AI Guru Ngaji
-                </button>
-            </form>
-
-            <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
-        </div>
-
+        <!-- LAPORAN AKHIR -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-700">📊 Hasil Laporan Murojaah Terakhir</h2>
@@ -149,6 +166,7 @@
     let isTestingMic = false;
     let pendingBlob = null; 
     let lastRecordedBlob = null; 
+    let wakeLock = null;
 
     // Variable global untuk mendeteksi perubahan data baru
     let lastDataString = "";
@@ -244,6 +262,27 @@
         }
     }
 
+    // FITUR WAKE LOCK: MENCEGAH LAYAR HP MATI SAAT MEREKAM VIA BROWSER
+    async function aktifkanWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log("Anti-Layar Mati (Wake Lock) Aktif.");
+            }
+        } catch (err) {
+            console.warn("Gagal mengaktifkan Wake Lock:", err.message);
+        }
+    }
+
+    function matikanWakeLock() {
+        if (wakeLock !== null) {
+            wakeLock.release().then(() => {
+                wakeLock = null;
+                console.log("Anti-Layar Mati (Wake Lock) Dimatikan.");
+            });
+        }
+    }
+
     async function inisialisasiAudioVisualizer(stream) {
         if (audioCtx) audioCtx.close();
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -308,10 +347,10 @@
                 };
                 
                 mediaRecorder.onstop = async () => {
+                    matikanWakeLock(); // MATIKAN LOCK SAAT REKAMAN BERHENTI
                     const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                     lastRecordedBlob = audioBlob; 
                     
-                    // AMANKAN KE DATABASE LOCAL HP DULU SEBELUM LOGIKA LAIN JALAN
                     await simpanAudioKeHP(audioBlob);
                     
                     const audioUrl = URL.createObjectURL(audioBlob);
@@ -332,6 +371,8 @@
                 isRecording = true;
                 isPaused = false;
                 totalElapsedTime = 0;
+                
+                await aktifkanWakeLock(); // AKTIFKAN LOCK SAAT MULAI REKAMAN
                 
                 recordBtn.textContent = "⏹️ Selesai & Kirim";
                 recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
@@ -435,7 +476,7 @@
             const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
             const data = await response.json();
             if (response.ok && data.status === "success") {
-                tampilkanStatus(`🎉 <strong>Rekaman Berhasil Dikirim!</strong> Gemini sedang mendengarkan suara Anda. Jika dalam 3 menit belum ada update, Anda selalu bisa menekan tombol 'Kirim Ulang' di atas tanpa harus merekam lagi.`, "bg-green-50 border-green-200 text-green-700");
+                tampilkanStatus(`🎉 <strong>Rekaman Berhasil Dikirim!</strong> Gemini sedang menyimak rekaman Anda secara utuh. Laporan otomatis muncul di bawah jika analisis selesai.`, "bg-green-50 border-green-200 text-green-700");
             } else {
                 throw new Error(data.message || "Server sibuk.");
             }
@@ -452,7 +493,6 @@
 
     async function muatLaporan(isManual = false) {
         try {
-            // Tampilkan animasi pemuatan jika dipicu secara manual, atau jika container masih kosong/dalam status default
             if (isManual || containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan...")) {
                 containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data...</p>`;
             }
@@ -460,14 +500,11 @@
             const res = await fetch(GSCRIPT_GET_URL);
             const data = await res.json();
             
-            // Konversi data baru menjadi representasi string untuk dibandingkan dengan data sebelumnya
             const currentDataString = JSON.stringify(data);
             if (currentDataString === lastDataString) {
-                // Tidak ada perubahan data baru, lewati penulisan ulang DOM agar pembacaan tidak terganggu
                 return;
             }
             
-            // Simpan data terbaru jika ada perubahan
             lastDataString = currentDataString;
             
             if (data.length === 0) {
@@ -502,7 +539,6 @@
                 containerLaporan.appendChild(kartuLaporan);
             });
         } catch (err) {
-            // Hanya tampilkan pesan gagal jika layar memang kosong
             if (containerLaporan.innerHTML.includes("Sedang menyegarkan data...") || containerLaporan.innerHTML.trim() === "") {
                 containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets.</p>`;
             }
@@ -539,10 +575,9 @@
         submitBtn.disabled = true;
         tampilkanStatus("Sedang mengirim file...", "bg-blue-50 border-blue-200 text-blue-700");
         
-        // JIKA UPLOAD FILE LUAR, TETAP AMANKAN DI DATABASE SEBAGAI REKAMAN TERAKHIR
         await simpanAudioKeHP(file); 
-        
         await kirimBlobAudio(file);
+        
         submitBtn.disabled = false;
         uploadForm.reset();
         uploadPrompt.classList.remove('hidden');
@@ -551,9 +586,9 @@
 
     // SISTEM UTAMA SAAT HALAMAN DI-LOAD
     updateOnlineStatus();
-    muatLaporan(true); // Load pertama kali menampilkan layar loading
-    cekRekamanTerselamatkan(); // Jalankan cek IndexedDB anti-hilang
-    setInterval(() => muatLaporan(false), 30000); // Sinkronisasi otomatis di latar belakang tanpa efek berkedip
+    muatLaporan(true); 
+    cekRekamanTerselamatkan(); 
+    setInterval(() => muatLaporan(false), 30000); 
 </script>
 </body>
 </html>
