@@ -133,7 +133,7 @@ const KUMPULAN_TEMA = [
 let globalKampus = [];
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 
-// Proses inisialisasi awal tanpa delay loading screen
+// Load cache secara langsung tanpa menunda render pertama
 terapkanSistemTema();
 evaluasiVisualModeMalam();
 muatDataDariOffline();
@@ -198,7 +198,7 @@ async function sinkronisasiData() {
 }
 
 /**
- * Parsing string tanggal format YYYY-MM-DD ke objek Date lokal untuk mencegah selisih zona waktu
+ * Parsing tanggal lokal agar tidak tergeser akibat perbedaan timezone browser
  */
 function parseLocalDate(dateStr) {
   if (!dateStr) return null;
@@ -209,15 +209,32 @@ function parseLocalDate(dateStr) {
   return new Date(dateStr);
 }
 
+/**
+ * Mengubah string waktu (seperti "8:00", "10:00", atau "08:00 - 10:00 WIB") 
+ * menjadi angka menit untuk keperluan sortir.
+ */
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return 9999; // Jika kosong, letakkan di urutan paling bawah
+  
+  // Deteksi angka jam dan menit pertama yang ditemukan pada teks
+  const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    const hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    return hours * 60 + minutes;
+  }
+  return 9999;
+}
+
 function updateKampusUI() {
   const container = document.getElementById("daftar-kampus-konten");
   const badgeTotal = document.getElementById("badge-total");
   if (!container) return;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset waktu ke pukul 00:00 hari ini
+  today.setHours(0, 0, 0, 0);
 
-  // 1. FILTER: Hanya menampilkan tanggal hari ini dan hari yang akan datang (menyembunyikan tanggal lewat)
+  // 1. FILTER: Abaikan agenda yang sudah lewat
   let listTampilkan = globalKampus.filter(function(item) {
     if (!item.tanggal) return false;
     const dObj = parseLocalDate(item.tanggal);
@@ -226,11 +243,21 @@ function updateKampusUI() {
     return dObj >= today; 
   });
 
-  // 2. SORT: Mengurutkan dari tanggal yang paling dekat dengan hari ini ke yang paling jauh di masa depan
+  // 2. SORT: Urutkan berdasarkan tanggal terdekat, lalu berdasarkan jam mulainya
   listTampilkan.sort(function(a, b) {
     const dateA = parseLocalDate(a.tanggal);
     const dateB = parseLocalDate(b.tanggal);
-    return dateA - dateB;
+    
+    // Bandingkan tanggal utama
+    const selisihTanggal = dateA - dateB;
+    if (selisihTanggal !== 0) {
+      return selisihTanggal;
+    }
+    
+    // Jika tanggal sama, bandingkan berdasarkan waktu (jam) mulai kegiatan
+    const menitA = parseTimeToMinutes(a.jam);
+    const menitB = parseTimeToMinutes(b.jam);
+    return menitA - menitB;
   });
 
   badgeTotal.innerText = listTampilkan.length + " ITEM";
