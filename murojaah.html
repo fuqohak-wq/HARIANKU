@@ -165,7 +165,7 @@
         </div>
     </div>
 
-    <script>
+<script>
     const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
     const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
 
@@ -289,73 +289,90 @@
         
         let teksAyatTerakhir = "";
         let lafazAyatTerakhir = "";
-        let cakupanBacaan = "";
+        let cakupanBacaanList = [];
         let detailKoreksiHTML = "";
+        
+        let currentHeader = "";
+        let inCakupan = false;
         let inDetail = false;
         
         for (let i = 0; i < baris.length; i++) {
             let line = baris[i].trim();
             if (!line) continue;
             
+            if (line.startsWith("===")) {
+                inCakupan = false;
+                continue;
+            }
+            
             // Ekstraksi Ayat Terakhir
             if (line.includes("🏁 AYAT TERAKHIR YANG DIBACA:")) {
                 teksAyatTerakhir = line.replace("🏁 AYAT TERAKHIR YANG DIBACA:", "").trim();
-                if (i + 1 < baris.length && !baris[i+1].includes("===") && !baris[i+1].includes("📖")) {
-                    lafazAyatTerakhir = baris[i+1].trim();
-                    i++;
+                let j = i + 1;
+                while (j < baris.length) {
+                    let nextLine = baris[j].trim();
+                    if (nextLine && !nextLine.startsWith("===") && !nextLine.includes("📖") && !nextLine.includes("⚠️")) {
+                        lafazAyatTerakhir = nextLine;
+                        i = j; 
+                        break;
+                    }
+                    j++;
                 }
                 continue;
             }
             
-            // Ekstraksi Cakupan Bacaan
-            if (line.includes("📖 CAKUPAN BACAAN:") || line.includes("📖 [CAKUPAN BACAAN SELURUHNYA]")) {
-                if (i + 1 < baris.length) {
-                    cakupanBacaan = baris[i+1].trim();
-                    i++;
-                }
+            // Ekstraksi Cakupan Bacaan (Mendukung multi-baris)
+            if (line.includes("📖 CAKUPAN BACAAN:") || line.includes("📖 [CAKUPAN BACAAN")) {
+                inCakupan = true;
                 continue;
+            }
+            
+            if (inCakupan) {
+                if (line.includes("⚠️") || line.startsWith("●")) {
+                    inCakupan = false;
+                } else {
+                    cakupanBacaanList.push(line);
+                    continue;
+                }
             }
             
             // Mulai Bagian Detail Koreksi
             if (line.includes("⚠️ DETAIL KOREKSI") || line.includes("⚠️ [KOREKSI")) {
                 inDetail = true;
+                inCakupan = false;
                 continue;
             }
             
             if (inDetail) {
                 if (line.startsWith("●")) {
-                    // Header Koreksi (Misal: ● Al-Baqarah Ayat 229 (Menit 01:36))
-                    const headerText = line.replace("●", "").trim();
-                    detailKoreksiHTML += `
-                        <div class="mt-8 border-t border-gray-100 pt-6 first:mt-0 first:border-0 first:pt-0">
-                            <span class="inline-block text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full mb-4">
-                                📌 ${headerText}
-                            </span>
-                    `;
+                    currentHeader = line.replace("●", "").trim();
                 } else if (line.includes("---")) {
-                    // Perbandingan Ayat Lengkap (Salah vs Benar)
                     const bagian = line.split("---");
                     if (bagian.length === 2) {
                         const salah = bagian[0].trim();
                         const benar = bagian[1].trim();
                         
                         detailKoreksiHTML += `
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
-                                <!-- Kolom Salah / Ragu -->
-                                <div class="bg-rose-50/40 border border-rose-100 p-5 rounded-2xl flex flex-col justify-between">
-                                    <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest block mb-3">❌ Lafaz Salah / Ragu</span>
-                                    <p class="arabic-text text-3xl text-right text-gray-700 leading-loose select-all">${salah}</p>
-                                </div>
-                                <!-- Kolom Seharusnya -->
-                                <div class="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl flex flex-col justify-between">
-                                    <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-3">✅ Seharusnya (Mushaf)</span>
-                                    <p class="arabic-text text-3xl text-right text-emerald-900 leading-loose font-medium select-all">${benar}</p>
+                            <div class="mt-8 border-t border-gray-100 pt-6 first:mt-0 first:border-0 first:pt-0">
+                                <span class="inline-block text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full mb-4">
+                                    📌 ${currentHeader || "Koreksi Bacaan"}
+                                </span>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                                    <!-- Kolom Salah / Ragu -->
+                                    <div class="bg-rose-50/40 border border-rose-100 p-5 rounded-2xl flex flex-col justify-between">
+                                        <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest block mb-3">❌ Lafaz Salah / Ragu</span>
+                                        <p class="arabic-text text-3xl text-right text-gray-700 leading-loose select-all">${salah}</p>
+                                    </div>
+                                    <!-- Kolom Seharusnya -->
+                                    <div class="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl flex flex-col justify-between">
+                                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-3">✅ Seharusnya (Mushaf)</span>
+                                        <p class="arabic-text text-3xl text-right text-emerald-900 leading-loose font-medium select-all">${benar}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div> <!-- Menutup kontainer per koreksi -->
                         `;
                     }
-                } else if (line.includes("Lancar Sempurna")) {
+                } else if (line.toLowerCase().includes("lancar sempurna")) {
                     detailKoreksiHTML += `
                         <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-6 rounded-2xl text-center font-semibold">
                             ✨ Lancar Sempurna (Tidak ada kesalahan atau keraguan dalam hafalan Anda).
@@ -365,7 +382,6 @@
             }
         }
         
-        // Gabungkan dalam struktur HTML Premium
         let outputHTML = "";
         
         // Card Atas: Ayat Terakhir
@@ -380,11 +396,12 @@
         }
         
         // Card Tengah: Cakupan Bacaan
-        if (cakupanBacaan) {
+        if (cakupanBacaanList.length > 0) {
+            const cakupanJoined = cakupanBacaanList.join("<br>");
             outputHTML += `
-                <div class="bg-gray-50 border border-gray-100 px-5 py-3 rounded-xl flex flex-wrap justify-between items-center gap-2">
+                <div class="bg-gray-50 border border-gray-100 px-5 py-4 rounded-xl flex flex-col gap-1">
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">📖 Cakupan Murojaah</span>
-                    <span class="text-sm font-bold text-emerald-800">${cakupanBacaan}</span>
+                    <span class="text-sm font-bold text-emerald-800 leading-relaxed">${cakupanJoined}</span>
                 </div>
             `;
         }
@@ -656,6 +673,21 @@
         statusBox.classList.remove('hidden');
     }
 
+    // Fungsi pemantau status koneksi internet
+    function updateOnlineStatus() {
+        if (navigator.onLine) {
+            networkStatus.textContent = "🟢 Online";
+            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700";
+            offlineQueueBox.classList.add('hidden');
+        } else {
+            networkStatus.textContent = "🔴 Offline";
+            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-700";
+            offlineQueueBox.classList.remove('hidden');
+        }
+    }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
     async function muatLaporan(isManual = false) {
         try {
             if (isManual || containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan...")) {
@@ -681,7 +713,6 @@
             data.forEach((item, index) => {
                 const tanggal = new Date(item.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
                 
-                // Ekstraksi data ayat terakhir secara ringkas untuk ditampilkan di ringkasan kartu [1]
                 let ayatTerakhirSesi = "Murojaah Selesai";
                 const matchAyat = item.koreksi.match(/🏁 AYAT TERAKHIR YANG DIBACA:\s*(.*)/);
                 if (matchAyat && matchAyat[1]) {
@@ -708,8 +739,7 @@
                     </div>
                     
                     <div class="flex items-center gap-2 shrink-0">
-                        <!-- Kirim teks yang diencode ke fungsi buka detail -->
-                        <button onclick="bukaDetailKoreksi('${encodeURIComponent(item.koreksi)}', '${tanggal}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
+                        <button class="open-detail-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
                             🔍 Buka Layar Penuh
                         </button>
                         <button onclick="hapusBaris(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-xl transition text-xs font-semibold">
@@ -717,6 +747,13 @@
                         </button>
                     </div>
                 `;
+
+                // MENYELESAIKAN MASALAH SYNTX ERROR:
+                // Daftarkan listener klik secara terprogram untuk menghindari error tanda petik satu (')
+                kartuLaporan.querySelector('.open-detail-btn').addEventListener('click', () => {
+                    bukaDetailKoreksi(encodeURIComponent(item.koreksi), tanggal);
+                });
+
                 containerLaporan.appendChild(kartuLaporan);
             });
         } catch (err) {
