@@ -235,24 +235,22 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH, KAMPUS & TUGAS (ROUTER AKTIF) -->
-<div class="grid grid-cols-3 gap-1.5 shrink-0">
-<a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-ceramah">
+<!-- CERAMAH & TUGAS -->
+<div class="grid grid-cols-2 gap-1.5 shrink-0">
+<a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
+<div class="flex items-center gap-1">
 <span class="text-[10px]">🎤</span>
-<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Ceramah</span>
-<span id="badge-ceramah" class="text-[7px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md mt-1">0</span>
+<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
+</div>
+<span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
 </a>
 
-<a href="kampus.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-kampus">
-<span class="text-[10px]">🏫</span>
-<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Kampus</span>
-<span id="badge-kampus" class="text-[7px] font-black bg-emerald-100 text-emerald-700 px-1.5 rounded-md mt-1">0</span>
-</a>
-
-<a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-todolist">
+<a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
+<div class="flex items-center gap-1">
 <span class="text-[10px]">📋</span>
-<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Tugas</span>
-<span id="badge-tugas" class="text-[7px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md mt-1">0</span>
+<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Daftar Tugas</span>
+</div>
+<span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md">0</span>
 </a>
 </div>
 
@@ -475,7 +473,6 @@ Buka Dashboard Bekerja ➔
 </div>
 
 <script>
-// 1. DEKLARASI KONSTANTA DAN VARIABEL GLOBAL (DI LETAKKAN DI PALING ATAS SCRIPT)
 const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
 const PERSONAL_AI_URL = "/api/nasehat";
 
@@ -517,7 +514,6 @@ let dataAnalisaMakanTerakhir = null;
 
 let globalTasks = [];
 let globalCeramah = [];
-let globalKampus = [];
 let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
@@ -534,28 +530,21 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-// Variabel asisten AI yang sebelumnya diletakkan di bawah dipindahkan ke sini
-let daftarPotonganKalimat = [];
-let indeksKalimatAktif = 0;
-let intervalRotasiKalimat = null;
-
-// 2. PROSES INISIALISASI INSTAN (SECARA SINKRON)
-initWaterLocal();
-tentukanKalenderDasar();
-terapkanSistemTema();
-evaluasiVisualModeMalam();
-muatDataDariOffline(); 
-inisialisasiRotasiNasehatLokal();
-
-// 3. WINDOW ONLOAD UNTUK OPERASI LATAR BELAKANG
 window.onload = function() {
+  initWaterLocal();
+  tentukanKalenderDasar();
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  
+  muatDataDariOffline(); 
+  inisialisasiRotasiNasehatLokal();
   muatNasehatLatarBelakang();
+
   sinkronisasiDataLatarBelakangLegacy();
   setInterval(sinkronisasiDataLatarBelakangLegacy, 25000);
   daftarkanServiceWorker();
 };
 
-// 4. DAFTAR FUNGSI PENDUKUNG
 function sinkronisasiDataLatarBelakangLegacy() {
   loadDashboard().catch(function(e) {
     console.warn("Gagal memuat dasbor:", e);
@@ -609,26 +598,6 @@ function initWaterLocal() {
   }
 }
 
-/**
- * Parsing tanggal lokal agar tidak tergeser akibat perbedaan timezone browser
- */
-function parseLocalDate(dateStr) {
-  if (!dateStr) return null;
-  const parts = dateStr.split("-");
-  if (parts.length === 3) {
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  }
-  return new Date(dateStr);
-}
-
-/**
- * Menghitung jumlah agenda kampus terdaftar secara presisi
- */
-function hitungKampusAktif(list) {
-  if (!list || !Array.isArray(list)) return 0;
-  return list.length; // Mengambil total jumlah agenda terdaftar langsung dari array
-}
-
 function muatDataDariOffline() {
 const cacheData = localStorage.getItem("fuqohak_tracker_cache");
 if (cacheData) {
@@ -645,14 +614,6 @@ updateFinanceUI();
 } catch(e) { console.error("Cache finansial gagal dimuat:", e); }
 } else {
 updateFinanceUI();
-}
-
-const kampusCache = localStorage.getItem("fuqohak_kampus_cache");
-if (kampusCache) {
-try {
-globalKampus = JSON.parse(kampusCache);
-document.getElementById("badge-kampus").innerText = hitungKampusAktif(globalKampus);
-} catch(e) { console.error("Cache kampus gagal dimuat:", e); }
 }
 }
 
@@ -846,8 +807,8 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 }
 
 globalTasks = data["LIST_TUGAS"] || [];
-globalKampus = data["LIST_KAMPUS"] || [];
 
+// AKURASI 100%: Selalu prioritaskan cache riil dari ceramah.html
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -945,10 +906,7 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Update badge kampus harian dari sheet KAMPUS dengan filter aktif
-localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
-document.getElementById("badge-kampus").innerText = hitungKampusAktif(globalKampus);
-
+// Menghitung sisa tugas aktif secara presisi
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(t.rowId || t.ROWID || "");
@@ -958,6 +916,7 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
+// Menghitung sisa ceramah aktif secara presisi berdasarkan cache aktual (Output: 7)
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(c.rowId || c.ROWID || "");
@@ -1066,6 +1025,10 @@ function buildLineChart(riwayat) {
   <path d="${pathD}" fill="none" stroke="url(#gradien-stroke-energetic)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
   `;
 }
+
+let daftarPotonganKalimat = [];
+let indeksKalimatAktif = 0;
+let intervalRotasiKalimat = null;
 
 function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
   let hasilPotongan = [];
