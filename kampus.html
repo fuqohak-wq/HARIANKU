@@ -222,24 +222,35 @@ function normalizeKampusItem(item) {
   };
 }
 
+/**
+ * Mampu membaca string tanggal format Apapun (termasuk string "Wed Aug 12 2026...")
+ */
 function safeParseDate(dateStr) {
   if (!dateStr) return null;
-  if (typeof dateStr === "string" && dateStr.includes("-")) {
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      const yr = Number(parts[0]);
-      const mo = Number(parts[1]) - 1;
-      const dy = Number(parts[2]);
-      if (!isNaN(yr) && !isNaN(mo) && !isNaN(dy)) {
-        return new Date(yr, mo, dy);
+  
+  if (typeof dateStr === "string") {
+    const cleanStr = dateStr.trim();
+    
+    // Format YYYY-MM-DD
+    if (cleanStr.includes("-")) {
+      const parts = cleanStr.split("-");
+      if (parts.length === 3) {
+        const yr = Number(parts[0]);
+        const mo = Number(parts[1]) - 1;
+        const dy = Number(parts[2]);
+        if (!isNaN(yr) && !isNaN(mo) && !isNaN(dy)) {
+          return new Date(yr, mo, dy);
+        }
       }
+    }
+
+    // Format String Google Sheet "Wed Aug 12 2026 07:00:00 GMT+0700..."
+    const parsedDate = new Date(cleanStr);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate;
     }
   }
   
-  const d = new Date(dateStr);
-  if (d && !isNaN(d.getTime())) {
-    return d;
-  }
   return null;
 }
 
@@ -266,7 +277,7 @@ function dapatkanWaktuMurni(item) {
 }
 
 /**
- * Helper Format Tanggal khusus Bahasa Indonesia
+ * Mengubah Tanggal Apapun Menjadi Bahasa Indonesia Murni
  */
 function formatTanggalIndo(dateStr) {
   if (!dateStr) return "-";
@@ -294,7 +305,7 @@ function updateKampusUI() {
     return item.namaKegiatan || item.tanggal;
   });
 
-  // Sortir dari waktu terdekat (Ascending: Tanggal & Jam terkecil di posisi paling atas)
+  // Sortir dari waktu paling dekat (Urutan teratas: Tanggal + Jam terkecil)
   listTampilkan.sort(function(a, b) {
     return dapatkanWaktuMurni(a) - dapatkanWaktuMurni(b);
   });
