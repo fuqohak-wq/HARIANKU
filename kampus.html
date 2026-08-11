@@ -301,11 +301,25 @@ function updateKampusUI() {
   const badgeTotal = document.getElementById("badge-total");
   if (!container) return;
 
+  // Waktu sekarang dalam hitungan milidetik
+  const waktuSekarang = new Date().getTime();
+
+  // 1. Normalisasi data
   let listTampilkan = (globalKampus || []).map(normalizeKampusItem).filter(function(item) {
-    return item.namaKegiatan || item.tanggal;
+    if (!item.namaKegiatan && !item.tanggal) return false;
+
+    // OTOMATIS HILANGKAN JIKA TANGGAL & JAM SUDAH TERLEWAT
+    const waktuItem = dapatkanWaktuMurni(item);
+    
+    // Jika waktu item valid, hanya tampilkan yang WAKTU-NYA KETEMU DI MASA DEPAN / SEKARANG
+    if (waktuItem !== Infinity) {
+      return waktuItem >= waktuSekarang; 
+    }
+    
+    return true;
   });
 
-  // Sortir dari waktu paling dekat (Urutan teratas: Tanggal + Jam terkecil)
+  // 2. Sortir dari waktu paling dekat
   listTampilkan.sort(function(a, b) {
     return dapatkanWaktuMurni(a) - dapatkanWaktuMurni(b);
   });
@@ -319,6 +333,7 @@ function updateKampusUI() {
 
   container.innerHTML = "";
   
+  // 3. Render ke UI
   listTampilkan.forEach(function(item) {
     const tglFormatted = formatTanggalIndo(item.tanggal);
 
@@ -337,7 +352,6 @@ function updateKampusUI() {
     container.appendChild(div);
   });
 }
-
 async function simpanAgendaKampus(event) {
   event.preventDefault();
   const btn = document.getElementById("btn-submit-kampus");
