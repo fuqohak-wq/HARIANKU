@@ -265,6 +265,26 @@ function dapatkanWaktuMurni(item) {
   return dObj.getTime();
 }
 
+/**
+ * Helper Format Tanggal khusus Bahasa Indonesia
+ */
+function formatTanggalIndo(dateStr) {
+  if (!dateStr) return "-";
+  
+  const dObj = safeParseDate(dateStr);
+  if (!dObj || isNaN(dObj.getTime())) return dateStr;
+
+  const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const namaBulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+
+  const hari = namaHari[dObj.getDay()];
+  const tgl = dObj.getDate();
+  const bulan = namaBulan[dObj.getMonth()];
+  const tahun = dObj.getFullYear();
+
+  return `${hari}, ${tgl} ${bulan} ${tahun}`;
+}
+
 function updateKampusUI() {
   const container = document.getElementById("daftar-kampus-konten");
   const badgeTotal = document.getElementById("badge-total");
@@ -274,6 +294,7 @@ function updateKampusUI() {
     return item.namaKegiatan || item.tanggal;
   });
 
+  // Sortir dari waktu terdekat (Ascending: Tanggal & Jam terkecil di posisi paling atas)
   listTampilkan.sort(function(a, b) {
     return dapatkanWaktuMurni(a) - dapatkanWaktuMurni(b);
   });
@@ -288,20 +309,7 @@ function updateKampusUI() {
   container.innerHTML = "";
   
   listTampilkan.forEach(function(item) {
-    let tglFormatted = "-";
-    if (item.tanggal) {
-      const dObj = safeParseDate(item.tanggal);
-      if (dObj && !isNaN(dObj.getTime())) {
-        tglFormatted = dObj.toLocaleDateString('id-ID', {
-          weekday: 'short', 
-          day: 'numeric', 
-          month: 'short', 
-          year: 'numeric'
-        });
-      } else {
-        tglFormatted = item.tanggal; 
-      }
-    }
+    const tglFormatted = formatTanggalIndo(item.tanggal);
 
     const div = document.createElement("div");
     div.className = "bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] space-y-1 dark:bg-slate-800/40";
