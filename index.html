@@ -622,19 +622,11 @@ function parseLocalDate(dateStr) {
 }
 
 /**
- * Menghitung jumlah agenda kampus aktif (hari ini dan yang akan datang)
+ * Menghitung jumlah agenda kampus terdaftar secara presisi
  */
 function hitungKampusAktif(list) {
   if (!list || !Array.isArray(list)) return 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return list.filter(function(item) {
-    if (!item.tanggal) return false;
-    const dObj = parseLocalDate(item.tanggal);
-    if (!dObj || isNaN(dObj.getTime())) return false;
-    dObj.setHours(0, 0, 0, 0);
-    return dObj >= today;
-  }).length;
+  return list.length; // Mengambil total jumlah agenda terdaftar langsung dari array
 }
 
 function muatDataDariOffline() {
