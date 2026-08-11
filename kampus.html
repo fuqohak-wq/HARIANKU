@@ -133,7 +133,6 @@ const KUMPULAN_TEMA = [
 let globalKampus = [];
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 
-// Load cache secara langsung tanpa menunda render pertama
 terapkanSistemTema();
 evaluasiVisualModeMalam();
 muatDataDariOffline();
@@ -184,32 +183,22 @@ async function sinkronisasiData() {
   try {
     const controller = new AbortController();
     const idTimeout = setTimeout(function() { controller.abort(); }, 10000);
-    
-    // Panggil GET Web App
     const res = await fetch(API_URL, { signal: controller.signal });
     clearTimeout(idTimeout);
     
     const json = await res.json();
-    console.log("Response dari Server Apps Script:", json);
-
     if (json.status === "success" && json.data && json.data.LIST_KAMPUS) {
       globalKampus = json.data.LIST_KAMPUS;
       localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
       updateKampusUI();
-    } else if (json.status === "error") {
-      console.error("Error dari Apps Script:", json.message);
     }
   } catch(e) {
-    console.warn("Sinkronisasi gagal/tertunda:", e);
+    console.warn("Sinkronisasi latar belakang tertunda:", e);
   }
 }
 
-/**
- * Normalisasi data kampus untuk memastikan kompabilitas penamaan variabel
- */
 function normalizeKampusItem(item) {
   if (!item) return {};
-  
   const getProp = (obj, keys) => {
     for (let k of keys) {
       if (obj[k] !== undefined) return obj[k];
@@ -224,28 +213,17 @@ function normalizeKampusItem(item) {
     return "";
   };
 
-  const tanggal = getProp(item, ["tanggal", "TANGGAL", "date", "DATE"]);
-  const jam = getProp(item, ["jam", "JAM", "time", "TIME", "waktu", "WAKTU"]);
-  const namaKegiatan = getProp(item, ["namaKegiatan", "nama_kegiatan", "NAMA KEGIATAN", "kegiatan", "KEGIATAN", "nama", "NAMA", "tema", "TEMA"]);
-  const tempat = getProp(item, ["tempat", "TEMPAT", "lokasi", "LOKASI", "ruangan", "RUANGAN"]);
-  const rowId = getProp(item, ["rowId", "rowid", "ROWID", "id", "ID"]);
-
   return {
-    rowId: rowId,
-    tanggal: tanggal,
-    jam: jam,
-    namaKegiatan: namaKegiatan,
-    tempat: tempat
+    rowId: getProp(item, ["rowId", "rowid", "ROWID", "id", "ID"]),
+    tanggal: getProp(item, ["tanggal", "TANGGAL", "date", "DATE"]),
+    jam: getProp(item, ["jam", "JAM", "time", "TIME", "waktu", "WAKTU"]),
+    namaKegiatan: getProp(item, ["namaKegiatan", "nama_kegiatan", "NAMA KEGIATAN", "kegiatan", "KEGIATAN", "nama", "NAMA", "tema", "TEMA"]),
+    tempat: getProp(item, ["tempat", "TEMPAT", "lokasi", "LOKASI", "ruangan", "RUANGAN"])
   };
 }
 
-/**
- * Parsing tanggal secara aman untuk menghindari error format bahasa lokal
- */
 function safeParseDate(dateStr) {
   if (!dateStr) return null;
-  
-  // 1. Format standar ISO (yyyy-MM-dd)
   if (typeof dateStr === "string" && dateStr.includes("-")) {
     const parts = dateStr.split("-");
     if (parts.length === 3) {
@@ -258,47 +236,33 @@ function safeParseDate(dateStr) {
     }
   }
   
-  // 2. Format standar Date browser
   const d = new Date(dateStr);
   if (d && !isNaN(d.getTime())) {
     return d;
   }
-  
-  // 3. Konversi manual untuk format teks Indonesia (contoh: "Rabu, 12 Agu 2026")
-  try {
-    const cleanStr = String(dateStr).toLowerCase();
-    const monthsIndo = ["jan", "peb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
-    
-    const match = cleanStr.match(/(\d{1,2})\s+([a-z]{3})[a-z]*\s+(\d{4})/);
-    if (match) {
-      const day = parseInt(match[1], 10);
-      const monthIndoStr = match[2];
-      const year = parseInt(match[3], 10);
-      
-      const monthIdx = monthsIndo.findIndex(m => monthIndoStr.startsWith(m));
-      if (monthIdx !== -1) {
-        return new Date(year, monthIdx, day);
-      }
-    }
-  } catch(e) {
-    console.warn("Manual parsing tertunda:", e);
-  }
-
   return null;
 }
 
-/**
- * Mengubah string waktu menjadi angka menit untuk keperluan sortir.
- */
-function parseTimeToMinutes(timeStr) {
-  if (!timeStr) return 9999;
-  const match = timeStr.match(/(\d{1,2}):(\d{2})/);
+function parseJamMulai(jamStr) {
+  if (!jamStr) return { hours: 0, minutes: 0 };
+  const match = String(jamStr).match(/(\d{1,2}):(\d{2})/);
   if (match) {
-    const hours = parseInt(match[1], 10);
-    const minutes = parseInt(match[2], 10);
-    return hours * 60 + minutes;
+    return {
+      hours: parseInt(match[1], 10),
+      minutes: parseInt(match[2], 10)
+    };
   }
-  return 9999;
+  return { hours: 0, minutes: 0 };
+}
+
+function dapatkanWaktuMurni(item) {
+  if (!item || !item.tanggal) return Infinity;
+  const dObj = safeParseDate(item.tanggal);
+  if (!dObj || isNaN(dObj.getTime())) return Infinity;
+  
+  const { hours, minutes } = parseJamMulai(item.jam);
+  dObj.setHours(hours, minutes, 0, 0);
+  return dObj.getTime();
 }
 
 function updateKampusUI() {
@@ -306,28 +270,12 @@ function updateKampusUI() {
   const badgeTotal = document.getElementById("badge-total");
   if (!container) return;
 
-  // Normalisasi data untuk menjamin validitas penulisan variabel
   let listTampilkan = (globalKampus || []).map(normalizeKampusItem).filter(function(item) {
     return item.namaKegiatan || item.tanggal;
   });
 
-  // Urutkan berdasarkan tanggal terdekat, lalu berdasarkan jam mulai
   listTampilkan.sort(function(a, b) {
-    const dateA = safeParseDate(a.tanggal);
-    const dateB = safeParseDate(b.tanggal);
-    
-    if (dateA && dateB) {
-      const selisihTanggal = dateA - dateB;
-      if (selisihTanggal !== 0) return selisihTanggal;
-    } else if (dateA) {
-      return -1;
-    } else if (dateB) {
-      return 1;
-    }
-    
-    const menitA = parseTimeToMinutes(a.jam);
-    const menitB = parseTimeToMinutes(b.jam);
-    return menitA - menitB;
+    return dapatkanWaktuMurni(a) - dapatkanWaktuMurni(b);
   });
 
   badgeTotal.innerText = listTampilkan.length + " ITEM";
@@ -345,7 +293,7 @@ function updateKampusUI() {
       const dObj = safeParseDate(item.tanggal);
       if (dObj && !isNaN(dObj.getTime())) {
         tglFormatted = dObj.toLocaleDateString('id-ID', {
-          weekday: 'long', 
+          weekday: 'short', 
           day: 'numeric', 
           month: 'short', 
           year: 'numeric'
@@ -356,11 +304,11 @@ function updateKampusUI() {
     }
 
     const div = document.createElement("div");
-    div.className = "bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] space-y-1";
+    div.className = "bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] space-y-1 dark:bg-slate-800/40";
     div.innerHTML = `
       <div class="flex justify-between items-start gap-1">
         <span class="font-extrabold text-amber-500 dark:text-amber-300 text-[9.5px] line-clamp-2">${item.namaKegiatan || 'Kegiatan Tanpa Nama'}</span>
-        <span class="text-[7.5px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded shrink-0">${item.jam || '-'}</span>
+        <span class="text-[7.5px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded shrink-0 font-bold">${item.jam || '-'}</span>
       </div>
       <div class="flex justify-between text-slate-500 dark:text-slate-400 text-[8px]">
         <span>📍 ${item.tempat || '-'}</span>
@@ -393,7 +341,6 @@ async function simpanAgendaKampus(event) {
   };
 
   try {
-    // Menggunakan POST dengan mode redirect follow & text/plain agar bebas dari masalah CORS pre-flight
     const response = await fetch(API_URL, {
       method: "POST",
       mode: "cors",
@@ -406,9 +353,7 @@ async function simpanAgendaKampus(event) {
     
     const result = await response.json();
     if (result.status === "success") {
-      // Refresh sinkronisasi ulang langsung dari Google Sheet
       await sinkronisasiData();
-      
       document.getElementById("form-kampus").reset();
       alert("Agenda kampus berhasil terkirim dan disinkronkan!");
     } else {
@@ -416,7 +361,7 @@ async function simpanAgendaKampus(event) {
     }
   } catch(e) {
     console.error("Gagal mengirim agenda:", e);
-    alert("Gagal terhubung dengan server. Menyimpan lokal sementara...");
+    alert("Gagal terhubung dengan server. Menyimpan offline sementara...");
     
     globalKampus.push({
       tanggal: tanggal,
