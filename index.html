@@ -235,22 +235,30 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH & TUGAS -->
-<div class="grid grid-cols-2 gap-1.5 shrink-0">
+<!-- CERAMAH, TUGAS & KAMPUS -->
+<div class="grid grid-cols-3 gap-1.5 shrink-0">
 <a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
-<div class="flex items-center gap-1">
-<span class="text-[10px]">🎤</span>
-<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
+<div class="flex items-center gap-1 min-w-0">
+<span class="text-[10px] shrink-0">🎤</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300 truncate">Ceramah</span>
 </div>
-<span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
+<span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md shrink-0">0</span>
 </a>
 
 <a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
-<div class="flex items-center gap-1">
-<span class="text-[10px]">📋</span>
-<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Daftar Tugas</span>
+<div class="flex items-center gap-1 min-w-0">
+<span class="text-[10px] shrink-0">📋</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300 truncate">Tugas</span>
 </div>
-<span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md">0</span>
+<span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md shrink-0">0</span>
+</a>
+
+<a href="kampus.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-kampus">
+<div class="flex items-center gap-1 min-w-0">
+<span class="text-[10px] shrink-0">🎓</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300 truncate">Kampus</span>
+</div>
+<span id="badge-kampus" class="text-[7.5px] font-black bg-emerald-100 text-emerald-700 px-1.5 rounded-md shrink-0">0</span>
 </a>
 </div>
 
@@ -514,12 +522,14 @@ let dataAnalisaMakanTerakhir = null;
 
 let globalTasks = [];
 let globalCeramah = [];
+let globalKampus = [];
 let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
 
 let locallyCompletedTasks = [];
 let locallyCompletedCeramah = [];
+let locallyCompletedKampus = [];
 
 let localWaterState = {
 count: 0,
@@ -589,12 +599,20 @@ function initWaterLocal() {
       .filter(function(id) { 
         return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
       });
+
+    locallyCompletedKampus = JSON.parse(localStorage.getItem("fuqohak_completed_kampus") || "[]")
+      .map(String)
+      .filter(function(id) { 
+        return id && id !== "NaN" && id !== "undefined" && id.trim() !== ""; 
+      });
       
     localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
     localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+    localStorage.setItem("fuqohak_completed_kampus", JSON.stringify(locallyCompletedKampus));
   } catch(e) {
     locallyCompletedTasks = [];
     locallyCompletedCeramah = [];
+    locallyCompletedKampus = [];
   }
 }
 
@@ -808,7 +826,7 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 
 globalTasks = data["LIST_TUGAS"] || [];
 
-// AKURASI 100%: Selalu prioritaskan cache riil dari ceramah.html
+// Prioritas cache lokal untuk kelancaran visual
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -818,6 +836,17 @@ if (localCeramah) {
   }
 } else {
   globalCeramah = data["LIST_CERAMAH"] || [];
+}
+
+const localKampus = localStorage.getItem("fuqohak_kampus_cache");
+if (localKampus) {
+  try {
+    globalKampus = JSON.parse(localKampus);
+  } catch(e) {
+    globalKampus = data["LIST_KAMPUS"] || [];
+  }
+} else {
+  globalKampus = data["LIST_KAMPUS"] || [];
 }
 
 globalRutinitas = data["RUTINITAS"] || [];
@@ -843,6 +872,17 @@ globalCeramah.forEach(function(item) {
   }
 });
 localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
+
+globalKampus.forEach(function(item) {
+  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
+  const rowIdVal = String(item.rowId || item.ROWID || "");
+  if (itemStatus === "SELESAI" && rowIdVal) {
+    locallyCompletedKampus = locallyCompletedKampus.filter(function(id) {
+      return id && id !== "NaN" && String(id) !== rowIdVal;
+    });
+  }
+});
+localStorage.setItem("fuqohak_completed_kampus", JSON.stringify(locallyCompletedKampus));
 
 const teksMoodAsli = (data["MOOD_STATUS"] && data["MOOD_STATUS"].value) ? data["MOOD_STATUS"].value : "STABIL";
 currentMoodStatus = teksMoodAsli;
@@ -916,7 +956,7 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Menghitung sisa ceramah aktif secara presisi berdasarkan cache aktual (Output: 7)
+// Menghitung sisa ceramah aktif secara presisi
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(c.rowId || c.ROWID || "");
@@ -925,6 +965,16 @@ const sisaCeramahAktif = globalCeramah.filter(function(c) {
   return isBelum && !isLokalSelesai;
 }).length;
 document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
+
+// Menghitung sisa agenda kampus aktif secara presisi
+const sisaKampusAktif = globalKampus.filter(function(k) {
+  const isBelum = String(k.status || k.STATUS || "BELUM").toUpperCase() === "BELUM";
+  const rowIdVal = String(k.rowId || k.ROWID || "");
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const isLokalSelesai = hasValidId && locallyCompletedKampus.includes(rowIdVal);
+  return isBelum && !isLokalSelesai;
+}).length;
+document.getElementById("badge-kampus").innerText = sisaKampusAktif;
 
 const rawKaloriMasuk = (data["KALORI MASUK"] && data["KALORI MASUK"].value) ? data["KALORI MASUK"].value : 0;
 const progressIn = (Number(rawKaloriMasuk) / 2000) * 100;
