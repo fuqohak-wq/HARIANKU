@@ -144,7 +144,10 @@ window.onload = function() {
 
 function terapkanSistemTema() {
   const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
-  document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
+  const headerElem = document.getElementById("header-gradient");
+  if (headerElem) {
+    headerElem.style.background = KUMPULAN_TEMA[indexTema];
+  }
 }
 
 function evaluasiVisualModeMalam() {
@@ -254,9 +257,10 @@ async function simpanAgendaKampus(event) {
       method: "POST",
       body: JSON.stringify(payload)
     });
+    
     const result = await response.json();
     if (result.status === "success") {
-      // Masukkan ke state lokal untuk performa instan
+      // Masukkan ke state lokal untuk tampilan instan
       globalKampus.push({
         tanggal: tanggal,
         jam: jam,
@@ -272,7 +276,7 @@ async function simpanAgendaKampus(event) {
     }
   } catch(e) {
     console.error("Gagal mengirim agenda:", e);
-    alert("Gagal terhubung dengan server. Agenda disimpan lokal sementara.");
+    alert("Gagal terhubung dengan server. Data disimpan secara offline sementara.");
     
     // Cadangan penyimpanan luring
     globalKampus.push({
