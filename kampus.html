@@ -72,9 +72,8 @@ box-sizing: border-box;
         <span id="badge-total" class="text-[7.5px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full">0 ITEM</span>
       </div>
       
-      <div id="daftar-kampus-konten" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-        <p class="text-[9px] text-slate-500 italic text-center py-4 animate-pulse">Menghubungkan & membaca data sheet...</p>
-      </div>
+      <!-- Konten daftar langsung kosong di awal, akan diisi instan oleh cache lokal -->
+      <div id="daftar-kampus-konten" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
     </div>
 
     <!-- FORM INPUT AGENDA BARU -->
@@ -135,10 +134,13 @@ const KUMPULAN_TEMA = [
 let globalKampus = [];
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 
+// JALANKAN LANGSUNG: Memuat data dari cache lokal secara instan tanpa menunggu window.onload
+terapkanSistemTema();
+evaluasiVisualModeMalam();
+muatDataDariOffline();
+
+// Sinkronisasi data di latar belakang setelah seluruh halaman siap
 window.onload = function() {
-  terapkanSistemTema();
-  evaluasiVisualModeMalam();
-  muatDataDariOffline();
   sinkronisasiData();
 };
 
@@ -168,7 +170,15 @@ function muatDataDariOffline() {
     try {
       globalKampus = JSON.parse(kampusCache);
       updateKampusUI();
-    } catch(e) { console.error("Gagal membaca cache lokal:", e); }
+    } catch(e) { 
+      console.error("Gagal membaca cache lokal:", e); 
+    }
+  } else {
+    // Jika benar-benar kosong (pertama kali dibuka), tampilkan pesan ramah ini
+    const container = document.getElementById("daftar-kampus-konten");
+    if (container) {
+      container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Memuat data awal...</p>`;
+    }
   }
 }
 
@@ -186,7 +196,7 @@ async function sinkronisasiData() {
       updateKampusUI();
     }
   } catch(e) {
-    console.warn("Gagal terhubung ke Google Apps Script saat memuat data.");
+    console.warn("Sinkronisasi latar belakang tertunda.");
   }
 }
 
@@ -211,8 +221,13 @@ function updateKampusUI() {
     if (item.tanggal) {
       try {
         const dObj = new Date(item.tanggal);
-        tglFormatted = isNaN(dObj.getTime()) ? item.tanggal : dObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
-      } catch(err) { tglFormatted = item.tanggal; }
+        // Menambahkan parameter 'weekday: long' untuk menampilkan nama hari (contoh: Senin, 1 Jan 2025)
+        tglFormatted = isNaN(dObj.getTime()) 
+          ? item.tanggal 
+          : dObj.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'short', year: 'numeric'});
+      } catch(err) { 
+        tglFormatted = item.tanggal; 
+      }
     }
 
     const div = document.createElement("div");
@@ -224,7 +239,7 @@ function updateKampusUI() {
       </div>
       <div class="flex justify-between text-slate-500 dark:text-slate-400 text-[8px]">
         <span>📍 ${item.tempat || '-'}</span>
-        <span class="font-bold">${tglFormatted}</span>
+        <span class="font-bold text-slate-600 dark:text-slate-300">${tglFormatted}</span>
       </div>
     `;
     container.appendChild(div);
@@ -260,7 +275,6 @@ async function simpanAgendaKampus(event) {
     
     const result = await response.json();
     if (result.status === "success") {
-      // Masukkan ke state lokal untuk tampilan instan
       globalKampus.push({
         tanggal: tanggal,
         jam: jam,
@@ -278,7 +292,6 @@ async function simpanAgendaKampus(event) {
     console.error("Gagal mengirim agenda:", e);
     alert("Gagal terhubung dengan server. Data disimpan secara offline sementara.");
     
-    // Cadangan penyimpanan luring
     globalKampus.push({
       tanggal: tanggal,
       jam: jam,
