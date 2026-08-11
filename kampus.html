@@ -386,29 +386,30 @@ async function simpanAgendaKampus(event) {
   };
 
   try {
+    // Menggunakan POST dengan mode redirect follow & text/plain agar bebas dari masalah CORS pre-flight
     const response = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify(payload)
+      mode: "cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(payload),
+      redirect: "follow"
     });
     
     const result = await response.json();
     if (result.status === "success") {
-      globalKampus.push({
-        tanggal: tanggal,
-        jam: jam,
-        namaKegiatan: namaKegiatan,
-        tempat: tempat
-      });
-      localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
-      updateKampusUI();
+      // Refresh sinkronisasi ulang langsung dari Google Sheet
+      await sinkronisasiData();
+      
       document.getElementById("form-kampus").reset();
-      alert("Agenda kampus berhasil terkirim ke Google Sheet!");
+      alert("Agenda kampus berhasil terkirim dan disinkronkan!");
     } else {
       alert("Gagal mengirim: " + (result.message || "Terjadi kesalahan server"));
     }
   } catch(e) {
     console.error("Gagal mengirim agenda:", e);
-    alert("Gagal terhubung dengan server. Data disimpan secara offline sementara.");
+    alert("Gagal terhubung dengan server. Menyimpan lokal sementara...");
     
     globalKampus.push({
       tanggal: tanggal,
