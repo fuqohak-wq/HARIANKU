@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Agenda Kampus - Fuqohak Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body { 
+font-family: 'Plus Jakarta Sans', sans-serif; 
+background: #070d19; 
+margin: 0; 
+padding: 0; 
+min-height: 100vh; 
+display: flex; 
+justify-content: center; 
+overflow-x: hidden; 
+}
+.app-container { 
+width: 100%; 
+max-width: 100%; 
+height: 100vh; 
+height: 100dvh; 
+background: #f1f5f9; 
+display: flex; 
+flex-direction: column; 
+justify-content: space-between; 
+gap: 10px; 
+padding: 16px; 
+overflow-y: auto; 
+position: relative; 
+box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 480px;
+  }
+}
+
+.dark-mode-bg { background: #050b14 !important; color: #f8fafc !important; }
+.dark-card { background: rgba(15, 23, 42, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.04) !important; color: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important; }
+.glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+</style>
+</head>
+<body>
+
+<div id="main-app" class="app-container shadow-2xl transition-all duration-500">
+
+  <!-- HEADER -->
+  <div id="header-gradient" class="p-3 rounded-2xl shadow-md relative text-white flex justify-between items-center shrink-0" style="background: linear-gradient(135deg, #1e56e3 0%, #0369a1 100%);">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">🏫</span>
+      <div>
+        <h1 class="text-xs font-extrabold tracking-tight">Agenda Kampus</h1>
+        <p class="text-[7.5px] font-bold text-slate-200 uppercase tracking-widest">SINKRONISASI AKTIF</p>
+      </div>
+    </div>
+    <a href="index.html" class="bg-white/20 hover:bg-white/30 text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider transition active:scale-95">
+      ◀ KEMBALI
+    </a>
+  </div>
+
+  <!-- CONTAINER UTAMA -->
+  <div class="flex-1 overflow-y-auto space-y-4 pr-0.5">
+    
+    <!-- LIST AGENDA KAMPUS -->
+    <div class="glass-card p-3 rounded-2xl shadow-sm flex flex-col justify-between" id="card-daftar">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700/60 pb-1.5 mb-2">
+        <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">📅 Agenda Terdaftar</span>
+        <span id="badge-total" class="text-[7.5px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full">0 ITEM</span>
+      </div>
+      
+      <div id="daftar-kampus-konten" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+        <p class="text-[9px] text-slate-500 italic text-center py-4 animate-pulse">Menghubungkan & membaca data sheet...</p>
+      </div>
+    </div>
+
+    <!-- FORM INPUT AGENDA BARU -->
+    <div class="glass-card p-3 rounded-2xl shadow-sm border border-emerald-500/10" id="card-input">
+      <div class="border-b border-slate-100 dark:border-slate-700/60 pb-1.5 mb-2">
+        <span class="text-[8px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">✍️ Tambah Agenda Baru</span>
+      </div>
+      
+      <form id="form-kampus" onsubmit="simpanAgendaKampus(event)" class="space-y-2 text-[10px]">
+        <div>
+          <label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Tanggal Pelaksanaan</label>
+          <input type="date" id="k-tanggal" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        
+        <div>
+          <label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Jam Kegiatan</label>
+          <input type="text" id="k-jam" placeholder="Contoh: 08:00 - 10:00 WIB" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        
+        <div>
+          <label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Nama Kegiatan</label>
+          <input type="text" id="k-kegiatan" placeholder="Ujian Akhir Semester, Kelas Teori, Praktikum" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        
+        <div>
+          <label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Tempat / Lokasi</label>
+          <input type="text" id="k-tempat" placeholder="Lab Komputer, Ruang Aula Gedung D, Zoom" required class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 text-slate-800 dark:text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <button type="submit" id="btn-submit-kampus" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-[9px] py-2 rounded-lg uppercase tracking-wider mt-1.5 transition active:scale-95 shadow">
+          Kirim Ke Google Sheet
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- FOOTER STATUS -->
+  <div class="flex justify-between items-center text-[6px] font-mono text-slate-500 mt-2 shrink-0">
+    <span>SYSTEM: KAMPUS HUB FRAME</span>
+    <span class="text-emerald-500 flex items-center gap-0.5">
+      <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> SECURE SYNCED
+    </span>
+  </div>
+
+</div>
+
+<script>
+const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
+const API_URL = BASE_WEB_APP_URL;
+
+const KUMPULAN_TEMA = [
+"linear-gradient(135deg, #1e56e3 0%, #0369a1 100%)",
+"linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+"linear-gradient(135deg, #047857 0%, #059669 100%)"
+];
+
+let globalKampus = [];
+let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
+
+window.onload = function() {
+  terapkanSistemTema();
+  evaluasiVisualModeMalam();
+  muatDataDariOffline();
+  sinkronisasiData();
+};
+
+function terapkanSistemTema() {
+  const indexTema = Number(localStorage.getItem("pilihan_index_tema") || "0");
+  document.getElementById("header-gradient").style.background = KUMPULAN_TEMA[indexTema];
+}
+
+function evaluasiVisualModeMalam() {
+  const app = document.getElementById("main-app");
+  const listKartu = document.querySelectorAll(".glass-card");
+  if (modeMalamManual) {
+    app.classList.add("dark-mode-bg");
+    listKartu.forEach(function(k) { k.classList.add("dark-card"); });
+  } else {
+    app.classList.remove("dark-mode-bg");
+    listKartu.forEach(function(k) { k.classList.remove("dark-card"); });
+  }
+}
+
+function muatDataDariOffline() {
+  const kampusCache = localStorage.getItem("fuqohak_kampus_cache");
+  if (kampusCache) {
+    try {
+      globalKampus = JSON.parse(kampusCache);
+      updateKampusUI();
+    } catch(e) { console.error("Gagal membaca cache lokal:", e); }
+  }
+}
+
+async function sinkronisasiData() {
+  if (!API_URL || API_URL.includes("DISINI")) return;
+  try {
+    const controller = new AbortController();
+    const idTimeout = setTimeout(function() { controller.abort(); }, 8000);
+    const res = await fetch(API_URL, { signal: controller.signal });
+    clearTimeout(idTimeout);
+    const json = await res.json();
+    if (json.status === "success" && json.data && json.data.LIST_KAMPUS) {
+      globalKampus = json.data.LIST_KAMPUS;
+      localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+      updateKampusUI();
+    }
+  } catch(e) {
+    console.warn("Gagal terhubung ke Google Apps Script saat memuat data.");
+  }
+}
+
+function updateKampusUI() {
+  const container = document.getElementById("daftar-kampus-konten");
+  const badgeTotal = document.getElementById("badge-total");
+  if (!container) return;
+
+  badgeTotal.innerText = globalKampus.length + " ITEM";
+
+  if (!globalKampus || globalKampus.length === 0) {
+    container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Tidak ada agenda kampus terjadwal.</p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  // Urutkan dari yang terbaru di atas
+  const listTampilkan = [].concat(globalKampus).reverse();
+  
+  listTampilkan.forEach(function(item) {
+    let tglFormatted = "-";
+    if (item.tanggal) {
+      try {
+        const dObj = new Date(item.tanggal);
+        tglFormatted = isNaN(dObj.getTime()) ? item.tanggal : dObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+      } catch(err) { tglFormatted = item.tanggal; }
+    }
+
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] space-y-1";
+    div.innerHTML = `
+      <div class="flex justify-between items-start gap-1">
+        <span class="font-extrabold text-amber-500 dark:text-amber-300 text-[9.5px] line-clamp-2">${item.namaKegiatan || 'Kegiatan Tanpa Nama'}</span>
+        <span class="text-[7.5px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded shrink-0">${item.jam || '-'}</span>
+      </div>
+      <div class="flex justify-between text-slate-500 dark:text-slate-400 text-[8px]">
+        <span>📍 ${item.tempat || '-'}</span>
+        <span class="font-bold">${tglFormatted}</span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function simpanAgendaKampus(event) {
+  event.preventDefault();
+  const btn = document.getElementById("btn-submit-kampus");
+  const oldText = btn.innerText;
+  
+  btn.innerText = "MENGIRIM...";
+  btn.disabled = true;
+
+  const tanggal = document.getElementById("k-tanggal").value;
+  const jam = document.getElementById("k-jam").value;
+  const namaKegiatan = document.getElementById("k-kegiatan").value;
+  const tempat = document.getElementById("k-tempat").value;
+
+  const payload = {
+    aksi: "tambahKampus",
+    tanggal: tanggal,
+    jam: jam,
+    namaKegiatan: namaKegiatan,
+    tempat: tempat
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (result.status === "success") {
+      // Masukkan ke state lokal untuk performa instan
+      globalKampus.push({
+        tanggal: tanggal,
+        jam: jam,
+        namaKegiatan: namaKegiatan,
+        tempat: tempat
+      });
+      localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+      updateKampusUI();
+      document.getElementById("form-kampus").reset();
+      alert("Agenda kampus berhasil terkirim ke Google Sheet!");
+    } else {
+      alert("Gagal mengirim: " + (result.message || "Terjadi kesalahan server"));
+    }
+  } catch(e) {
+    console.error("Gagal mengirim agenda:", e);
+    alert("Gagal terhubung dengan server. Agenda disimpan lokal sementara.");
+    
+    // Cadangan penyimpanan luring
+    globalKampus.push({
+      tanggal: tanggal,
+      jam: jam,
+      namaKegiatan: namaKegiatan,
+      tempat: tempat
+    });
+    localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+    updateKampusUI();
+    document.getElementById("form-kampus").reset();
+  } finally {
+    btn.innerText = oldText;
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
