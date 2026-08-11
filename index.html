@@ -475,6 +475,7 @@ Buka Dashboard Bekerja ➔
 </div>
 
 <script>
+// 1. DEKLARASI KONSTANTA DAN VARIABEL GLOBAL (DI LETAKKAN DI PALING ATAS SCRIPT)
 const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
 const PERSONAL_AI_URL = "/api/nasehat";
 
@@ -533,7 +534,12 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-// Eksekusi pemuatan data awal dari cache secara sinkronous
+// Variabel asisten AI yang sebelumnya diletakkan di bawah dipindahkan ke sini
+let daftarPotonganKalimat = [];
+let indeksKalimatAktif = 0;
+let intervalRotasiKalimat = null;
+
+// 2. PROSES INISIALISASI INSTAN (SECARA SINKRON)
 initWaterLocal();
 tentukanKalenderDasar();
 terapkanSistemTema();
@@ -541,6 +547,7 @@ evaluasiVisualModeMalam();
 muatDataDariOffline(); 
 inisialisasiRotasiNasehatLokal();
 
+// 3. WINDOW ONLOAD UNTUK OPERASI LATAR BELAKANG
 window.onload = function() {
   muatNasehatLatarBelakang();
   sinkronisasiDataLatarBelakangLegacy();
@@ -548,6 +555,7 @@ window.onload = function() {
   daftarkanServiceWorker();
 };
 
+// 4. DAFTAR FUNGSI PENDUKUNG
 function sinkronisasiDataLatarBelakangLegacy() {
   loadDashboard().catch(function(e) {
     console.warn("Gagal memuat dasbor:", e);
@@ -1066,10 +1074,6 @@ function buildLineChart(riwayat) {
   <path d="${pathD}" fill="none" stroke="url(#gradien-stroke-energetic)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
   `;
 }
-
-let daftarPotonganKalimat = [];
-let indeksKalimatAktif = 0;
-let intervalRotasiKalimat = null;
 
 function pecahNasehatMenjadiPotonganPas(daftarNasehat) {
   let hasilPotongan = [];
