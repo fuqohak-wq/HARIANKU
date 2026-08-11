@@ -72,7 +72,6 @@ box-sizing: border-box;
         <span id="badge-total" class="text-[7.5px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full">0 ITEM</span>
       </div>
       
-      <!-- Konten daftar langsung kosong di awal, akan diisi instan oleh cache lokal -->
       <div id="daftar-kampus-konten" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
     </div>
 
@@ -134,12 +133,11 @@ const KUMPULAN_TEMA = [
 let globalKampus = [];
 let modeMalamManual = localStorage.getItem("manual_dark_mode") === "true";
 
-// JALANKAN LANGSUNG: Memuat data dari cache lokal secara instan tanpa menunggu window.onload
+// Proses inisialisasi awal tanpa delay loading screen
 terapkanSistemTema();
 evaluasiVisualModeMalam();
 muatDataDariOffline();
 
-// Sinkronisasi data di latar belakang setelah seluruh halaman siap
 window.onload = function() {
   sinkronisasiData();
 };
@@ -174,10 +172,9 @@ function muatDataDariOffline() {
       console.error("Gagal membaca cache lokal:", e); 
     }
   } else {
-    // Jika benar-benar kosong (pertama kali dibuka), tampilkan pesan ramah ini
     const container = document.getElementById("daftar-kampus-konten");
     if (container) {
-      container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Memuat data awal...</p>`;
+      container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Belum ada data tersimpan.</p>`;
     }
   }
 }
@@ -200,33 +197,64 @@ async function sinkronisasiData() {
   }
 }
 
+/**
+ * Parsing string tanggal format YYYY-MM-DD ke objek Date lokal untuk mencegah selisih zona waktu
+ */
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+  return new Date(dateStr);
+}
+
 function updateKampusUI() {
   const container = document.getElementById("daftar-kampus-konten");
   const badgeTotal = document.getElementById("badge-total");
   if (!container) return;
 
-  badgeTotal.innerText = globalKampus.length + " ITEM";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset waktu ke pukul 00:00 hari ini
 
-  if (!globalKampus || globalKampus.length === 0) {
-    container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Tidak ada agenda kampus terjadwal.</p>`;
+  // 1. FILTER: Hanya menampilkan tanggal hari ini dan hari yang akan datang (menyembunyikan tanggal lewat)
+  let listTampilkan = globalKampus.filter(function(item) {
+    if (!item.tanggal) return false;
+    const dObj = parseLocalDate(item.tanggal);
+    if (!dObj || isNaN(dObj.getTime())) return false;
+    dObj.setHours(0, 0, 0, 0);
+    return dObj >= today; 
+  });
+
+  // 2. SORT: Mengurutkan dari tanggal yang paling dekat dengan hari ini ke yang paling jauh di masa depan
+  listTampilkan.sort(function(a, b) {
+    const dateA = parseLocalDate(a.tanggal);
+    const dateB = parseLocalDate(b.tanggal);
+    return dateA - dateB;
+  });
+
+  badgeTotal.innerText = listTampilkan.length + " ITEM";
+
+  if (listTampilkan.length === 0) {
+    container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Tidak ada agenda kampus terdekat.</p>`;
     return;
   }
 
   container.innerHTML = "";
-  // Urutkan dari yang terbaru di atas
-  const listTampilkan = [].concat(globalKampus).reverse();
   
   listTampilkan.forEach(function(item) {
     let tglFormatted = "-";
     if (item.tanggal) {
-      try {
-        const dObj = new Date(item.tanggal);
-        // Menambahkan parameter 'weekday: long' untuk menampilkan nama hari (contoh: Senin, 1 Jan 2025)
-        tglFormatted = isNaN(dObj.getTime()) 
-          ? item.tanggal 
-          : dObj.toLocaleDateString('id-ID', {weekday: 'long', day: 'numeric', month: 'short', year: 'numeric'});
-      } catch(err) { 
-        tglFormatted = item.tanggal; 
+      const dObj = parseLocalDate(item.tanggal);
+      if (dObj && !isNaN(dObj.getTime())) {
+        tglFormatted = dObj.toLocaleDateString('id-ID', {
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'short', 
+          year: 'numeric'
+        });
+      } else {
+        tglFormatted = item.tanggal;
       }
     }
 
