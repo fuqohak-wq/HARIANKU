@@ -533,16 +533,16 @@ let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
 
-window.onload = function() {
-  initWaterLocal();
-  tentukanKalenderDasar();
-  terapkanSistemTema();
-  evaluasiVisualModeMalam();
-  
-  muatDataDariOffline(); 
-  inisialisasiRotasiNasehatLokal();
-  muatNasehatLatarBelakang();
+// Eksekusi pemuatan data awal dari cache secara sinkronous
+initWaterLocal();
+tentukanKalenderDasar();
+terapkanSistemTema();
+evaluasiVisualModeMalam();
+muatDataDariOffline(); 
+inisialisasiRotasiNasehatLokal();
 
+window.onload = function() {
+  muatNasehatLatarBelakang();
   sinkronisasiDataLatarBelakangLegacy();
   setInterval(sinkronisasiDataLatarBelakangLegacy, 25000);
   daftarkanServiceWorker();
@@ -601,6 +601,34 @@ function initWaterLocal() {
   }
 }
 
+/**
+ * Parsing tanggal lokal agar tidak tergeser akibat perbedaan timezone browser
+ */
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+  return new Date(dateStr);
+}
+
+/**
+ * Menghitung jumlah agenda kampus aktif (hari ini dan yang akan datang)
+ */
+function hitungKampusAktif(list) {
+  if (!list || !Array.isArray(list)) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return list.filter(function(item) {
+    if (!item.tanggal) return false;
+    const dObj = parseLocalDate(item.tanggal);
+    if (!dObj || isNaN(dObj.getTime())) return false;
+    dObj.setHours(0, 0, 0, 0);
+    return dObj >= today;
+  }).length;
+}
+
 function muatDataDariOffline() {
 const cacheData = localStorage.getItem("fuqohak_tracker_cache");
 if (cacheData) {
@@ -623,7 +651,7 @@ const kampusCache = localStorage.getItem("fuqohak_kampus_cache");
 if (kampusCache) {
 try {
 globalKampus = JSON.parse(kampusCache);
-document.getElementById("badge-kampus").innerText = globalKampus.length;
+document.getElementById("badge-kampus").innerText = hitungKampusAktif(globalKampus);
 } catch(e) { console.error("Cache kampus gagal dimuat:", e); }
 }
 }
@@ -820,7 +848,6 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 globalTasks = data["LIST_TUGAS"] || [];
 globalKampus = data["LIST_KAMPUS"] || [];
 
-// Prioritaskan cache riil dari ceramah.html
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -918,9 +945,9 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Update badge kampus harian dari sheet KAMPUS
-document.getElementById("badge-kampus").innerText = globalKampus.length;
+// Update badge kampus harian dari sheet KAMPUS dengan filter aktif
 localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+document.getElementById("badge-kampus").innerText = hitungKampusAktif(globalKampus);
 
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
