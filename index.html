@@ -55,7 +55,7 @@ box-sizing: border-box;
 .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
 .scroll-ai::-webkit-scrollbar { width: 3px; }
 .scroll-ai::-webkit-scrollbar-thumb { background: rgba(147, 51, 234, 0.3); border-radius: 9px; }
-#ai-result-modal, #keuangan-modal, #english-modal { 
+#ai-result-modal, #keuangan-modal, #english-modal, #kampus-modal { 
 display: none; 
 position: fixed; 
 inset: 0; 
@@ -235,22 +235,24 @@ top: 100%;
 </div>
 </div>
 
-<!-- CERAMAH & TUGAS -->
-<div class="grid grid-cols-2 gap-1.5 shrink-0">
-<a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-ceramah">
-<div class="flex items-center gap-1">
+<!-- CERAMAH, KAMPUS & TUGAS -->
+<div class="grid grid-cols-3 gap-1.5 shrink-0">
+<a href="ceramah.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-ceramah">
 <span class="text-[10px]">🎤</span>
-<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Jadwal Ceramah</span>
-</div>
-<span id="badge-ceramah" class="text-[7.5px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md">0</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Ceramah</span>
+<span id="badge-ceramah" class="text-[7px] font-black bg-rose-100 text-rose-700 px-1.5 rounded-md mt-1">0</span>
 </a>
 
-<a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex justify-between items-center" id="card-todolist">
-<div class="flex items-center gap-1">
-<span class="text-[10px]">📋</span>
-<span class="text-[8px] font-bold text-slate-600 dark:text-slate-300">Daftar Tugas</span>
+<div onclick="bukaModalKampus()" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-kampus">
+<span class="text-[10px]">🏫</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Kampus</span>
+<span id="badge-kampus" class="text-[7px] font-black bg-emerald-100 text-emerald-700 px-1.5 rounded-md mt-1">0</span>
 </div>
-<span id="badge-tugas" class="text-[7.5px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md">0</span>
+
+<a href="tugas.html" class="glass-card p-1.5 rounded-xl shadow-sm cursor-pointer hover:scale-[1.01] active:scale-95 transition flex flex-col justify-between items-center text-center" id="card-todolist">
+<span class="text-[10px]">📋</span>
+<span class="text-[7.5px] font-bold text-slate-600 dark:text-slate-300">Tugas</span>
+<span id="badge-tugas" class="text-[7px] font-black bg-indigo-100 text-indigo-700 px-1.5 rounded-md mt-1">0</span>
 </a>
 </div>
 
@@ -332,6 +334,59 @@ Menghubungkan satelit harian...
 </div>
 </div>
 
+</div>
+
+<!-- MODAL KAMPUS (AGENDA & INPUT) -->
+<div id="kampus-modal" onclick="tutupModalKampus()">
+<div class="full-modal-content" onclick="event.stopPropagation()">
+<div class="flex-1 overflow-y-auto space-y-3">
+<div class="text-center border-b border-white/10 pb-2">
+<span class="text-xl">🏫</span>
+<h3 class="text-xs font-black text-white mt-1">Agenda & Kegiatan Kampus</h3>
+<p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">INTEGRASI REAL-TIME SHEET</p>
+</div>
+
+<div class="grid grid-cols-1 gap-4">
+<!-- PANEL ATAS: TAMPIL JADWAL -->
+<div class="space-y-2">
+<p class="text-[8px] text-slate-400 font-bold uppercase tracking-wider">📅 Agenda Kampus Mendatang:</p>
+<div id="daftar-kampus-konten" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+<p class="text-[9px] text-slate-500 italic text-center py-4 animate-pulse">Menghubungkan & membaca agenda kampus...</p>
+</div>
+</div>
+
+<!-- PANEL BAWAH: FORM INPUT -->
+<div class="bg-white/5 p-2.5 rounded-xl border border-white/10 space-y-2">
+<p class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">✍️ Tambah Agenda Baru:</p>
+<form id="form-kampus" onsubmit="simpanAgendaKampus(event)" class="space-y-1.5 text-xs text-slate-200">
+<div>
+<label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Tanggal</label>
+<input type="date" id="k-tanggal" required class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-white focus:outline-none focus:border-emerald-500">
+</div>
+<div>
+<label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Jam</label>
+<input type="text" id="k-jam" placeholder="Contoh: 08:00 - 10:00" required class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-white focus:outline-none focus:border-emerald-500">
+</div>
+<div>
+<label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Nama Kegiatan</label>
+<input type="text" id="k-kegiatan" placeholder="Ujian Akhir, Praktikum, Kelas" required class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-white focus:outline-none focus:border-emerald-500">
+</div>
+<div>
+<label class="block text-[7px] font-bold text-slate-400 uppercase mb-0.5">Tempat</label>
+<input type="text" id="k-tempat" placeholder="Lab Komputer, Gd. C, R.302" required class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-white focus:outline-none focus:border-emerald-500">
+</div>
+<button type="submit" id="btn-submit-kampus" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[9px] py-1.5 rounded uppercase tracking-wider mt-1 transition">
+Kirim Ke Google Sheet
+</button>
+</form>
+</div>
+</div>
+</div>
+
+<div class="space-y-1.5 mt-2">
+<button onclick="tutupModalKampus()" class="w-full bg-slate-800 text-slate-300 font-black text-[10px] py-2 rounded-lg uppercase">TUTUP</button>
+</div>
+</div>
 </div>
 
 <!-- MODAL ENGLISH HUB -->
@@ -514,6 +569,7 @@ let dataAnalisaMakanTerakhir = null;
 
 let globalTasks = [];
 let globalCeramah = [];
+let globalKampus = [];
 let globalRutinitas = [];
 let globalKeuangan = { saldo: 0, pemasukan: 0, pengeluaran: 0, transaksi: FALLBACK_FINANCE_ROWS };
 let currentMoodStatus = "STABIL";
@@ -614,6 +670,14 @@ updateFinanceUI();
 } catch(e) { console.error("Cache finansial gagal dimuat:", e); }
 } else {
 updateFinanceUI();
+}
+
+const kampusCache = localStorage.getItem("fuqohak_kampus_cache");
+if (kampusCache) {
+try {
+globalKampus = JSON.parse(kampusCache);
+document.getElementById("badge-kampus").innerText = globalKampus.length;
+} catch(e) { console.error("Cache kampus gagal dimuat:", e); }
 }
 }
 
@@ -807,8 +871,9 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 }
 
 globalTasks = data["LIST_TUGAS"] || [];
+globalKampus = data["LIST_KAMPUS"] || [];
 
-// AKURASI 100%: Selalu prioritaskan cache riil dari ceramah.html
+// Prioritaskan cache riil dari ceramah.html
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -906,7 +971,10 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Menghitung sisa tugas aktif secara presisi
+// Update badge kampus harian
+document.getElementById("badge-kampus").innerText = globalKampus.length;
+localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(t.rowId || t.ROWID || "");
@@ -916,7 +984,6 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Menghitung sisa ceramah aktif secara presisi berdasarkan cache aktual (Output: 7)
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
   const rowIdVal = String(c.rowId || c.ROWID || "");
@@ -1253,6 +1320,118 @@ let saatIni = Number(localStorage.getItem("pilihan_index_tema") || "0");
 saatIni = (saatIni + 1) % KUMPULAN_TEMA.length;
 localStorage.setItem("pilihan_index_tema", saatIni);
 terapkanSistemTema();
+}
+
+// FUNGSI UNTUK MODAL KAMPUS
+function bukaModalKampus() {
+  updateKampusUI();
+  document.getElementById("kampus-modal").style.display = "flex";
+}
+
+function tutupModalKampus() {
+  document.getElementById("kampus-modal").style.display = "none";
+}
+
+function updateKampusUI() {
+  const container = document.getElementById("daftar-kampus-konten");
+  if (!container) return;
+
+  if (!globalKampus || globalKampus.length === 0) {
+    container.innerHTML = `<p class="text-[9px] text-slate-500 italic text-center py-4">Tidak ada agenda kampus terjadwal.</p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  // Mengurutkan agenda berdasarkan pendaftaran terbaru ke terlama
+  const listTampilkan = [].concat(globalKampus).reverse();
+  
+  listTampilkan.forEach(function(item) {
+    let tglFormatted = "-";
+    if (item.tanggal) {
+      try {
+        const dObj = new Date(item.tanggal);
+        tglFormatted = isNaN(dObj.getTime()) ? item.tanggal : dObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+      } catch(err) { tglFormatted = item.tanggal; }
+    }
+
+    const div = document.createElement("div");
+    div.className = "bg-white/5 border border-white/5 rounded-xl p-2 text-[9px] space-y-1";
+    div.innerHTML = `
+      <div class="flex justify-between items-start gap-1">
+        <span class="font-extrabold text-amber-300 text-[10px] line-clamp-2">${item.namaKegiatan || 'Kegiatan Tanpa Nama'}</span>
+        <span class="text-[7.5px] font-mono text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded shrink-0">${item.jam || '-'}</span>
+      </div>
+      <div class="flex justify-between text-slate-400 text-[8px]">
+        <span>📍 ${item.tempat || '-'}</span>
+        <span class="font-bold text-slate-300">${tglFormatted}</span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function simpanAgendaKampus(event) {
+  event.preventDefault();
+  const btn = document.getElementById("btn-submit-kampus");
+  const oldText = btn.innerText;
+  
+  btn.innerText = "MENGIRIM...";
+  btn.disabled = true;
+
+  const tanggal = document.getElementById("k-tanggal").value;
+  const jam = document.getElementById("k-jam").value;
+  const namaKegiatan = document.getElementById("k-kegiatan").value;
+  const tempat = document.getElementById("k-tempat").value;
+
+  const payload = {
+    aksi: "tambahKampus",
+    tanggal: tanggal,
+    jam: jam,
+    namaKegiatan: namaKegiatan,
+    tempat: tempat
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (result.status === "success") {
+      // Masukkan ke array lokal secara instan untuk mempercepat umpan balik visual
+      globalKampus.push({
+        tanggal: tanggal,
+        jam: jam,
+        namaKegiatan: namaKegiatan,
+        tempat: tempat
+      });
+      localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+      document.getElementById("badge-kampus").innerText = globalKampus.length;
+      updateKampusUI();
+      document.getElementById("form-kampus").reset();
+      alert("Agenda berhasil disimpan ke Google Sheet!");
+    } else {
+      alert("Gagal mengirim: " + (result.message || "Terjadi kesalahan server"));
+    }
+  } catch(e) {
+    console.error("Gagal mengirim agenda:", e);
+    alert("Gagal terhubung dengan server. Data disimpan lokal sementara.");
+    
+    // Cadangan penyimpanan luring
+    globalKampus.push({
+      tanggal: tanggal,
+      jam: jam,
+      namaKegiatan: namaKegiatan,
+      tempat: tempat
+    });
+    localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
+    document.getElementById("badge-kampus").innerText = globalKampus.length;
+    updateKampusUI();
+    document.getElementById("form-kampus").reset();
+  } finally {
+    btn.innerText = oldText;
+    btn.disabled = false;
+  }
 }
 </script>
 </body>
