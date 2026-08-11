@@ -198,25 +198,93 @@ async function sinkronisasiData() {
 }
 
 /**
- * Parsing tanggal lokal agar tidak tergeser akibat perbedaan timezone browser
+ * Normalisasi data kampus untuk memastikan kompabilitas penamaan variabel
  */
-function parseLocalDate(dateStr) {
-  if (!dateStr) return null;
-  const parts = dateStr.split("-");
-  if (parts.length === 3) {
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-  }
-  return new Date(dateStr);
+function normalizeKampusItem(item) {
+  if (!item) return {};
+  
+  const getProp = (obj, keys) => {
+    for (let k of keys) {
+      if (obj[k] !== undefined) return obj[k];
+      for (let rawKey in obj) {
+        const cleanRaw = rawKey.toLowerCase().replace(/[\s_\-\(\)\/]/g, "");
+        const cleanK = k.toLowerCase().replace(/[\s_\-\(\)\/]/g, "");
+        if (cleanRaw === cleanK && obj[rawKey] !== undefined) {
+          return obj[rawKey];
+        }
+      }
+    }
+    return "";
+  };
+
+  const tanggal = getProp(item, ["tanggal", "TANGGAL", "date", "DATE"]);
+  const jam = getProp(item, ["jam", "JAM", "time", "TIME", "waktu", "WAKTU"]);
+  const namaKegiatan = getProp(item, ["namaKegiatan", "nama_kegiatan", "NAMA KEGIATAN", "kegiatan", "KEGIATAN", "nama", "NAMA", "tema", "TEMA"]);
+  const tempat = getProp(item, ["tempat", "TEMPAT", "lokasi", "LOKASI", "ruangan", "RUANGAN"]);
+  const rowId = getProp(item, ["rowId", "rowid", "ROWID", "id", "ID"]);
+
+  return {
+    rowId: rowId,
+    tanggal: tanggal,
+    jam: jam,
+    namaKegiatan: namaKegiatan,
+    tempat: tempat
+  };
 }
 
 /**
- * Mengubah string waktu (seperti "8:00", "10:00", atau "08:00 - 10:00 WIB") 
- * menjadi angka menit untuk keperluan sortir.
+ * Parsing tanggal secara aman untuk menghindari error format bahasa lokal
+ */
+function safeParseDate(dateStr) {
+  if (!dateStr) return null;
+  
+  // 1. Format standar ISO (yyyy-MM-dd)
+  if (typeof dateStr === "string" && dateStr.includes("-")) {
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      const yr = Number(parts[0]);
+      const mo = Number(parts[1]) - 1;
+      const dy = Number(parts[2]);
+      if (!isNaN(yr) && !isNaN(mo) && !isNaN(dy)) {
+        return new Date(yr, mo, dy);
+      }
+    }
+  }
+  
+  // 2. Format standar Date browser
+  const d = new Date(dateStr);
+  if (d && !isNaN(d.getTime())) {
+    return d;
+  }
+  
+  // 3. Konversi manual untuk format teks Indonesia (contoh: "Rabu, 12 Agu 2026")
+  try {
+    const cleanStr = String(dateStr).toLowerCase();
+    const monthsIndo = ["jan", "peb", "mar", "apr", "mei", "jun", "jul", "agu", "sep", "okt", "nov", "des"];
+    
+    const match = cleanStr.match(/(\d{1,2})\s+([a-z]{3})[a-z]*\s+(\d{4})/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const monthIndoStr = match[2];
+      const year = parseInt(match[3], 10);
+      
+      const monthIdx = monthsIndo.findIndex(m => monthIndoStr.startsWith(m));
+      if (monthIdx !== -1) {
+        return new Date(year, monthIdx, day);
+      }
+    }
+  } catch(e) {
+    console.warn("Manual parsing tertunda:", e);
+  }
+
+  return null;
+}
+
+/**
+ * Mengubah string waktu menjadi angka menit untuk keperluan sortir.
  */
 function parseTimeToMinutes(timeStr) {
-  if (!timeStr) return 9999; // Jika kosong, letakkan di urutan paling bawah
-  
-  // Deteksi angka jam dan menit pertama yang ditemukan pada teks
+  if (!timeStr) return 9999;
   const match = timeStr.match(/(\d{1,2}):(\d{2})/);
   if (match) {
     const hours = parseInt(match[1], 10);
@@ -231,30 +299,25 @@ function updateKampusUI() {
   const badgeTotal = document.getElementById("badge-total");
   if (!container) return;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // 1. FILTER: Abaikan agenda yang sudah lewat
-  let listTampilkan = globalKampus.filter(function(item) {
-    if (!item.tanggal) return false;
-    const dObj = parseLocalDate(item.tanggal);
-    if (!dObj || isNaN(dObj.getTime())) return false;
-    dObj.setHours(0, 0, 0, 0);
-    return dObj >= today; 
+  // Normalisasi data untuk menjamin validitas penulisan variabel
+  let listTampilkan = (globalKampus || []).map(normalizeKampusItem).filter(function(item) {
+    return item.namaKegiatan || item.tanggal;
   });
 
-  // 2. SORT: Urutkan berdasarkan tanggal terdekat, lalu berdasarkan jam mulainya
+  // Urutkan berdasarkan tanggal terdekat, lalu berdasarkan jam mulai
   listTampilkan.sort(function(a, b) {
-    const dateA = parseLocalDate(a.tanggal);
-    const dateB = parseLocalDate(b.tanggal);
+    const dateA = safeParseDate(a.tanggal);
+    const dateB = safeParseDate(b.tanggal);
     
-    // Bandingkan tanggal utama
-    const selisihTanggal = dateA - dateB;
-    if (selisihTanggal !== 0) {
-      return selisihTanggal;
+    if (dateA && dateB) {
+      const selisihTanggal = dateA - dateB;
+      if (selisihTanggal !== 0) return selisihTanggal;
+    } else if (dateA) {
+      return -1;
+    } else if (dateB) {
+      return 1;
     }
     
-    // Jika tanggal sama, bandingkan berdasarkan waktu (jam) mulai kegiatan
     const menitA = parseTimeToMinutes(a.jam);
     const menitB = parseTimeToMinutes(b.jam);
     return menitA - menitB;
@@ -272,7 +335,7 @@ function updateKampusUI() {
   listTampilkan.forEach(function(item) {
     let tglFormatted = "-";
     if (item.tanggal) {
-      const dObj = parseLocalDate(item.tanggal);
+      const dObj = safeParseDate(item.tanggal);
       if (dObj && !isNaN(dObj.getTime())) {
         tglFormatted = dObj.toLocaleDateString('id-ID', {
           weekday: 'long', 
@@ -281,7 +344,7 @@ function updateKampusUI() {
           year: 'numeric'
         });
       } else {
-        tglFormatted = item.tanggal;
+        tglFormatted = item.tanggal; 
       }
     }
 
