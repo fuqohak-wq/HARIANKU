@@ -183,17 +183,24 @@ async function sinkronisasiData() {
   if (!API_URL || API_URL.includes("DISINI")) return;
   try {
     const controller = new AbortController();
-    const idTimeout = setTimeout(function() { controller.abort(); }, 8000);
+    const idTimeout = setTimeout(function() { controller.abort(); }, 10000);
+    
+    // Panggil GET Web App
     const res = await fetch(API_URL, { signal: controller.signal });
     clearTimeout(idTimeout);
+    
     const json = await res.json();
+    console.log("Response dari Server Apps Script:", json);
+
     if (json.status === "success" && json.data && json.data.LIST_KAMPUS) {
       globalKampus = json.data.LIST_KAMPUS;
       localStorage.setItem("fuqohak_kampus_cache", JSON.stringify(globalKampus));
       updateKampusUI();
+    } else if (json.status === "error") {
+      console.error("Error dari Apps Script:", json.message);
     }
   } catch(e) {
-    console.warn("Sinkronisasi latar belakang tertunda.");
+    console.warn("Sinkronisasi gagal/tertunda:", e);
   }
 }
 
