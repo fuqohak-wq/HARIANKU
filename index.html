@@ -826,7 +826,7 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 
 globalTasks = data["LIST_TUGAS"] || [];
 
-// Prioritas cache lokal untuk kelancaran visual
+// Membaca data Ceramah dari cache lokal jika tersedia
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -838,10 +838,14 @@ if (localCeramah) {
   globalCeramah = data["LIST_CERAMAH"] || [];
 }
 
+// Membaca data Kampus dari cache lokal jika tersedia (agar tersinkronisasi dengan kampus.html)
 const localKampus = localStorage.getItem("fuqohak_kampus_cache");
 if (localKampus) {
   try {
     globalKampus = JSON.parse(localKampus);
+    if (!Array.isArray(globalKampus)) {
+      globalKampus = data["LIST_KAMPUS"] || [];
+    }
   } catch(e) {
     globalKampus = data["LIST_KAMPUS"] || [];
   }
@@ -852,8 +856,8 @@ if (localKampus) {
 globalRutinitas = data["RUTINITAS"] || [];
 
 globalTasks.forEach(function(item) {
-  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
-  const rowIdVal = String(item.rowId || item.ROWID || "");
+  const itemStatus = String(item.status || item.STATUS || item.Status || "BELUM").toUpperCase().trim();
+  const rowIdVal = String(item.rowId || item.ROWID || item.rowid || item.ID || item.id || "").trim();
   if (itemStatus === "SELESAI" && rowIdVal) {
     locallyCompletedTasks = locallyCompletedTasks.filter(function(id) {
       return id && id !== "NaN" && String(id) !== rowIdVal;
@@ -863,8 +867,8 @@ globalTasks.forEach(function(item) {
 localStorage.setItem("fuqohak_completed_tasks", JSON.stringify(locallyCompletedTasks));
 
 globalCeramah.forEach(function(item) {
-  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
-  const rowIdVal = String(item.rowId || item.ROWID || "");
+  const itemStatus = String(item.status || item.STATUS || item.Status || "BELUM").toUpperCase().trim();
+  const rowIdVal = String(item.rowId || item.ROWID || item.rowid || item.ID || item.id || "").trim();
   if (itemStatus === "SELESAI" && rowIdVal) {
     locallyCompletedCeramah = locallyCompletedCeramah.filter(function(id) {
       return id && id !== "NaN" && String(id) !== rowIdVal;
@@ -874,8 +878,8 @@ globalCeramah.forEach(function(item) {
 localStorage.setItem("fuqohak_completed_ceramah", JSON.stringify(locallyCompletedCeramah));
 
 globalKampus.forEach(function(item) {
-  const itemStatus = String(item.status || item.STATUS || "BELUM").toUpperCase();
-  const rowIdVal = String(item.rowId || item.ROWID || "");
+  const itemStatus = String(item.status || item.STATUS || item.Status || "BELUM").toUpperCase().trim();
+  const rowIdVal = String(item.rowId || item.ROWID || item.rowid || item.ID || item.id || "").trim();
   if (itemStatus === "SELESAI" && rowIdVal) {
     locallyCompletedKampus = locallyCompletedKampus.filter(function(id) {
       return id && id !== "NaN" && String(id) !== rowIdVal;
@@ -948,9 +952,10 @@ document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MEN
 
 // Menghitung sisa tugas aktif secara presisi
 const sisaTugasAktif = globalTasks.filter(function(t) {
-  const isBelum = String(t.status || t.STATUS || "BELUM").toUpperCase() === "BELUM";
-  const rowIdVal = String(t.rowId || t.ROWID || "");
-  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const statusString = String(t.status || t.STATUS || t.Status || "BELUM").toUpperCase().trim();
+  const isBelum = statusString === "BELUM" || statusString === "";
+  const rowIdVal = String(t.rowId || t.ROWID || t.rowid || t.ID || t.id || "").trim();
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined";
   const isLokalSelesai = hasValidId && locallyCompletedTasks.includes(rowIdVal);
   return isBelum && !isLokalSelesai;
 }).length;
@@ -958,9 +963,10 @@ document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
 // Menghitung sisa ceramah aktif secara presisi
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
-  const isBelum = String(c.status || c.STATUS || "BELUM").toUpperCase() === "BELUM";
-  const rowIdVal = String(c.rowId || c.ROWID || "");
-  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const statusString = String(c.status || c.STATUS || c.Status || "BELUM").toUpperCase().trim();
+  const isBelum = statusString === "BELUM" || statusString === "";
+  const rowIdVal = String(c.rowId || c.ROWID || c.rowid || c.ID || c.id || "").trim();
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined";
   const isLokalSelesai = hasValidId && locallyCompletedCeramah.includes(rowIdVal);
   return isBelum && !isLokalSelesai;
 }).length;
@@ -968,9 +974,10 @@ document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
 
 // Menghitung sisa agenda kampus aktif secara presisi
 const sisaKampusAktif = globalKampus.filter(function(k) {
-  const isBelum = String(k.status || k.STATUS || "BELUM").toUpperCase() === "BELUM";
-  const rowIdVal = String(k.rowId || k.ROWID || "");
-  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined" && rowIdVal.trim() !== "";
+  const statusString = String(k.status || k.STATUS || k.Status || "BELUM").toUpperCase().trim();
+  const isBelum = statusString === "BELUM" || statusString === "";
+  const rowIdVal = String(k.rowId || k.ROWID || k.rowid || k.ID || k.id || "").trim();
+  const hasValidId = rowIdVal && rowIdVal !== "NaN" && rowIdVal !== "undefined";
   const isLokalSelesai = hasValidId && locallyCompletedKampus.includes(rowIdVal);
   return isBelum && !isLokalSelesai;
 }).length;
