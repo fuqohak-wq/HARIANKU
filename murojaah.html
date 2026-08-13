@@ -24,7 +24,7 @@
 
     <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center">
         <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
-        <p class="text-sm mt-2 opacity-90">Sistem Anti-Gagal: Gunakan Perekam HP Anda untuk durasi panjang, lalu unggah di bawah.</p>
+        <p class="text-sm mt-2 opacity-90">Sistem Murojaah: Unggah file rekaman audio hafalan Anda untuk dianalisis oleh AI.</p>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 pb-12">
@@ -32,20 +32,20 @@
         <!-- TARGET SURAH HINT -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-4">
             <div class="space-y-1.5">
-                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block">🎯 Target Surah yang Dibaca Hari Ini (Sangat Membantu Akurasi AI):</label>
+                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block">🎯 Target Surah yang Dibaca Hari Ini (Membantu Akurasi AI):</label>
                 <input type="text" id="surahHint" placeholder="Contoh: Juz 30 lengkap, atau Sebagian Al-Baqarah ayat 183-200" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
             </div>
         </div>
 
-        <!-- FITUR UTAMA 1: UPLOAD FILE REKAMAN (UTAMA & REKOMENDASI) -->
+        <!-- FITUR UTAMA 1: UPLOAD FILE REKAMAN -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200 mb-8 space-y-4 relative overflow-hidden">
             <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow-sm">
-                Rekomendasi Utama (Anti Layar Mati)
+                Rekomendasi Utama
             </div>
             
             <div>
-                <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">🎵 Upload File Rekaman Eksternal (Hingga 1 Jam+)</h2>
-                <p class="text-xs text-gray-500 mt-1">Sangat disarankan! Rekam murojaah Anda menggunakan <strong>aplikasi perekam suara bawaan HP</strong> saat layar mati agar tidak terganggu batasan sistem browser, lalu unggah filenya di bawah ini.</p>
+                <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">🎵 Upload File Rekaman Eksternal</h2>
+                <p class="text-xs text-gray-500 mt-1">Rekam murojaah Anda menggunakan aplikasi perekam suara ponsel, lalu unggah filenya di bawah ini.</p>
             </div>
             
             <form id="uploadForm" class="space-y-4">
@@ -54,7 +54,7 @@
                     <div id="uploadPrompt" class="space-y-2">
                         <span class="text-4xl">📁</span>
                         <p class="text-sm text-gray-600 font-medium">Klik atau seret file audio rekamanmu ke sini</p>
-                        <p class="text-xs text-gray-400">Format yang didukung: MP3, M4A, WAV, dsb.</p>
+                        <p class="text-xs text-gray-400">Format: MP3, M4A, WAV, WebM, dsb.</p>
                     </div>
                     <div id="fileSelectedName" class="hidden text-sm text-emerald-600 font-semibold truncate"></div>
                 </div>
@@ -64,21 +64,28 @@
                 </button>
             </form>
 
+            <!-- INDIKATOR PROGRESS BAR PENGIRIMAN -->
+            <div id="progressContainer" class="hidden space-y-1.5 mt-4">
+                <div class="flex justify-between text-xs font-bold text-emerald-700">
+                    <span>⏳ Mengirim berkas audio ke server...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
+                    <div id="uploadProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
+                </div>
+            </div>
+
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
         </div>
 
-        <!-- FITUR UTAMA 2: ALAT PEREKAM LANGSUNG BROWSER (CADANGAN) -->
+        <!-- FITUR UTAMA 2: ALAT PEREKAM LANGSUNG BROWSER -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
             <div class="flex flex-wrap justify-between items-center border-b pb-3">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    🎙️ Alternatif: Perekam Langsung di Web Browser
+                    🎙️ Alternatif: Perekam Langsung di Browser
                 </h2>
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
-
-            <p class="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                ⚠️ <strong>PENTING:</strong> Sistem operasi ponsel (Android/iOS) akan mematikan mic jika layar Anda mati atau Anda membuka aplikasi lain selama menggunakan fitur rekam langsung di browser ini. Kami telah menambahkan fitur <strong>Wake-Lock</strong> otomatis agar layar HP Anda tetap menyala selama merekam.
-            </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
                 <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
@@ -96,7 +103,7 @@
             </div>
 
             <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-gray-400 block">Indikator Sinyal & Gerakan Suara Mic:</label>
+                <label class="text-xs font-semibold text-gray-400 block">Indikator Suara Mic:</label>
                 <div class="w-full bg-gray-100 h-6 rounded-lg overflow-hidden relative border">
                     <div id="volumeBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
                     <span id="volumeLabel" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase tracking-wider">Mic Mati</span>
@@ -113,16 +120,12 @@
                 
                 <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
                     <p class="text-xs text-emerald-800">
-                        💡 <strong>Server AI Error/Macet?</strong> Jangan rekam ulang! Klik tombol kanan untuk mengirim ulang file yang sama.
+                        💡 Kirim ulang rekaman jika terjadi kesalahan pengiriman sebelumnya.
                     </p>
                     <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
                         🔄 Kirim Ulang Rekaman Ini
                     </button>
                 </div>
-            </div>
-
-            <div id="offlineQueueBox" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-medium">
-                ⚠️ Koneksi internet terputus! Hasil rekaman disimpan di memori HP dan akan otomatis dikirim ke AI begitu sinyal kembali normal.
             </div>
         </div>
 
@@ -139,9 +142,7 @@
 
     </main>
 
-    <!-- ==========================================
-         MODAL VIEWER LAYAR PENUH (FULLSCREEN MODAL)
-         ========================================== -->
+    <!-- MODAL VIEWER LAYAR PENUH -->
     <div id="fullscreenModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto">
         <!-- Header Sticky -->
         <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm">
@@ -157,11 +158,9 @@
             </button>
         </div>
         
-        <!-- Area Isi Laporan Bebas Gangguan -->
+        <!-- Area Isi Laporan -->
         <div class="max-w-4xl mx-auto px-6 py-8">
-            <div id="modalBody" class="space-y-8">
-                <!-- Data Laporan akan di-inject ke sini oleh Javascript -->
-            </div>
+            <div id="modalBody" class="space-y-8"></div>
         </div>
     </div>
 
@@ -178,6 +177,10 @@
     const statusBox = document.getElementById('statusBox');
     const containerLaporan = document.getElementById('containerLaporan');
     
+    const progressContainer = document.getElementById('progressContainer');
+    const progressPercent = document.getElementById('progressPercent');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    
     const recordBtn = document.getElementById('recordBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const testMicBtn = document.getElementById('testMicBtn');
@@ -185,7 +188,6 @@
     const volumeBar = document.getElementById('volumeBar');
     const volumeLabel = document.getElementById('volumeLabel');
     const networkStatus = document.getElementById('networkStatus');
-    const offlineQueueBox = document.getElementById('offlineQueueBox');
     const surahHintInput = document.getElementById('surahHint');
     
     const audioPlaybackBox = document.getElementById('audioPlaybackBox');
@@ -210,15 +212,11 @@
     let isRecording = false;
     let isPaused = false;
     let isTestingMic = false;
-    let pendingBlob = null; 
     let lastRecordedBlob = null; 
     let wakeLock = null;
-
     let lastDataString = "";
 
-    // ==========================================
-    // SYSTEM INI: INDEXEDDB UNTUK ANTI-HILANG AUDIO
-    // ==========================================
+    // INDEXEDDB UNTUK PENYELAMATAN AUDIO
     const dbName = "MurojaahOfflineDB";
     const storeName = "AudioStore";
 
@@ -242,9 +240,8 @@
             const tx = db.transaction(storeName, "readwrite");
             const store = tx.objectStore(storeName);
             store.put(blob, "rekaman_terakhir");
-            console.log("Audio berhasil dikunci di memori HP (IndexedDB)");
         } catch (err) {
-            console.error("Gagal simpan ke IndexedDB:", err);
+            console.error("Gagal simpan ke DB lokal:", err);
         }
     }
 
@@ -270,20 +267,21 @@
             const audioUrl = URL.createObjectURL(blobSelamat);
             audioPlayer.src = audioUrl;
             audioPlaybackBox.classList.remove('hidden');
-            tampilkanStatus("✨ <strong>Sistem Mendeteksi Rekaman Sebelumnya!</strong> Jika tadi aplikasi terpejam/crash, Anda bisa memutarnya kembali atau klik tombol 'Kirim Ulang Rekaman Ini' di bawah.", "bg-amber-50 border-amber-200 text-amber-800");
         }
     }
 
-    window.addEventListener('beforeunload', (e) => {
-        if (isRecording) {
-            e.preventDefault();
-            e.returnValue = "Rekaman Anda sedang berjalan, jika keluar rekaman saat ini akan hilang!";
-        }
-    });
+    // UPDATE PROGRESS BAR INTERFACE
+    function updateUploadProgress(percent) {
+        progressContainer.classList.remove('hidden');
+        progressPercent.textContent = `${percent}%`;
+        uploadProgressBar.style.width = `${percent}%`;
+    }
 
-    // ==========================================
-    // PARSER LOG KOREKSI KE HTML ELEGAN
-    // ==========================================
+    function hideUploadProgress() {
+        progressContainer.classList.add('hidden');
+    }
+
+    // PARSER LOG KOREKSI KE ELEMEN HTML
     function parseKoreksiKeHTML(teksMentah) {
         const baris = teksMentah.split('\n');
         
@@ -305,7 +303,6 @@
                 continue;
             }
             
-            // Ekstraksi Ayat Terakhir
             if (line.includes("🏁 AYAT TERAKHIR YANG DIBACA:")) {
                 teksAyatTerakhir = line.replace("🏁 AYAT TERAKHIR YANG DIBACA:", "").trim();
                 let j = i + 1;
@@ -321,8 +318,7 @@
                 continue;
             }
             
-            // Ekstraksi Cakupan Bacaan (Mendukung multi-baris)
-            if (line.includes("📖 CAKUPAN BACAAN:") || line.includes("📖 [CAKUPAN BACAAN")) {
+            if (line.includes("📖 CAKUPAN BACAAN:")) {
                 inCakupan = true;
                 continue;
             }
@@ -336,8 +332,7 @@
                 }
             }
             
-            // Mulai Bagian Detail Koreksi
-            if (line.includes("⚠️ DETAIL KOREKSI") || line.includes("⚠️ [KOREKSI")) {
+            if (line.includes("⚠️ DETAIL KOREKSI")) {
                 inDetail = true;
                 inCakupan = false;
                 continue;
@@ -360,12 +355,12 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                                     <!-- Kolom Salah / Ragu -->
                                     <div class="bg-rose-50/40 border border-rose-100 p-5 rounded-2xl flex flex-col justify-between">
-                                        <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest block mb-3">❌ Lafaz Salah / Ragu</span>
+                                        <span class="text-[10px] font-bold text-rose-500 uppercase tracking-widest block mb-3">❌ Lafaz Salah / Ragu (Satu Ayat Utuh)</span>
                                         <p class="arabic-text text-3xl text-right text-gray-700 leading-loose select-all">${salah}</p>
                                     </div>
                                     <!-- Kolom Seharusnya -->
                                     <div class="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl flex flex-col justify-between">
-                                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-3">✅ Seharusnya (Mushaf)</span>
+                                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block mb-3">✅ Seharusnya - Mushaf (Satu Ayat Utuh)</span>
                                         <p class="arabic-text text-3xl text-right text-emerald-900 leading-loose font-medium select-all">${benar}</p>
                                     </div>
                                 </div>
@@ -375,7 +370,7 @@
                 } else if (line.toLowerCase().includes("lancar sempurna")) {
                     detailKoreksiHTML += `
                         <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-6 rounded-2xl text-center font-semibold">
-                            ✨ Lancar Sempurna (Tidak ada kesalahan atau keraguan dalam hafalan Anda).
+                            ✨ Lancar Sempurna (Tidak ada kesalahan atau keraguan).
                         </div>
                     `;
                 }
@@ -384,7 +379,6 @@
         
         let outputHTML = "";
         
-        // Card Atas: Ayat Terakhir
         if (teksAyatTerakhir) {
             outputHTML += `
                 <div class="bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200 p-6 rounded-2xl shadow-sm text-center">
@@ -395,7 +389,6 @@
             `;
         }
         
-        // Card Tengah: Cakupan Bacaan
         if (cakupanBacaanList.length > 0) {
             const cakupanJoined = cakupanBacaanList.join("<br>");
             outputHTML += `
@@ -406,11 +399,10 @@
             `;
         }
         
-        // Kontainer Bawah: Detail Laporan
         if (detailKoreksiHTML) {
             outputHTML += `
                 <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">⚠️ Daftar Koreksi & Keraguan Detail:</h4>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">⚠️ Daftar Koreksi & Keraguan Detail (Satu Ayat Utuh):</h4>
                     <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
                         ${detailKoreksiHTML}
                     </div>
@@ -427,41 +419,33 @@
         return outputHTML;
     }
 
-    // Fungsi membuka modal fullscreen
     window.bukaDetailKoreksi = function(teksEncoded, tanggal) {
         const teksLengkap = decodeURIComponent(teksEncoded);
         modalDate.textContent = tanggal;
         modalBody.innerHTML = parseKoreksiKeHTML(teksLengkap);
         
         fullscreenModal.classList.remove('hidden');
-        document.body.style.overflow = "hidden"; // kunci scroll halaman utama
+        document.body.style.overflow = "hidden";
     };
 
     closeModalBtn.addEventListener('click', () => {
         fullscreenModal.classList.add('hidden');
-        document.body.style.overflow = ""; // kembalikan scroll
+        document.body.style.overflow = "";
     });
 
-    // ==========================================
-    // OPERASIONAL PEREKAMAN & KONEKSI
-    // ==========================================
     async function aktifkanWakeLock() {
         try {
             if ('wakeLock' in navigator) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                console.log("Wake Lock Aktif.");
             }
         } catch (err) {
-            console.warn("Gagal mengaktifkan Wake Lock:", err.message);
+            console.warn("Wake Lock gagal aktif:", err.message);
         }
     }
 
     function matikanWakeLock() {
         if (wakeLock !== null) {
-            wakeLock.release().then(() => {
-                wakeLock = null;
-                console.log("Wake Lock Dimatikan.");
-            });
+            wakeLock.release().then(() => { wakeLock = null; });
         }
     }
 
@@ -540,11 +524,10 @@
                     audioPlaybackBox.classList.remove('hidden'); 
                     
                     if (navigator.onLine) {
-                        tampilkanStatus("Rekaman disimpan di HP & Sedang dikirim ke server Google Gemini AI...", "bg-blue-50 border-blue-200 text-blue-700");
+                        tampilkanStatus("Rekaman disimpan & Mengirim ke server...", "bg-blue-50 border-blue-200 text-blue-700");
                         kirimBlobAudio(audioBlob);
                     } else {
-                        pendingBlob = audioBlob;
-                        tampilkanStatus("🎉 Berhasil diamankan offline! Rekaman tersimpan kuat di memori internal HP Anda. Hubungkan kembali ke internet untuk mengirim.", "bg-amber-50 border-amber-200 text-amber-700");
+                        tampilkanStatus("Offline: Rekaman aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
                     }
                     streamGlobal.getTracks().forEach(track => track.stop());
                 };
@@ -568,7 +551,7 @@
                 inisialisasiAudioVisualizer(stream);
                 
             } catch (err) {
-                alert("Gagal mengakses Mikrofon.");
+                alert("Gagal mengakses mikrofon browser.");
             }
         } else {
             mediaRecorder.stop();
@@ -603,12 +586,11 @@
 
     resendBtn.addEventListener('click', async () => {
         if (!lastRecordedBlob) {
-            alert("Belum ada rekaman yang tersimpan.");
+            alert("Belum ada berkas rekaman untuk dikirim.");
             return;
         }
         resendBtn.disabled = true;
         resendBtn.innerHTML = "⏳ Mengirim Ulang...";
-        tampilkanStatus("Mencoba mengirim kembali file rekaman terakhir ke Google Gemini...", "bg-blue-50 border-blue-200 text-blue-700");
         await kirimBlobAudio(lastRecordedBlob);
         resendBtn.disabled = false;
         resendBtn.innerHTML = "🔄 Kirim Ulang Rekaman Ini";
@@ -625,7 +607,7 @@
                 testMicBtn.className = "bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
                 inisialisasiAudioVisualizer(stream);
             } catch (err) {
-                alert("Tidak dapat mengetes mic.");
+                alert("Gagal mengetes modul mic.");
             }
         } else {
             isTestingMic = false;
@@ -644,6 +626,7 @@
         timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
+    // PENGIRIMAN AUDIO MENGGUNAKAN XMLHTTPREQUEST UNTUK DETEKSI % PROGRESS
     async function kirimBlobAudio(blob) {
         const ext = blob.type.includes('mp4') ? 'mp4' : 'mp3';
         const fileDibuat = new File([blob], `rekaman_langsung.${ext}`, { type: blob.type });
@@ -654,17 +637,49 @@
             formData.append('surah_hint', surahHintInput.value.trim());
         }
         
-        try {
-            const response = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-            const data = await response.json();
-            if (response.ok && data.status === "success") {
-                tampilkanStatus(`🎉 <strong>Rekaman Berhasil Dikirim!</strong> Gemini sedang menyimak rekaman Anda secara utuh. Laporan otomatis muncul di bawah jika analisis selesai.`, "bg-green-50 border-green-200 text-green-700");
-            } else {
-                throw new Error(data.message || "Server sibuk.");
-            }
-        } catch (err) {
-            tampilkanStatus(`❌ <strong>Gagal Mengirim:</strong> ${err.message}. Tenang, rekaman aman di HP! Gunakan tombol kirim ulang jika sinyal membaik.`, "bg-red-50 border-red-200 text-red-700");
-        }
+        updateUploadProgress(0);
+        
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', BACKEND_URL, true);
+            
+            // Event listener untuk update Progress Bar
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    updateUploadProgress(percentComplete);
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                hideUploadProgress();
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.status === "success") {
+                            tampilkanStatus(`🎉 <strong>Rekaman Berhasil Terkirim!</strong> Google Gemini AI sedang menyimak hafalan Anda secara utuh. Laporan koreksi otomatis muncul di tabel bawah sesaat lagi.`, "bg-green-50 border-green-200 text-green-700");
+                            resolve(data);
+                        } else {
+                            throw new Error(data.message || "Server membatasi pengiriman.");
+                        }
+                    } catch (err) {
+                        tampilkanStatus(`❌ <strong>Kesalahan pengolahan data:</strong> ${err.message}`, "bg-red-50 border-red-200 text-red-700");
+                        reject(err);
+                    }
+                } else {
+                    tampilkanStatus(`❌ <strong>Kesalahan Server:</strong> Status respon ${xhr.status}.`, "bg-red-50 border-red-200 text-red-700");
+                    reject(new Error(`Status ${xhr.status}`));
+                }
+            });
+            
+            xhr.addEventListener('error', () => {
+                hideUploadProgress();
+                tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Jaringan tidak stabil. Berkas Anda tetap aman di memori HP. Silakan gunakan tombol 'Kirim Ulang'.`, "bg-red-50 border-red-200 text-red-700");
+                reject(new Error("Network connection error"));
+            });
+            
+            xhr.send(formData);
+        });
     }
 
     function tampilkanStatus(pesan, gayaKelas) {
@@ -673,16 +688,13 @@
         statusBox.classList.remove('hidden');
     }
 
-    // Fungsi pemantau status koneksi internet
     function updateOnlineStatus() {
         if (navigator.onLine) {
             networkStatus.textContent = "🟢 Online";
             networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700";
-            offlineQueueBox.classList.add('hidden');
         } else {
             networkStatus.textContent = "🔴 Offline";
             networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-700";
-            offlineQueueBox.classList.remove('hidden');
         }
     }
     window.addEventListener('online', updateOnlineStatus);
@@ -748,8 +760,6 @@
                     </div>
                 `;
 
-                // MENYELESAIKAN MASALAH SYNTX ERROR:
-                // Daftarkan listener klik secara terprogram untuk menghindari error tanda petik satu (')
                 kartuLaporan.querySelector('.open-detail-btn').addEventListener('click', () => {
                     bukaDetailKoreksi(encodeURIComponent(item.koreksi), tanggal);
                 });
@@ -766,12 +776,12 @@
     async function hapusBaris(index) {
         if (confirm("Apakah Anda yakin ingin menghapus baris riwayat ini?")) {
             try {
-                tampilkanStatus("Sedang menghapus baris data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
-                const response = await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
+                tampilkanStatus("Sedang menghapus data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
+                await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
                 setTimeout(() => {
-                    tampilkanStatus("🗑️ Baris berhasil dihapus dari sistem!", "bg-green-50 border-green-200 text-green-700");
+                    tampilkanStatus("🗑️ Data berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
                     muatLaporan(true);
-                }, 2000);
+                }, 1500);
             } catch (err) {
                 alert("Gagal menghapus data: " + err.message);
             }
@@ -791,7 +801,7 @@
         const file = fileInput.files[0];
         if (!file) return;
         submitBtn.disabled = true;
-        tampilkanStatus("Sedang mengirim file...", "bg-blue-50 border-blue-200 text-blue-700");
+        tampilkanStatus("Mengirim berkas...", "bg-blue-50 border-blue-200 text-blue-700");
         
         await simpanAudioKeHP(file); 
         await kirimBlobAudio(file);
@@ -802,11 +812,11 @@
         fileSelectedName.classList.add('hidden');
     });
 
-    // SISTEM UTAMA SAAT HALAMAN DI-LOAD
+    // RUN TIME INISIALISASI
     updateOnlineStatus();
     muatLaporan(true); 
     cekRekamanTerselamatkan(); 
-    setInterval(() => muatLaporan(false), 30000); 
+    setInterval(() => muatLaporan(false), 20000); 
 </script>
 </body>
 </html>
