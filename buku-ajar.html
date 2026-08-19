@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generator Buku Ajar: Studi Quran & Hadis</title>
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #047857;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1f2937;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+
+    textarea {
+      height: 250px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    .status-success {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-loading {
+      background-color: #e0f2fe;
+      color: #075985;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Generator Buku Ajar AI</h1>
+    <p class="subtitle">Model Penulisan: ISU - DIALOG - REKONSTRUKSI (Auto Footnote ke Google Docs)</p>
+
+    <form id="bookForm">
+      <div class="form-group">
+        <label for="chapterTitle">Judul Bab / Sub-bab:</label>
+        <input type="text" id="chapterTitle" placeholder="Contoh: Rekonstruksi Motivasi Belajar Siswa Pasca Pandemi" required>
+      </div>
+
+      <div class="form-group">
+        <label for="rawMaterial">Bahan Mentah (Kumpulan Data Jurnal, Tafsir, Syarah Hadis, Fenomena):</label>
+        <textarea id="rawMaterial" placeholder="Tempelkan data jurnal, teks ayat, hadis, kutipan, dan catatan isu di sini..." required></textarea>
+      </div>
+
+      <button type="submit" id="btnSubmit">Proses & Generate ke Google Doc</button>
+    </form>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNI0GaRG_A0wuFxEkTA0ihnq5FE_TYgJt99vsMuah8hda52iXlb1hr5nhq2_-R0n8bPQ/exec";
+
+    const form = document.getElementById("bookForm");
+    const btnSubmit = document.getElementById("btnSubmit");
+    const statusDiv = document.getElementById("status");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const chapterTitle = document.getElementById("chapterTitle").value;
+      const rawMaterial = document.getElementById("rawMaterial").value;
+
+      showStatus("Sedang memproses teks dengan AI dan menulis footnote ke Google Doc... (Proses ini memakan waktu ±10-30 detik)", "loading");
+      btnSubmit.disabled = true;
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ chapterTitle, rawMaterial })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+          showStatus("Berhasil! Tulisan dan Footnote telah sukses dibuat di Google Doc Anda.", "success");
+          form.reset();
+        } else {
+          showStatus("Gagal: " + result.message, "error");
+        }
+      } catch (err) {
+        showStatus("Terjadi kesalahan koneksi/server: " + err.message, "error");
+      } finally {
+        btnSubmit.disabled = false;
+      }
+    });
+
+    function showStatus(message, type) {
+      statusDiv.style.display = "block";
+      statusDiv.className = "status-" + type;
+      statusDiv.innerText = message;
+    }
+  </script>
+</body>
+</html>
