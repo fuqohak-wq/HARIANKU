@@ -95,21 +95,25 @@
       border-radius: 8px;
       display: none;
       font-size: 0.9rem;
+      line-height: 1.4;
     }
 
     .status-success {
       background-color: #d1fae5;
       color: #065f46;
+      border: 1px solid #a7f3d0;
     }
 
     .status-error {
       background-color: #fee2e2;
       color: #991b1b;
+      border: 1px solid #fca5a5;
     }
 
     .status-loading {
       background-color: #e0f2fe;
       color: #075985;
+      border: 1px solid #bae6fd;
     }
   </style>
 </head>
@@ -137,7 +141,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwNI0GaRG_A0wuFxEkTA0ihnq5FE_TYgJt99vsMuah8hda52iXlb1hr5nhq2_-R0n8bPQ/exec";
+    const SCRIPT_URL = "[https://script.google.com/macros/s/AKfycbwNI0GaRG_A0wuFxEkTA0ihnq5FE_TYgJt99vsMuah8hda52iXlb1hr5nhq2_-R0n8bPQ/exec](https://script.google.com/macros/s/AKfycbwNI0GaRG_A0wuFxEkTA0ihnq5FE_TYgJt99vsMuah8hda52iXlb1hr5nhq2_-R0n8bPQ/exec)";
 
     const form = document.getElementById("bookForm");
     const btnSubmit = document.getElementById("btnSubmit");
@@ -149,14 +153,19 @@
       const chapterTitle = document.getElementById("chapterTitle").value;
       const rawMaterial = document.getElementById("rawMaterial").value;
 
-      showStatus("Sedang memproses teks dengan AI dan menulis footnote ke Google Doc... (Proses ini memakan waktu ±10-30 detik)", "loading");
+      showStatus("Sedang memproses teks dengan AI dan menulis footnote ke Google Doc... (Memakan waktu ±15-30 detik)", "loading");
       btnSubmit.disabled = true;
 
       try {
         const response = await fetch(SCRIPT_URL, {
           method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ chapterTitle, rawMaterial })
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            chapterTitle: chapterTitle,
+            rawMaterial: rawMaterial
+          })
         });
 
         const result = await response.json();
