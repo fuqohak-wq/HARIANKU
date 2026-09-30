@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jurnal Fuqohak - AI Academic Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+  <!-- TOP BAR -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-indigo-600 rounded-lg">
+        <i class="fa-solid fa-graduation-cap text-xl text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight text-white">Jurnal Fuqohak AI Studio</h1>
+        <p class="text-xs text-slate-400">APA 7th Edition • Auto-Diagram • Multi-Model Engine</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Zotero Ready (ID: 6322006)
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- INPUT PANEL (LEFT) -->
+    <section class="lg:col-span-5 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <h2 class="font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-pen-nib text-indigo-400"></i> Raw Research Inputs
+        </h2>
+        <span class="text-xs text-slate-400">Paste anything (Notes, Abstracts, Quotes)</span>
+      </div>
+
+      <textarea id="rawInput" rows="16" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600 resize-none" placeholder="Paste all your random thoughts, unstructured notes, rough references, or data here..."></textarea>
+
+      <!-- AI CONFIG INFO -->
+      <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-700/50 text-xs space-y-1">
+        <div class="text-slate-400 font-medium">Model Engine Sequence:</div>
+        <div class="flex gap-2 text-slate-300">
+          <span class="px-2 py-0.5 bg-indigo-950 border border-indigo-700 rounded text-indigo-300">1. Flash 2.5</span>
+          <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">2. Flash-Lite 2.5</span>
+          <span class="px-2 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-400">3. Pro 2.5</span>
+        </div>
+      </div>
+
+      <button onclick="generatePaper()" id="btnGenerate" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98] text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>Synthesize & Build Paper</span>
+      </button>
+    </section>
+
+    <!-- OUTPUT PANEL (RIGHT) -->
+    <section class="lg:col-span-7 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-4 min-h-[600px]">
+      <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
+        <h2 class="font-semibold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice text-emerald-400"></i> Formatted Journal Draft
+        </h2>
+        <button onclick="exportToDocx()" id="btnExport" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2">
+          <i class="fa-solid fa-file-word"></i>
+          <span>Download .DOCX</span>
+        </button>
+      </div>
+
+      <!-- STATUS LOG -->
+      <div id="statusBox" class="hidden p-3 rounded-xl bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 text-xs flex items-center gap-3">
+        <i class="fa-solid fa-spinner animate-spin text-base"></i>
+        <span id="statusText">AI is synthesizing notes and generating APA citations...</span>
+      </div>
+
+      <!-- PREVIEW CANVAS -->
+      <div id="paperOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-6 overflow-y-auto text-slate-300 space-y-4 text-sm leading-relaxed max-h-[650px] prose prose-invert max-w-none">
+        <p class="text-slate-600 text-center py-20 italic">Your generated academic paper, visual tables, and diagrams will appear here...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvWp1Pd-_-l1YU2z96gAzGV2xhqkR9d-Bx7h58Fma-OdFKgbDu4RstlfuQiUsHqEqs/exec";
+    let rawContentResult = "";
+
+    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+
+    async function generatePaper() {
+      const prompt = document.getElementById("rawInput").value.trim();
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+      const btnGenerate = document.getElementById("btnGenerate");
+      const paperOutput = document.getElementById("paperOutput");
+      const btnExport = document.getElementById("btnExport");
+
+      if (!prompt) {
+        alert("Mohon masukkan data, acakan ide, atau referensi terlebih dahulu.");
+        return;
+      }
+
+      statusBox.classList.remove("hidden");
+      statusText.innerText = "Mengolah data acak dengan Gemini 2.5 (Auto-Fallback Active)...";
+      btnGenerate.disabled = true;
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            action: "generateJournal",
+            prompt: prompt
+          })
+        });
+
+        const res = await response.json();
+        if (res.success) {
+          rawContentResult = res.data.rawContent;
+          paperOutput.innerHTML = marked.parse(rawContentResult);
+          
+          // Render Mermaid Diagrams secara otomatis
+          setTimeout(() => {
+            mermaid.run({ querySelector: '.language-mermaid' });
+          }, 300);
+
+          btnExport.disabled = false;
+          statusBox.classList.add("hidden");
+        } else {
+          statusText.innerText = "Error: " + res.error;
+        }
+      } catch (err) {
+        statusText.innerText = "Gagal terhubung: " + err.message;
+      } finally {
+        btnGenerate.disabled = false;
+      }
+    }
+
+    async function exportToDocx() {
+      if (!rawContentResult) return;
+      const statusBox = document.getElementById("statusBox");
+      const statusText = document.getElementById("statusText");
+      
+      statusBox.classList.remove("hidden");
+      statusText.innerText = "Mengonversi draft jurnal ke file MS Word (.docx)...";
+
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            action: "exportDocx",
+            title: "Jurnal_Fuqohak_APA_Paper",
+            content: rawContentResult
+          })
+        });
+
+        const res = await response.json();
+        if (res.success && res.fileUrl) {
+          statusText.innerText = "Selesai! File Word sedang diunduh...";
+          window.open(res.fileUrl, "_blank");
+          setTimeout(() => statusBox.classList.add("hidden"), 3000);
+        } else {
+          statusText.innerText = "Gagal mengekspor: " + res.error;
+        }
+      } catch (err) {
+        statusText.innerText = "Error ekspor: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
