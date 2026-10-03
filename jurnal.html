@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jurnal Fuqohak - Structured Academic Studio</title>
+  <title>Jurnal Fuqohak - Publication Ready Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
@@ -15,15 +14,15 @@
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <div class="p-2 bg-indigo-600 rounded-lg">
-        <i class="fa-solid fa-layer-group text-xl text-white"></i>
+        <i class="fa-solid fa-graduation-cap text-xl text-white"></i>
       </div>
       <div>
         <h1 class="font-bold text-lg leading-tight text-white">Jurnal Fuqohak Studio</h1>
-        <p class="text-xs text-slate-400">Structured Focus • Zero Hallucination • Dual-Language</p>
+        <p class="text-xs text-slate-400">Strict APA 7th • Zero Hallucination • Fast DOCX Export</p>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <button onclick="exportToDocx()" id="btnExport" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2">
+      <button onclick="exportToDocx()" id="btnExport" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
         <i class="fa-solid fa-file-word"></i>
         <span>Download .DOCX (English)</span>
       </button>
@@ -32,60 +31,56 @@
 
   <main class="max-w-[1600px] mx-auto p-6 space-y-6">
 
-    <!-- INPUT PANEL (TERSTRUKTUR) -->
+    <!-- INPUT PANEL -->
     <section class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
         <h2 class="font-semibold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-indigo-400"></i> Meteri Penelitian & Struktur Utama
+          <i class="fa-solid fa-list-check text-indigo-400"></i> Form Struktur Artikel Jurnal
         </h2>
         
-        <!-- CONTROL MODE JUDUL & RUMUSAN MASALAH -->
         <div class="flex items-center gap-2 text-xs bg-slate-950 border border-slate-700 px-3 py-1.5 rounded-lg">
           <span class="text-slate-400">Status Judul & Rumusan:</span>
           <label class="inline-flex items-center cursor-pointer">
             <input type="checkbox" id="lockFocus" class="sr-only peer" checked>
             <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-            <span class="ms-2 text-slate-200 font-medium" id="lockLabel">Kunci (Tidak Boleh Diubah AI)</span>
+            <span class="ms-2 text-slate-200 font-medium" id="lockLabel">Kunci (Strict Mode)</span>
           </label>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- KOLOM 1: JUDUL PENELITIAN -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">
             1. Judul Penelitian / Artikel <span class="text-red-400">*</span>
           </label>
-          <input type="text" id="paperTitle" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600" placeholder="Contoh: Analisis Hukum Islam Terhadap Transaksi Assets Crypto...">
+          <input type="text" id="paperTitle" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600" placeholder="Ketik judul penelitian Anda...">
         </div>
 
-        <!-- KOLOM 2: RUMUSAN MASALAH -->
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1.5">
             2. Rumusan Masalah / Pertanyaan Penelitian <span class="text-red-400">*</span>
           </label>
-          <input type="text" id="researchQuestions" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600" placeholder="Contoh: 1. Bagaimana keabsahan akad? 2. Apa implikasi risikonya?">
+          <input type="text" id="researchQuestions" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600" placeholder="Ketik pertanyaan penelitian Anda...">
         </div>
       </div>
 
-      <!-- KOLOM 3: BAHAN MENTAH & REFERENSI -->
       <div>
         <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-          3. Bahan Mentah, Draf Pembahasan & Referensi Buku/Jurnal
+          3. Bahan Mentah & Referensi Lengkap (Buku/Jurnal)
         </label>
-        <textarea id="rawNotes" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600 resize-none" placeholder="Masukkan argumen, kutipan, metode, atau daftar buku referensi Anda di sini. AI akan menyusunnya secara akademis berdasarkan Judul dan Rumusan Masalah di atas."></textarea>
+        <textarea id="rawNotes" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600 resize-none" placeholder="Masukkan argumen, kutipan, dan referensi mentah Anda..."></textarea>
       </div>
 
       <button onclick="generatePaper()" id="btnGenerate" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
         <i class="fa-solid fa-wand-magic-sparkles"></i>
-        <span>Sintesis Jurnal & Verifikasi Referensi</span>
+        <span>Sintesis Jurnal & Verifikasi Referensi Zotero</span>
       </button>
     </section>
 
-    <!-- WARNING / UNRESOLVED REFERENCES PANEL -->
+    <!-- WARNING PANEL -->
     <div id="warningBox" class="hidden p-4 rounded-xl bg-amber-950/60 border border-amber-800/60 text-amber-300 text-xs space-y-1">
       <div class="font-bold flex items-center gap-2 text-amber-200">
-        <i class="fa-solid fa-triangle-exclamation"></i> Peringatan Referensi Tidak Ditemukan:
+        <i class="fa-solid fa-triangle-exclamation"></i> Peringatan Referensi Tidak Ditemukan di Bahan Mentah:
       </div>
       <ul id="warningList" class="list-disc pl-5 space-y-1"></ul>
     </div>
@@ -93,36 +88,36 @@
     <!-- STATUS LOG -->
     <div id="statusBox" class="hidden p-3 rounded-xl bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 text-xs flex items-center gap-3">
       <i class="fa-solid fa-spinner animate-spin text-base"></i>
-      <span id="statusText">Memproses struktur artikel dan memvalidasi pustaka...</span>
+      <span id="statusText">Memproses struktur artikel...</span>
     </div>
 
-    <!-- DUAL PANE OUTPUT -->
+    <!-- OUTPUT PANE -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <!-- LEFT PANE: ENGLISH -->
+      <!-- ENGLISH -->
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h2 class="font-semibold text-indigo-400 flex items-center gap-2">
-            <i class="fa-solid fa-globe"></i> English Academic Paper
+            <i class="fa-solid fa-globe"></i> English Academic Paper (Publication Ready)
           </h2>
           <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded">APA 7th</span>
         </div>
-        <div id="englishOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed max-h-[600px] overflow-y-auto prose prose-invert max-w-none">
-          <p class="text-slate-600 italic">Artikel akademis Bahasa Inggris akan tampil di sini...</p>
+        <div id="englishOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed max-h-[650px] overflow-y-auto prose prose-invert max-w-none">
+          <p class="text-slate-600 italic">Naskah Bahasa Inggris siap publikasi akan tampil di sini...</p>
         </div>
       </div>
 
-      <!-- RIGHT PANE: INDONESIAN -->
+      <!-- INDONESIAN -->
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h2 class="font-semibold text-emerald-400 flex items-center gap-2">
-            <i class="fa-solid fa-book-open"></i> Naskah Bahasa Indonesia (Dapat Di-edit)
+            <i class="fa-solid fa-book-open"></i> Versi Bahasa Indonesia (Dapat Di-edit)
           </h2>
           <button onclick="syncIndonesianToEnglish()" id="btnSync" disabled class="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-xs rounded-lg transition-all flex items-center gap-1.5">
             <i class="fa-solid fa-rotate"></i> Sync ke English
           </button>
         </div>
-        <textarea id="indonesianOutput" rows="20" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-200 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none" placeholder="Terjemahan Bahasa Indonesia akan muncul di sini..."></textarea>
+        <textarea id="indonesianOutput" rows="22" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-200 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none" placeholder="Terjemahan Bahasa Indonesia akan muncul di sini..."></textarea>
       </div>
 
     </section>
@@ -132,18 +127,6 @@
   <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvWp1Pd-_-l1YU2z96gAzGV2xhqkR9d-Bx7h58Fma-OdFKgbDu4RstlfuQiUsHqEqs/exec";
     let englishRawText = "";
-
-    mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-
-    // Toggle Label Kunci Judul
-    document.getElementById("lockFocus").addEventListener("change", function(e) {
-      const label = document.getElementById("lockLabel");
-      if(e.target.checked) {
-        label.innerText = "Kunci (Tidak Boleh Diubah AI)";
-      } else {
-        label.innerText = "Bebas (AI Boleh Mengoptimalkan)";
-      }
-    });
 
     async function generatePaper() {
       const title = document.getElementById("paperTitle").value.trim();
@@ -166,12 +149,11 @@
         return;
       }
 
-      // Gabungkan input menjadi payload terstruktur
       const structuredPayload = `
 [PAPER STRUCTURE REQUIREMENT]
 TITLE: ${title}
 RESEARCH QUESTIONS: ${questions}
-LOCK MODE: ${isLocked ? "STRICT (Do NOT modify the core meaning of title or questions)" : "FLEXIBLE (Optimize title/questions for higher academic impact)"}
+LOCK MODE: ${isLocked ? "STRICT (Do NOT modify core meaning)" : "FLEXIBLE"}
 
 [RAW NOTES & REFERENCES]
 ${notes}
@@ -180,7 +162,7 @@ ${notes}
       statusBox.classList.remove("hidden");
       warningBox.classList.add("hidden");
       warningList.innerHTML = "";
-      statusText.innerText = "Menyusun draf akademis berdasarkan struktur Judul & Rumusan Masalah...";
+      statusText.innerText = "Sistem sedang menyusun jurnal akademis & memproses referensi Zotero...";
       btnGenerate.disabled = true;
 
       try {
@@ -208,8 +190,6 @@ ${notes}
           btnExport.disabled = false;
           btnSync.disabled = false;
           statusBox.classList.add("hidden");
-          
-          setTimeout(() => mermaid.run({ querySelector: '.language-mermaid' }), 300);
         } else {
           statusText.innerText = "Error: " + res.error;
         }
@@ -226,7 +206,7 @@ ${notes}
       const statusText = document.getElementById("statusText");
 
       statusBox.classList.remove("hidden");
-      statusText.innerText = "Menyesuaikan draf Bahasa Inggris dari hasil editan Bahasa Indonesia...";
+      statusText.innerText = "Menyinkronkan draf Bahasa Inggris...";
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -248,23 +228,26 @@ ${notes}
 
     async function exportToDocx() {
       if (!englishRawText) return;
+      const title = document.getElementById("paperTitle").value.trim() || "Academic_Journal";
       const statusBox = document.getElementById("statusBox");
       const statusText = document.getElementById("statusText");
 
       statusBox.classList.remove("hidden");
-      statusText.innerText = "Mengunduh file Microsoft Word (.docx)...";
+      statusText.innerText = "Membuat file Microsoft Word (.docx)... Mohon tunggu sebentar.";
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ action: "exportDocx", title: "Jurnal_Fuqohak_Strict_APA", content: englishRawText })
+          body: JSON.stringify({ action: "exportDocx", title: title, content: englishRawText })
         });
 
         const res = await response.json();
         if (res.success && res.fileUrl) {
           window.open(res.fileUrl, "_blank");
           statusBox.classList.add("hidden");
+        } else {
+          statusText.innerText = "Gagal mengunduh: " + (res.error || "Terjadi kesalahan.");
         }
       } catch (err) {
         statusText.innerText = "Error ekspor: " + err.message;
