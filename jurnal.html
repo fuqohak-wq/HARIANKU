@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jurnal Fuqohak - Publication Ready Studio</title>
+  <title>Jurnal Fuqohak - Zotero & Google Docs Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -18,13 +18,13 @@
       </div>
       <div>
         <h1 class="font-bold text-lg leading-tight text-white">Jurnal Fuqohak Studio</h1>
-        <p class="text-xs text-slate-400">Strict APA 7th • Zero Hallucination • Fast DOCX Export</p>
+        <p class="text-xs text-slate-400">APA 7th • Zotero Native Cloud • Direct Google Docs Export</p>
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <button onclick="exportToDocx()" id="btnExport" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
-        <i class="fa-solid fa-file-word"></i>
-        <span>Download .DOCX (English)</span>
+      <button onclick="exportToGoogleDocs()" id="btnExport" disabled class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>Buka di Google Docs</span>
       </button>
     </div>
   </header>
@@ -88,7 +88,7 @@
     <!-- STATUS LOG -->
     <div id="statusBox" class="hidden p-3 rounded-xl bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 text-xs flex items-center gap-3">
       <i class="fa-solid fa-spinner animate-spin text-base"></i>
-      <span id="statusText">Memproses struktur artikel...</span>
+      <span id="statusText">Memproses artikel...</span>
     </div>
 
     <!-- OUTPUT PANE -->
@@ -98,12 +98,12 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h2 class="font-semibold text-indigo-400 flex items-center gap-2">
-            <i class="fa-solid fa-globe"></i> English Academic Paper (Publication Ready)
+            <i class="fa-solid fa-globe"></i> English Academic Paper
           </h2>
           <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded">APA 7th</span>
         </div>
         <div id="englishOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed max-h-[650px] overflow-y-auto prose prose-invert max-w-none">
-          <p class="text-slate-600 italic">Naskah Bahasa Inggris siap publikasi akan tampil di sini...</p>
+          <p class="text-slate-600 italic">Naskah Bahasa Inggris akan tampil di sini...</p>
         </div>
       </div>
 
@@ -162,7 +162,7 @@ ${notes}
       statusBox.classList.remove("hidden");
       warningBox.classList.add("hidden");
       warningList.innerHTML = "";
-      statusText.innerText = "Sistem sedang menyusun jurnal akademis & memproses referensi Zotero...";
+      statusText.innerText = "Sistem sedang menyusun artikel akademis & memproses Zotero...";
       btnGenerate.disabled = true;
 
       try {
@@ -226,14 +226,14 @@ ${notes}
       }
     }
 
-    async function exportToDocx() {
+    async function exportToGoogleDocs() {
       if (!englishRawText) return;
       const title = document.getElementById("paperTitle").value.trim() || "Academic_Journal";
       const statusBox = document.getElementById("statusBox");
       const statusText = document.getElementById("statusText");
 
       statusBox.classList.remove("hidden");
-      statusText.innerText = "Membuat file Microsoft Word (.docx)... Mohon tunggu sebentar.";
+      statusText.innerText = "Menyiapkan Google Docs rapi untuk Anda... Mohon tunggu.";
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -247,10 +247,10 @@ ${notes}
           window.open(res.fileUrl, "_blank");
           statusBox.classList.add("hidden");
         } else {
-          statusText.innerText = "Gagal mengunduh: " + (res.error || "Terjadi kesalahan.");
+          statusText.innerText = "Gagal membuat dokumen: " + (res.error || "Error.");
         }
       } catch (err) {
-        statusText.innerText = "Error ekspor: " + err.message;
+        statusText.innerText = "Error: " + err.message;
       }
     }
   </script>
