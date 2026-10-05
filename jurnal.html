@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jurnal Fuqohak - Zotero RTF Scan Studio</title>
+  <title>Jurnal Fuqohak Studio - Google Docs & Zotero Direct</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
 
-  <!-- TOP HEADER -->
+  <!-- HEADER -->
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <div class="p-2 bg-indigo-600 rounded-lg">
@@ -18,60 +18,24 @@
       </div>
       <div>
         <h1 class="font-bold text-lg leading-tight text-white">Jurnal Fuqohak Studio</h1>
-        <p class="text-xs text-slate-400">APA 7th • Zotero RTF Scan Ready • Google Docs Export</p>
+        <p class="text-xs text-slate-400">APA 7th Edition • Gemini 2.5 Flash • Direct Google Docs Export</p>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <!-- BUTTON DOWNLOAD RTF (UTAMA UNTUK ZOTERO SCAN) -->
-      <button onclick="downloadRTFFile()" id="btnDownloadRTF" disabled class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20">
-        <i class="fa-solid fa-file-word"></i>
-        <span>Unduh File (.RTF for Zotero)</span>
-      </button>
-
-      <!-- BUTTON GOOGLE DOCS -->
-      <button onclick="exportToGoogleDocs()" id="btnExport" disabled class="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>Buka di Google Docs</span>
-      </button>
-    </div>
+    
+    <!-- MAIN EXPORT BUTTON -->
+    <button onclick="exportToGoogleDocs()" id="btnExport" disabled class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/30">
+      <i class="fa-solid fa-file-word"></i>
+      <span>Buka di Google Docs (Siap Edit & Zotero)</span>
+    </button>
   </header>
 
-  <main class="max-w-[1600px] mx-auto p-6 space-y-6">
+  <main class="max-w-[1500px] mx-auto p-6 space-y-6">
 
-    <!-- PETUNJUK CARA ZOTERO RTF SCAN -->
-    <div class="bg-indigo-950/40 border border-indigo-800/60 rounded-2xl p-4 text-xs text-indigo-200 space-y-2">
-      <div class="font-bold text-sm text-indigo-300 flex items-center gap-2">
-        <i class="fa-solid fa-circle-info text-indigo-400"></i> Cara Mengubah Naskah Ini Menjadi Sitasi Aktif Zotero:
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-slate-300">
-        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
-          <span class="font-bold text-indigo-400">Langkah 1:</span> Klik tombol <b class="text-emerald-400">"Unduh File (.RTF for Zotero)"</b> di kanan atas setelah naskah selesai dibuat.
-        </div>
-        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
-          <span class="font-bold text-indigo-400">Langkah 2:</span> Buka aplikasi **Zotero Desktop** di laptop -> Klik menu <b class="text-white">Tools</b> -> Pilih <b class="text-white">RTF/ODF Scan</b>.
-        </div>
-        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
-          <span class="font-bold text-indigo-400">Langkah 3:</span> Pilih file RTF Anda -> Klik <b class="text-white">Next</b>. Zotero akan otomatis menghasilkan file Word baru dengan sitasi aktif!
-        </div>
-      </div>
-    </div>
-
-    <!-- INPUT PANEL -->
+    <!-- FORM INPUT -->
     <section class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 space-y-4 shadow-xl">
-      <div class="flex justify-between items-center border-b border-slate-700/60 pb-3">
-        <h2 class="font-semibold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-indigo-400"></i> Form Struktur Artikel Jurnal
-        </h2>
-        
-        <div class="flex items-center gap-2 text-xs bg-slate-950 border border-slate-700 px-3 py-1.5 rounded-lg">
-          <span class="text-slate-400">Status Judul & Rumusan:</span>
-          <label class="inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="lockFocus" class="sr-only peer" checked>
-            <div class="relative w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-            <span class="ms-2 text-slate-200 font-medium" id="lockLabel">Kunci (Strict Mode)</span>
-          </label>
-        </div>
-      </div>
+      <h2 class="font-semibold text-slate-200 flex items-center gap-2 border-b border-slate-700/60 pb-3">
+        <i class="fa-solid fa-pen-nib text-indigo-400"></i> Form Struktur Artikel Jurnal
+      </h2>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -93,58 +57,47 @@
         <label class="block text-xs font-semibold text-slate-300 mb-1.5">
           3. Bahan Mentah & Referensi Lengkap (Buku/Jurnal)
         </label>
-        <textarea id="rawNotes" rows="4" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600 resize-none" placeholder="Masukkan argumen, kutipan, dan referensi mentah Anda..."></textarea>
+        <textarea id="rawNotes" rows="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder-slate-600 resize-none" placeholder="Masukkan argumen, kutipan, dan referensi mentah Anda..."></textarea>
       </div>
 
-      <button onclick="generatePaper()" id="btnGenerate" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+      <button onclick="generatePaper()" id="btnGenerate" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
         <i class="fa-solid fa-wand-magic-sparkles"></i>
-        <span>Sintesis Jurnal & Format Tag Sitasi Zotero</span>
+        <span>Sintesis Artikel Jurnal Akurat</span>
       </button>
     </section>
 
-    <!-- WARNING PANEL -->
-    <div id="warningBox" class="hidden p-4 rounded-xl bg-amber-950/60 border border-amber-800/60 text-amber-300 text-xs space-y-1">
-      <div class="font-bold flex items-center gap-2 text-amber-200">
-        <i class="fa-solid fa-triangle-exclamation"></i> Peringatan Referensi Tidak Ditemukan di Bahan Mentah:
-      </div>
-      <ul id="warningList" class="list-disc pl-5 space-y-1"></ul>
-    </div>
-
     <!-- STATUS LOG -->
-    <div id="statusBox" class="hidden p-3 rounded-xl bg-indigo-950/60 border border-indigo-800/50 text-indigo-300 text-xs flex items-center gap-3">
-      <i class="fa-solid fa-spinner animate-spin text-base"></i>
+    <div id="statusBox" class="hidden p-4 rounded-xl bg-indigo-950/80 border border-indigo-800 text-indigo-200 text-sm flex items-center gap-3">
+      <i class="fa-solid fa-spinner animate-spin text-lg"></i>
       <span id="statusText">Memproses artikel...</span>
     </div>
 
-    <!-- OUTPUT PANE -->
+    <!-- OUTPUT AREA -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <!-- ENGLISH -->
+      <!-- ENGLISH DRAFT -->
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h2 class="font-semibold text-indigo-400 flex items-center gap-2">
-            <i class="fa-solid fa-globe"></i> English Academic Paper (RTF Tag Format)
+            <i class="fa-solid fa-globe"></i> English Academic Paper (APA 7th Format)
           </h2>
-          <button onclick="copyEnglishText()" id="btnCopy" class="text-xs bg-slate-900 border border-slate-700 hover:bg-slate-800 px-2.5 py-1 rounded text-slate-300 flex items-center gap-1">
+          <button onclick="copyEnglishText()" class="text-xs bg-slate-900 border border-slate-700 hover:bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300 flex items-center gap-1.5">
             <i class="fa-regular fa-copy"></i> Salin Teks
           </button>
         </div>
-        <div id="englishOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed max-h-[650px] overflow-y-auto prose prose-invert max-w-none">
+        <div id="englishOutput" class="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed max-h-[600px] overflow-y-auto prose prose-invert max-w-none">
           <p class="text-slate-600 italic">Naskah Bahasa Inggris akan tampil di sini...</p>
         </div>
       </div>
 
-      <!-- INDONESIAN -->
+      <!-- INDONESIAN DRAFT -->
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-5 flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
           <h2 class="font-semibold text-emerald-400 flex items-center gap-2">
-            <i class="fa-solid fa-book-open"></i> Versi Bahasa Indonesia (Dapat Di-edit)
+            <i class="fa-solid fa-book-open"></i> Versi Bahasa Indonesia
           </h2>
-          <button onclick="syncIndonesianToEnglish()" id="btnSync" disabled class="px-3 py-1 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 text-xs rounded-lg transition-all flex items-center gap-1.5">
-            <i class="fa-solid fa-rotate"></i> Sync ke English
-          </button>
         </div>
-        <textarea id="indonesianOutput" rows="22" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-200 text-sm leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none" placeholder="Terjemahan Bahasa Indonesia akan muncul di sini..."></textarea>
+        <textarea id="indonesianOutput" rows="22" readonly class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-5 text-slate-300 text-sm leading-relaxed focus:outline-none resize-none" placeholder="Terjemahan Bahasa Indonesia akan muncul di sini..."></textarea>
       </div>
 
     </section>
@@ -159,18 +112,13 @@
       const title = document.getElementById("paperTitle").value.trim();
       const questions = document.getElementById("researchQuestions").value.trim();
       const notes = document.getElementById("rawNotes").value.trim();
-      const isLocked = document.getElementById("lockFocus").checked;
 
       const statusBox = document.getElementById("statusBox");
       const statusText = document.getElementById("statusText");
-      const warningBox = document.getElementById("warningBox");
-      const warningList = document.getElementById("warningList");
       const btnGenerate = document.getElementById("btnGenerate");
       const englishOutput = document.getElementById("englishOutput");
       const indonesianOutput = document.getElementById("indonesianOutput");
       const btnExport = document.getElementById("btnExport");
-      const btnDownloadRTF = document.getElementById("btnDownloadRTF");
-      const btnSync = document.getElementById("btnSync");
 
       if (!title || !questions) {
         alert("Mohon isi Judul Penelitian dan Rumusan Masalah terlebih dahulu.");
@@ -181,16 +129,13 @@
 [PAPER STRUCTURE REQUIREMENT]
 TITLE: ${title}
 RESEARCH QUESTIONS: ${questions}
-LOCK MODE: ${isLocked ? "STRICT (Do NOT modify core meaning)" : "FLEXIBLE"}
 
 [RAW NOTES & REFERENCES]
 ${notes}
       `;
 
       statusBox.classList.remove("hidden");
-      warningBox.classList.add("hidden");
-      warningList.innerHTML = "";
-      statusText.innerText = "Sistem sedang menyusun artikel akademis dengan format sitasi Zotero Scannable Tag...";
+      statusText.innerText = "Sistem sedang menyusun artikel akademis...";
       btnGenerate.disabled = true;
 
       try {
@@ -206,18 +151,7 @@ ${notes}
           englishOutput.innerHTML = marked.parse(englishRawText);
           indonesianOutput.value = res.data.indonesian;
 
-          if (res.data.unresolvedReferences && res.data.unresolvedReferences.length > 0) {
-            warningBox.classList.remove("hidden");
-            res.data.unresolvedReferences.forEach(item => {
-              const li = document.createElement("li");
-              li.innerText = item;
-              warningList.appendChild(li);
-            });
-          }
-
           btnExport.disabled = false;
-          btnDownloadRTF.disabled = false;
-          btnSync.disabled = false;
           statusBox.classList.add("hidden");
         } else {
           statusText.innerText = "Error: " + res.error;
@@ -229,66 +163,10 @@ ${notes}
       }
     }
 
-    async function syncIndonesianToEnglish() {
-      const editedIndoText = document.getElementById("indonesianOutput").value;
-      const statusBox = document.getElementById("statusBox");
-      const statusText = document.getElementById("statusText");
-
-      statusBox.classList.remove("hidden");
-      statusText.innerText = "Menyinkronkan draf Bahasa Inggris...";
-
-      try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain" },
-          body: JSON.stringify({ action: "syncTranslation", indonesianText: editedIndoText })
-        });
-
-        const res = await response.json();
-        if (res.success) {
-          englishRawText = res.englishText;
-          document.getElementById("englishOutput").innerHTML = marked.parse(englishRawText);
-          statusBox.classList.add("hidden");
-        }
-      } catch (err) {
-        statusText.innerText = "Gagal menyinkronkan: " + err.message;
-      }
-    }
-
-    function downloadRTFFile() {
-      if (!englishRawText) return;
-      const title = document.getElementById("paperTitle").value.trim() || "Academic_Journal";
-      const fileName = title.replace(/[^a-zA-Z0-9_]/g, "_") + "_ZoteroScan.rtf";
-
-      // Konversi Markdown sederhana ke RTF standar
-      let rtfHeader = "{\\rtf1\\ansi\\deff0 {\\fonttbl{\\f0 Times New Roman;}}\n\\viewkind4\\uc1\\paperw11900\\paperh16820\\margl1440\\margr1440\\margt1440\\margb1440\n\\f0\\fs24 ";
-      let rtfBody = englishRawText
-        .replace(/\\/g, "\\\\")
-        .replace(/{/g, "\\{")
-        .replace(/}/g, "\\}")
-        .replace(/# (.*?)\n/g, "\\b\\fs32 $1\\b0\\fs24\\par\\par ")
-        .replace(/## (.*?)\n/g, "\\b\\fs26 $1\\b0\\fs24\\par\\par ")
-        .replace(/### (.*?)\n/g, "\\i\\fs24 $1\\i0\\par ")
-        .replace(/\*\*(.*?)\*\*/g, "\\b $1\\b0 ")
-        .replace(/\*(.*?)\*/g, "\\i $1\\i0 ")
-        .replace(/\n/g, "\\par\n");
-      
-      let rtfFooter = "}";
-      let rtfContent = rtfHeader + rtfBody + rtfFooter;
-
-      const blob = new Blob([rtfContent], { type: "application/rtf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
     function copyEnglishText() {
       if (!englishRawText) return;
       navigator.clipboard.writeText(englishRawText);
-      alert("Teks berhasil disalin ke clipboard!");
+      alert("Teks naskah berhasil disalin!");
     }
 
     async function exportToGoogleDocs() {
@@ -298,7 +176,7 @@ ${notes}
       const statusText = document.getElementById("statusText");
 
       statusBox.classList.remove("hidden");
-      statusText.innerText = "Menyiapkan Google Docs rapi untuk Anda... Mohon tunggu.";
+      statusText.innerText = "Membuat dokumen Google Docs profesional... Mohon tunggu sebentar.";
 
       try {
         const response = await fetch(APPS_SCRIPT_URL, {
