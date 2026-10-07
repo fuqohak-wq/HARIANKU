@@ -1,883 +1,177 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koreksi Murojaah AI - Anti Gagal System</title>
-    <!-- Import Tailwind CSS dan Google Fonts (Amiri & Plus Jakarta Sans) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-        /* Custom Font Khusus Teks Arab Mushaf */
-        .arabic-text {
-            font-family: 'Amiri', serif;
-            direction: rtl;
-            font-weight: 400;
-        }
-        #fullscreenModal {
-            -webkit-overflow-scrolling: touch;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Koreksi Murojaah Hafalan AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+  <style>
+    .font-arabic { font-family: 'Amiri', serif; }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 antialiased">
-
-    <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center">
-        <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
-        <p class="text-sm mt-2 opacity-90">Sistem Murojaah: Kirim file rekaman audio hafalan Anda untuk dianalisis oleh AI secara otomatis.</p>
+<body class="bg-slate-50 min-h-screen text-slate-800 p-4 sm:p-6">
+  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-100 p-6">
+    
+    <header class="text-center mb-6">
+      <h1 class="text-2xl font-bold text-emerald-700">Korektor Murojaah AI</h1>
+      <p class="text-sm text-slate-500 mt-1">Unggah rekaman audio hafalanmu untuk dianalisis oleh AI.</p>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 pb-12">
-        
-        <!-- TARGET SURAH HINT -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-4">
-            <div class="space-y-1.5">
-                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block">🎯 Target Surah yang Dibaca Hari Ini (Membantu Akurasi AI):</label>
-                <input type="text" id="surahHint" placeholder="Contoh: Juz 30 lengkap, atau Sebagian Al-Baqarah ayat 183-200" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
-            </div>
-        </div>
-
-        <!-- FITUR UTAMA 1: UPLOAD FILE REKAMAN -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200 mb-8 space-y-4 relative overflow-hidden">
-            <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-xl shadow-sm">
-                Rekomendasi Utama
-            </div>
-            
-            <div>
-                <h2 class="text-lg font-bold text-emerald-800 flex items-center gap-2">🎵 Upload File Rekaman Eksternal</h2>
-                <p class="text-xs text-gray-500 mt-1">Gunakan perekam bawaan ponsel agar ukuran file efisien, lalu unggah berkasnya di bawah ini.</p>
-            </div>
-            
-            <form id="uploadForm" class="space-y-4">
-                <div class="border-2 border-dashed border-emerald-300 rounded-xl p-6 text-center hover:bg-emerald-50/50 transition cursor-pointer relative">
-                    <input type="file" id="audioFile" accept="audio/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <div id="uploadPrompt" class="space-y-2">
-                        <span class="text-4xl">📁</span>
-                        <p class="text-sm text-gray-600 font-medium">Klik atau seret file audio rekamanmu ke sini</p>
-                        <p class="text-xs text-gray-400">Format: MP3, M4A, WAV, WebM, dsb.</p>
-                    </div>
-                    <div id="fileSelectedName" class="hidden text-sm text-emerald-600 font-semibold truncate"></div>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-sm hover:shadow transition flex justify-center items-center gap-2">
-                    🚀 Kirim File Ke AI Guru Ngaji
-                </button>
-            </form>
-
-            <!-- INDIKATOR PROGRESS BAR PENGIRIMAN -->
-            <div id="progressContainer" class="hidden space-y-1.5 mt-4">
-                <div class="flex justify-between text-xs font-bold text-emerald-700">
-                    <span id="uploadProgressText">⏳ Mengirim berkas audio ke server...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
-                    <div id="uploadProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
-                </div>
-            </div>
-
-            <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
-        </div>
-
-        <!-- FITUR UTAMA 2: ALAT PEREKAM LANGSUNG BROWSER -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
-            <div class="flex flex-wrap justify-between items-center border-b pb-3">
-                <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    🎙️ Alternatif: Perekam Langsung di Browser
-                </h2>
-                <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
-                <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
-                    🔴 Mulai Rekam Murojaah
-                </button>
-                <button id="pauseBtn" class="hidden bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
-                    ⏸️ Jeda Rekaman
-                </button>
-                <button id="testMicBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full">
-                    🔊 Tes Suara Mic
-                </button>
-                <div class="text-center md:text-right w-full">
-                    <span id="timer" class="text-2xl font-mono font-bold text-gray-600">00:00:00</span>
-                </div>
-            </div>
-
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-gray-400 block">Indikator Suara Mic:</label>
-                <div class="w-full bg-gray-100 h-6 rounded-lg overflow-hidden relative border">
-                    <div id="volumeBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
-                    <span id="volumeLabel" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase tracking-wider">Mic Mati</span>
-                </div>
-            </div>
-
-            <div id="audioPlaybackBox" class="hidden border border-emerald-100 bg-emerald-50/50 p-4 rounded-xl space-y-4 transition duration-300">
-                <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                        🎧 Putar Hasil Rekaman Terakhir:
-                    </label>
-                    <audio id="audioPlayer" controls class="w-full h-10 accent-emerald-600"></audio>
-                </div>
-                
-                <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                    <p class="text-xs text-emerald-800">
-                        💡 Kirim ulang jika terjadi gangguan sinyal pada pengiriman sebelumnya.
-                    </p>
-                    <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
-                        🔄 Kirim Ulang Rekaman Ini
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- DAFTAR LAPORAN RIWAYAT -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-gray-700">📊 Hasil Laporan Murojaah Terakhir</h2>
-                <button onclick="muatLaporan(true)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
-            </div>
-            <div id="containerLaporan" class="space-y-4 text-sm text-gray-500">
-                Sedang memuat riwayat laporan...
-            </div>
-        </div>
-
-    </main>
-
-    <!-- MODAL VIEWER LAYAR PENUH -->
-    <div id="fullscreenModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto h-screen w-screen">
-        <!-- Header Sticky -->
-        <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="text-3xl">🕌</span>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Detail Hasil Koreksi AI</h2>
-                    <p id="modalDate" class="text-xs text-gray-400"></p>
-                </div>
-            </div>
-            <button id="closeModalBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-5 py-2.5 rounded-xl transition text-sm flex items-center gap-2 shadow-sm">
-                ✕ Tutup Layar Penuh
-            </button>
-        </div>
-        
-        <!-- Area Isi Laporan -->
-        <div class="max-w-4xl mx-auto px-6 py-8">
-            <div id="modalBody" class="space-y-8 pb-16"></div>
-        </div>
+    <!-- Input Informasi Target -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-slate-700 mb-1">Target Surah / Ayat</label>
+      <input type="text" id="targetSurah" placeholder="Contoh: Surah Al-Mulk ayat 1-10" 
+        class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
     </div>
 
-<script>
-    const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
-    const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
+    <!-- Area Upload File Audio -->
+    <div class="bg-slate-50 p-6 rounded-xl border border-dashed border-slate-300 text-center mb-6">
+      <label class="block text-sm font-medium text-slate-700 mb-2">Pilih File Audio Rekaman</label>
+      
+      <input type="file" id="audioFileInput" accept="audio/*" onchange="handleFileSelect(event)" class="hidden">
+      
+      <button onclick="document.getElementById('audioFileInput').click()" 
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-medium transition inline-flex items-center gap-2">
+        <span>📁</span> Pilih File Audio (.mp3, .m4a, .wav)
+      </button>
 
-    // DOM Elements
-    const fileInput = document.getElementById('audioFile');
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadPrompt = document.getElementById('uploadPrompt');
-    const fileSelectedName = document.getElementById('fileSelectedName');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusBox = document.getElementById('statusBox');
-    const containerLaporan = document.getElementById('containerLaporan');
+      <p id="fileNameDisplay" class="text-xs text-slate-500 mt-2 italic">Belum ada file yang dipilih</p>
+
+      <!-- Player Preview -->
+      <audio id="audioPreview" controls class="w-full mt-4 hidden"></audio>
+    </div>
+
+    <!-- Tombol Kirim -->
+    <button id="btnAnalyze" onclick="sendAudioToGAS()" disabled 
+      class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-xl font-semibold transition">
+      Koreksi Hafalan Sekarang
+    </button>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="hidden text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent"></div>
+      <p class="text-slate-600 text-sm mt-3">Sedang menganalisis audio hafalan...</p>
+    </div>
+
+    <!-- Hasil Koreksi -->
+    <div id="resultContainer" class="mt-8 hidden border-t pt-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-800">Hasil Koreksi</h2>
+        <span id="statusBadge" class="px-3 py-1 rounded-full text-xs font-semibold"></span>
+      </div>
+
+      <!-- Ringkasan AI -->
+      <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4 text-sm text-emerald-900">
+        <p class="font-semibold mb-1">Catatan Penguji:</p>
+        <p id="ringkasanText"></p>
+      </div>
+
+      <!-- Transkripsi Arab -->
+      <div class="mb-6">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Terdeteksi Dibaca:</h3>
+        <p id="transkripsiText" class="font-arabic text-2xl text-right leading-loose bg-slate-50 p-4 rounded-xl border dir-rtl" dir="rtl"></p>
+      </div>
+
+      <!-- Detail Kesalahan -->
+      <div>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Rincian Perbaikan:</h3>
+        <div id="kesalahanList" class="space-y-3"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
     
-    const progressContainer = document.getElementById('progressContainer');
-    const progressPercent = document.getElementById('progressPercent');
-    const uploadProgressBar = document.getElementById('uploadProgressBar');
-    const uploadProgressText = document.getElementById('uploadProgressText');
-    
-    const recordBtn = document.getElementById('recordBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const testMicBtn = document.getElementById('testMicBtn');
-    const timerLabel = document.getElementById('timer');
-    const volumeBar = document.getElementById('volumeBar');
-    const volumeLabel = document.getElementById('volumeLabel');
-    const networkStatus = document.getElementById('networkStatus');
-    const surahHintInput = document.getElementById('surahHint');
-    
-    const audioPlaybackBox = document.getElementById('audioPlaybackBox');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const resendBtn = document.getElementById('resendBtn');
+    let selectedFile = null;
 
-    // Modal Viewer Elements
-    const fullscreenModal = document.getElementById('fullscreenModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const modalBody = document.getElementById('modalBody');
-    const modalDate = document.getElementById('modalDate');
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-    // Perekam Variables
-    let mediaRecorder = null;
-    let audioChunks = [];
-    let startTime = null;
-    let totalElapsedTime = 0; 
-    let timerInterval = null;
-    let audioCtx = null;
-    let analyser = null;
-    let streamGlobal = null;
-    let isRecording = false;
-    let isPaused = false;
-    let isTestingMic = false;
-    let lastRecordedBlob = null; 
-    let wakeLock = null;
-    let lastDataString = "";
+      selectedFile = file;
+      document.getElementById('fileNameDisplay').innerText = `File terpilih: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
 
-    // INDEXEDDB UNTUK PENYELAMATAN AUDIO
-    const dbName = "MurojaahOfflineDB";
-    const storeName = "AudioStore";
+      const audioPlayer = document.getElementById('audioPreview');
+      audioPlayer.src = URL.createObjectURL(file);
+      audioPlayer.classList.remove('hidden');
 
-    function bukaDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(dbName, 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(storeName)) {
-                    db.createObjectStore(storeName);
-                }
-            };
-            request.onsuccess = (e) => resolve(e.target.result);
-            request.onerror = (e) => reject(e.target.error);
-        });
+      document.getElementById('btnAnalyze').disabled = false;
     }
 
-    async function simpanAudioKeHP(blob) {
+    async function sendAudioToGAS() {
+      if (!selectedFile) return;
+
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('resultContainer').classList.add('hidden');
+      document.getElementById('btnAnalyze').disabled = true;
+
+      const reader = new FileReader();
+      reader.readAsDataURL(selectedFile);
+      reader.onloadend = async () => {
+        const base64Audio = reader.result.split(',')[1];
+        const surah = document.getElementById('targetSurah').value || 'Surah Umum';
+
         try {
-            const db = await bukaDatabase();
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.put(blob, "rekaman_terakhir");
+          const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              audio: base64Audio,
+              mimeType: selectedFile.type || 'audio/mp3',
+              surah: surah
+            })
+          });
+
+          const res = await response.json();
+          if (res.success) {
+            renderResult(res.data);
+          } else {
+            alert('Gagal mengoreksi: ' + res.error);
+          }
         } catch (err) {
-            console.error("Gagal simpan ke DB lokal:", err);
-        }
-    }
-
-    async function ambilAudioDariHP() {
-        try {
-            const db = await bukaDatabase();
-            return new Promise((resolve) => {
-                const tx = db.transaction(storeName, "readonly");
-                const store = tx.objectStore(storeName);
-                const request = store.get("rekaman_terakhir");
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => resolve(null);
-            });
-        } catch (err) {
-            return null;
-        }
-    }
-
-    async function cekRekamanTerselamatkan() {
-        const blobSelamat = await ambilAudioDariHP();
-        if (blobSelamat) {
-            lastRecordedBlob = blobSelamat;
-            const audioUrl = URL.createObjectURL(blobSelamat);
-            audioPlayer.src = audioUrl;
-            audioPlaybackBox.classList.remove('hidden');
-        }
-    }
-
-    // UPDATE PROGRESS BAR INTERFACE
-    function updateUploadProgress(percent, text = "⏳ Mengirim berkas audio ke server...") {
-        progressContainer.classList.remove('hidden');
-        uploadProgressText.textContent = text;
-        progressPercent.textContent = `${percent}%`;
-        uploadProgressBar.style.width = `${percent}%`;
-    }
-
-    function hideUploadProgress() {
-        progressContainer.classList.add('hidden');
-    }
-
-    // PARSER LOG KOREKSI KE ELEMEN HTML (TAMPILAN RESILIEN TERHADAP PARSING VARIABEL KECIL)
-    function parseKoreksiKeHTML(teksMentah) {
-        const lines = teksMentah.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        
-        let teksAyatTerakhir = "";
-        let lafazAyatTerakhir = "";
-        let cakupanBacaanList = [];
-        let detailKoreksiHTML = "";
-        
-        // 1. Ambil Ayat Terakhir menggunakan pencocokan regex
-        const ayatTerakhirIdx = lines.findIndex(l => /ayat\s*terakhir/i.test(l) || l.includes("🏁"));
-        if (ayatTerakhirIdx !== -1) {
-            const line = lines[ayatTerakhirIdx];
-            teksAyatTerakhir = line.replace(/^[🏁\s*]+/, '')
-                                  .replace(/ayat\s*terakhir\s*(yang\s*benar-benar\s*dibaca\s*dan\s*jangan\s*ngarang)?/i, '')
-                                  .replace(/^[:\s\-]+/, '')
-                                  .trim();
-            
-            // Periksa baris berikutnya untuk lafaz Arab
-            if (ayatTerakhirIdx + 1 < lines.length) {
-                const nextLine = lines[ayatTerakhirIdx + 1];
-                if (!nextLine.includes("==") && !/cakupan/i.test(nextLine) && !/koreksi/i.test(nextLine) && !nextLine.includes("📖")) {
-                    lafazAyatTerakhir = nextLine;
-                }
-            }
-        }
-        
-        // 2. Ambil Cakupan Bacaan
-        const cakupanIdx = lines.findIndex(l => /cakupan/i.test(l) || l.includes("📖"));
-        if (cakupanIdx !== -1) {
-            for (let j = cakupanIdx + 1; j < lines.length; j++) {
-                const nextLine = lines[j];
-                if (nextLine.startsWith("==") || /koreksi/i.test(nextLine) || nextLine.includes("⚠️") || nextLine.startsWith("●") || nextLine.startsWith("-") || nextLine.startsWith("*")) {
-                    break;
-                }
-                if (nextLine) {
-                    cakupanBacaanList.push(nextLine);
-                }
-            }
-        }
-        
-        // 3. Ambil Detail Koreksi (Side-by-side Layout)
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.startsWith("●") || line.startsWith("-") || line.startsWith("*") || /ayat\s*\d+\s*\(menit/i.test(line)) {
-                const header = line.replace(/^[●\-*\s]+/, '').trim();
-                
-                // Cari baris pemisah berikutnya yang mengandung tanda '---'
-                let foundSeparator = false;
-                let separatorLine = "";
-                for (let j = i + 1; j < lines.length; j++) {
-                    const nextLine = lines[j];
-                    if (nextLine.startsWith("●") || nextLine.startsWith("-") || nextLine.startsWith("*") || nextLine.includes("==") || /cakupan/i.test(nextLine) || nextLine.includes("🏁")) {
-                        break;
-                    }
-                    if (nextLine.includes("---")) {
-                        separatorLine = nextLine;
-                        foundSeparator = true;
-                        break;
-                    }
-                }
-                
-                if (foundSeparator) {
-                    const bagian = separatorLine.split("---");
-                    if (bagian.length === 2) {
-                        const salah = bagian[0].trim();
-                        const benar = bagian[1].trim();
-                        
-                        detailKoreksiHTML += `
-                            <div class="mt-6 border-t border-gray-100 pt-5 first:mt-0 first:border-0 first:pt-0">
-                                <span class="inline-block text-[10px] md:text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full mb-3">
-                                    📌 ${header || "Koreksi Bacaan"}
-                                </span>
-                                <div class="grid grid-cols-2 gap-3 sm:gap-4 mt-1">
-                                    <!-- Kolom Salah / Ragu (Kiri) -->
-                                    <div class="bg-rose-50/40 border border-rose-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
-                                        <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-rose-500 uppercase tracking-wider block mb-2">❌ Salah/Ragu (Potongan)</span>
-                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-gray-700 leading-relaxed select-all">${salah}</p>
-                                    </div>
-                                    <!-- Kolom Seharusnya (Kanan) -->
-                                    <div class="bg-emerald-50/40 border border-emerald-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
-                                        <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-2">✅ Seharusnya (Satu Ayat Utuh)</span>
-                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-emerald-900 leading-relaxed font-medium select-all">${benar}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            }
-        }
-        
-        let outputHTML = "";
-        
-        if (teksAyatTerakhir) {
-            outputHTML += `
-                <div class="bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200 p-6 rounded-2xl shadow-sm text-center">
-                    <span class="text-[11px] font-bold text-amber-800 uppercase tracking-widest block mb-2">🏁 Ayat Terakhir Yang Dibaca</span>
-                    <h3 class="text-md font-bold text-amber-950 mb-4">${teksAyatTerakhir}</h3>
-                    ${lafazAyatTerakhir ? `<p class="arabic-text text-3xl sm:text-4xl text-center text-amber-900 leading-loose select-all">${lafazAyatTerakhir}</p>` : ""}
-                </div>
-            `;
-        }
-        
-        if (cakupanBacaanList.length > 0) {
-            const cakupanJoined = cakupanBacaanList.join("<br>");
-            outputHTML += `
-                <div class="bg-gray-50 border border-gray-100 px-5 py-4 rounded-xl flex flex-col gap-1">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">📖 Cakupan Murojaah</span>
-                    <span class="text-sm font-bold text-emerald-800 leading-relaxed">${cakupanJoined}</span>
-                </div>
-            `;
-        }
-        
-        if (detailKoreksiHTML) {
-            outputHTML += `
-                <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">⚠️ Daftar Koreksi & Keraguan Detail:</h4>
-                    <div class="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm space-y-4">
-                        ${detailKoreksiHTML}
-                    </div>
-                </div>
-            `;
-        } else {
-            const isLancar = teksMentah.toLowerCase().includes("lancar") || !teksMentah.includes("---");
-            if (isLancar) {
-                outputHTML += `
-                    <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-6 rounded-2xl text-center font-semibold">
-                        ✨ Lancar Sempurna (Tidak ditemukan kesalahan atau keraguan).
-                    </div>
-                `;
-            } else {
-                outputHTML += `
-                    <div class="bg-gray-50 border border-gray-200 text-gray-700 p-6 rounded-2xl text-left font-mono whitespace-pre-wrap select-all">
-                        ${teksMentah}
-                    </div>
-                `;
-            }
-        }
-        
-        return outputHTML;
-    }
-
-    window.bukaDetailKoreksi = function(teksEncoded, tanggal) {
-        const teksLengkap = decodeURIComponent(teksEncoded);
-        modalDate.textContent = tanggal;
-        modalBody.innerHTML = parseKoreksiKeHTML(teksLengkap);
-        
-        fullscreenModal.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-    };
-
-    closeModalBtn.addEventListener('click', () => {
-        fullscreenModal.classList.add('hidden');
-        document.body.style.overflow = "";
-    });
-
-    async function aktifkanWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-            }
-        } catch (err) {
-            console.warn("Wake Lock gagal aktif:", err.message);
-        }
-    }
-
-    function matikanWakeLock() {
-        if (wakeLock !== null) {
-            wakeLock.release().then(() => { wakeLock = null; });
-        }
-    }
-
-    async function inisialisasiAudioVisualizer(stream) {
-        if (audioCtx) audioCtx.close();
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            
-            function draw() {
-                if (!isRecording && !isTestingMic) {
-                    volumeBar.style.width = "0%";
-                    volumeLabel.textContent = "Mic Mati";
-                    return;
-                }
-                requestAnimationFrame(draw);
-                if (isPaused) {
-                    volumeBar.style.width = "0%";
-                    volumeLabel.textContent = "⏸️ Rekaman Dijeda";
-                    return;
-                }
-                analyser.getByteFrequencyData(dataArray);
-                let total = 0;
-                for (let i = 0; i < bufferLength; i++) total += dataArray[i];
-                let average = total / bufferLength;
-                let volumePercent = Math.min(Math.round((average / 128) * 100), 100);
-                
-                volumeBar.style.width = volumePercent + "%";
-                if (volumePercent > 5) {
-                    volumeLabel.textContent = `🎤 Mic Menangkap Suara (${volumePercent}%)`;
-                    volumeBar.className = "bg-emerald-500 h-full transition-all duration-75";
-                } else {
-                    volumeLabel.textContent = "💤 Sunyi.. Dekatkan Suara";
-                    volumeBar.className = "bg-gray-300 h-full transition-all duration-75";
-                }
-            }
-            draw();
-        } catch (e) {
-            console.warn("Visualizer gagal dimuat:", e);
-        }
-    }
-
-    recordBtn.addEventListener('click', async () => {
-        if (!isRecording) {
-            if (isTestingMic) testMicBtn.click();
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
-                });
-                
-                streamGlobal = stream;
-                audioChunks = [];
-                audioPlaybackBox.classList.add('hidden');
-                audioPlayer.src = "";
-                
-                let options = { 
-                    mimeType: 'audio/webm;codecs=opus',
-                    audioBitsPerSecond: 24000
-                };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { 
-                        mimeType: 'audio/mp4',
-                        audioBitsPerSecond: 24000
-                    }; 
-                }
-                
-                mediaRecorder = new MediaRecorder(stream, options);
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) audioChunks.push(e.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    matikanWakeLock();
-                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                    lastRecordedBlob = audioBlob; 
-                    
-                    await simpanAudioKeHP(audioBlob);
-                    
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    audioPlayer.src = audioUrl;
-                    audioPlaybackBox.classList.remove('hidden'); 
-                    
-                    if (navigator.onLine) {
-                        tampilkanStatus("Rekaman disimpan & Mengirim ke server...", "bg-blue-50 border-blue-200 text-blue-700");
-                        kirimBlobAudio(audioBlob);
-                    } else {
-                        tampilkanStatus("Offline: Rekaman aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
-                    }
-                    streamGlobal.getTracks().forEach(track => track.stop());
-                };
-                
-                mediaRecorder.start(1000); 
-                isRecording = true;
-                isPaused = false;
-                totalElapsedTime = 0;
-                
-                await aktifkanWakeLock();
-                
-                recordBtn.textContent = "⏹️ Selesai & Kirim";
-                recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-                
-                pauseBtn.textContent = "⏸️ Jeda Rekaman";
-                pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-                pauseBtn.classList.remove('hidden');
-
-                startTime = Date.now();
-                timerInterval = setInterval(updateTimer, 1000);
-                inisialisasiAudioVisualizer(stream);
-                
-            } catch (err) {
-                alert("Gagal mengakses mikrofon browser.");
-            }
-        } else {
-            mediaRecorder.stop();
-            isRecording = false;
-            isPaused = false;
-            recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
-            recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-            
-            pauseBtn.classList.add('hidden');
-            clearInterval(timerInterval);
-            timerLabel.textContent = "00:00:00";
-            totalElapsedTime = 0;
-        }
-    });
-
-    pauseBtn.addEventListener('click', () => {
-        if (!mediaRecorder || !isRecording) return;
-        if (mediaRecorder.state === 'recording') {
-            mediaRecorder.pause();
-            isPaused = true;
-            totalElapsedTime += Date.now() - startTime; 
-            pauseBtn.textContent = "▶️ Lanjutkan";
-            pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-        } else if (mediaRecorder.state === 'paused') {
-            mediaRecorder.resume();
-            isPaused = false;
-            startTime = Date.now(); 
-            pauseBtn.textContent = "⏸️ Jeda Rekaman";
-            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-        }
-    });
-
-    resendBtn.addEventListener('click', async () => {
-        if (!lastRecordedBlob) {
-            alert("Belum ada berkas rekaman untuk dikirim.");
-            return;
-        }
-        resendBtn.disabled = true;
-        resendBtn.innerHTML = "⏳ Mengirim Ulang...";
-        try {
-            await kirimBlobAudio(lastRecordedBlob);
-        } catch (err) {
-            console.error(err);
+          alert('Terjadi kesalahan koneksi: ' + err.message);
         } finally {
-            resendBtn.disabled = false;
-            resendBtn.innerHTML = "🔄 Kirim Ulang Rekaman Ini";
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('btnAnalyze').disabled = false;
         }
-    });
-
-    testMicBtn.addEventListener('click', async () => {
-        if (!isTestingMic) {
-            if (isRecording) return;
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                streamGlobal = stream;
-                isTestingMic = true;
-                testMicBtn.textContent = "🛑 Matikan Tes";
-                testMicBtn.className = "bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
-                inisialisasiAudioVisualizer(stream);
-            } catch (err) {
-                alert("Gagal mengetes modul mic.");
-            }
-        } else {
-            isTestingMic = false;
-            testMicBtn.textContent = "🔊 Tes Suara Mic";
-            testMicBtn.className = "bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
-            if (streamGlobal) streamGlobal.getTracks().forEach(track => track.stop());
-        }
-    });
-
-    function updateTimer() {
-        if (isPaused) return; 
-        const elapsedTime = totalElapsedTime + (Date.now() - startTime);
-        const secs = Math.floor((elapsedTime / 1000) % 60);
-        const mins = Math.floor((elapsedTime / 1000 / 60) % 60);
-        const hrs = Math.floor((elapsedTime / 1000 / 60 / 60));
-        timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      };
     }
 
-    // SISTEM KIRIM BERTINGKAT (CHUNKED UPLOAD)
-    async function kirimBlobAudio(blob) {
-        const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5 MB per paket agar lancar di jaringan mobile
-        const totalSize = blob.size;
-        const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
-        
-        const randomId = Math.random().toString(36).substring(2, 15) + "_" + Date.now();
-        const ext = blob.type.includes('mp4') ? 'mp4' : (blob.type.includes('webm') ? 'webm' : 'mp3');
-        const filename = `${randomId}.${ext}`;
-        
-        updateUploadProgress(0, "📦 Mempersiapkan berkas audio...");
-        tampilkanStatus(`📦 Mempersiapkan berkas audio Anda (${(totalSize / (1024*1024)).toFixed(2)} MB)...`, "bg-blue-50 border-blue-200 text-blue-700");
+    function renderResult(data) {
+      document.getElementById('resultContainer').classList.remove('hidden');
+      
+      const badge = document.getElementById('statusBadge');
+      badge.innerText = data.status;
+      badge.className = data.status === "Sempurna" 
+        ? "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800"
+        : "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
 
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            const start = chunkIndex * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, totalSize);
-            const chunkBlob = blob.slice(start, end);
-            
-            let sukses = false;
-            let percobaan = 3; // Retry otomatis jika koneksi terputus
+      document.getElementById('ringkasanText').innerText = data.ringkasan;
+      document.getElementById('transkripsiText').innerText = data.transkripsi;
 
-            while (!sukses && percobaan > 0) {
-                try {
-                    await kirimSatuChunk(chunkBlob, filename, chunkIndex, totalChunks, ext, surahHintInput ? surahHintInput.value.trim() : "");
-                    sukses = true;
-                    
-                    const percentComplete = Math.round(((chunkIndex + 1) / totalChunks) * 100);
-                    updateUploadProgress(percentComplete, `⏳ Mengunggah bagian ${chunkIndex + 1} dari ${totalChunks}...`);
-                } catch (err) {
-                    percobaan--;
-                    if (percobaan === 0) {
-                        hideUploadProgress();
-                        tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Gagal mengirim potongan ke-${chunkIndex + 1}. Silakan coba 'Kirim Ulang'.`, "bg-red-50 border-red-200 text-red-700");
-                        throw err;
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-            }
-        }
-        
-        updateUploadProgress(100, "🤖 AI sedang memproses analisis hafalan...");
-        tampilkanStatus(`🎉 <strong>Berkas Terkirim!</strong> Google Gemini AI sedang menyimak hafalan Anda secara utuh. Laporan koreksi otomatis akan muncul di tabel bawah sebentar lagi.`, "bg-green-50 border-green-200 text-green-700");
-        
-        // Pemicu pemuatan berkas berkala dipercepat pasca unggahan
-        setTimeout(() => { muatLaporan(true); }, 5000);
-        setTimeout(() => { muatLaporan(true); }, 15000);
-    }
+      const listContainer = document.getElementById('kesalahanList');
+      listContainer.innerHTML = '';
 
-    function kirimSatuChunk(chunkBlob, filename, chunkIndex, totalChunks, ext, surahHint) {
-        return new Promise((resolve, reject) => {
-            const formData = new FormData();
-            formData.append('file', chunkBlob, `part_${chunkIndex}.${ext}`);
-            formData.append('filename', filename);
-            formData.append('chunk_index', chunkIndex);
-            formData.append('total_chunks', totalChunks);
-            if (surahHint) {
-                formData.append('surah_hint', surahHint);
-            }
-            
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', BACKEND_URL, true);
-            
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        resolve(data);
-                    } catch (e) {
-                        reject(new Error("Gagal membaca respon server."));
-                    }
-                } else {
-                    reject(new Error(`Server merespon dengan status ${xhr.status}`));
-                }
-            };
-            
-            xhr.onerror = () => {
-                reject(new Error("Terjadi kesalahan jaringan saat mengunggah bagian berkas."));
-            };
-            
-            xhr.send(formData);
+      if (!data.kesalahan || data.kesalahan.length === 0) {
+        listContainer.innerHTML = `<p class="text-sm text-slate-500 italic">Tidak ada kesalahan yang terdeteksi. Masya Allah!</p>`;
+      } else {
+        data.kesalahan.forEach(item => {
+          const card = document.createElement('div');
+          card.className = "p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm";
+          card.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-semibold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded text-xs">${item.jenis}</span>
+            </div>
+            <p class="text-slate-700"><strong>Dibaca:</strong> <span class="font-arabic text-lg text-slate-900">${item.posisi}</span></p>
+            <p class="text-emerald-700 mt-1"><strong>Seharusnya:</strong> <span class="font-arabic text-lg">${item.seharusnya}</span></p>
+            <p class="text-xs text-slate-500 mt-2 border-t pt-2">${item.penjelasan}</p>
+          `;
+          listContainer.appendChild(card);
         });
+      }
     }
-
-    function tampilkanStatus(pesan, gayaKelas) {
-        statusBox.className = `mt-4 p-4 rounded-xl text-sm font-medium border ${gayaKelas}`;
-        statusBox.innerHTML = pesan;
-        statusBox.classList.remove('hidden');
-    }
-
-    function updateOnlineStatus() {
-        if (navigator.onLine) {
-            networkStatus.textContent = "🟢 Online";
-            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700";
-        } else {
-            networkStatus.textContent = "🔴 Offline";
-            networkStatus.className = "text-xs px-2.5 py-1 rounded-full font-semibold bg-red-100 text-red-700";
-        }
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-
-    async function muatLaporan(isManual = false) {
-        try {
-            if (isManual || containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan...")) {
-                containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data...</p>`;
-            }
-            
-            const res = await fetch(GSCRIPT_GET_URL);
-            const data = await res.json();
-            
-            const currentDataString = JSON.stringify(data);
-            if (currentDataString === lastDataString) {
-                return;
-            }
-            
-            lastDataString = currentDataString;
-            
-            if (data.length === 0) {
-                containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Belum ada riwayat setoran hafalan.</p>`;
-                return;
-            }
-            containerLaporan.innerHTML = "";
-            
-            data.forEach((item, index) => {
-                const tanggal = new Date(item.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'});
-                
-                let ayatTerakhirSesi = "Murojaah Selesai";
-                const matchAyat = item.koreksi.match(/🏁\s*AYAT\s*TERAKHIR[^\n:]*:\s*(.*)/i);
-                if (matchAyat && matchAyat[1]) {
-                    ayatTerakhirSesi = matchAyat[1].trim();
-                }
-
-                let cakupanSesi = "Detail Bacaan";
-                const matchCakupan = item.koreksi.match(/📖\s*CAKUPAN\s*BACAAN[^\n:]*:\s*(.*)/i);
-                if (matchCakupan && matchCakupan[1]) {
-                    cakupanSesi = matchCakupan[1].trim();
-                }
-
-                const kartuLaporan = document.createElement('div');
-                kartuLaporan.className = "p-4 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-emerald-100";
-                
-                kartuLaporan.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">${item.menit}</span>
-                            <span class="text-[11px] text-gray-400">${tanggal}</span>
-                        </div>
-                        <h3 class="text-sm font-bold text-gray-800">🏁 Terakhir: ${ayatTerakhirSesi}</h3>
-                        <p class="text-xs text-gray-500">📖 Cakupan: ${cakupanSesi}</p>
-                    </div>
-                    
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button class="open-detail-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
-                            🔍 Buka Layar Penuh
-                        </button>
-                        <button onclick="hapusBaris(${index})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-xl transition text-xs font-semibold">
-                            🗑️ Hapus
-                        </button>
-                    </div>
-                `;
-
-                kartuLaporan.querySelector('.open-detail-btn').addEventListener('click', () => {
-                    bukaDetailKoreksi(encodeURIComponent(item.koreksi), tanggal);
-                });
-
-                containerLaporan.appendChild(kartuLaporan);
-            });
-            
-            // Sembunyikan progress bar jika pemrosesan backend telah selesai dideteksi
-            if (!statusBox.innerHTML.includes("Kesalahan")) {
-                hideUploadProgress();
-                statusBox.classList.add('hidden');
-            }
-        } catch (err) {
-            if (containerLaporan.innerHTML.includes("Sedang menyegarkan data...") || containerLaporan.innerHTML.trim() === "") {
-                containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets.</p>`;
-            }
-        }
-    }
-
-    async function hapusBaris(index) {
-        if (confirm("Apakah Anda yakin ingin menghapus baris riwayat ini?")) {
-            try {
-                tampilkanStatus("Sedang menghapus data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
-                await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
-                setTimeout(() => {
-                    tampilkanStatus("🗑️ Data berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
-                    muatLaporan(true);
-                }, 1500);
-            } catch (err) {
-                alert("Gagal menghapus data: " + err.message);
-            }
-        }
-    }
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-            uploadPrompt.classList.add('hidden');
-            fileSelectedName.textContent = `📄 ${fileInput.files[0].name}`;
-            fileSelectedName.classList.remove('hidden');
-        }
-    });
-
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const file = fileInput.files[0];
-        if (!file) return;
-        submitBtn.disabled = true;
-        
-        try {
-            await simpanAudioKeHP(file); 
-            await kirimBlobAudio(file);
-            uploadForm.reset();
-            uploadPrompt.classList.remove('hidden');
-            fileSelectedName.classList.add('hidden');
-        } catch (err) {
-            console.error(err);
-        } finally {
-            submitBtn.disabled = false;
-        }
-    });
-
-    // INISIALISASI RUN-TIME
-    updateOnlineStatus();
-    muatLaporan(true); 
-    cekRekamanTerselamatkan(); 
-    setInterval(() => muatLaporan(false), 12000); 
-</script>
+  </script>
 </body>
 </html>
