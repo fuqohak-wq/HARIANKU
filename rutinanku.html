@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafik Rutinitas Harian</title>
+    <!-- Library Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 700px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📈 Grafik Kehadiran Rutinitas Harian</h2>
+    <div id="loadingText" class="loading">Memuat data dari Google Sheets...</div>
+    <canvas id="rutinitasChart"></canvas>
+</div>
+
+<script>
+    // TEMPELKAN WEB APP URL ANDA DI SINI
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwjFTxxRYT8VbeS52xa4JPISA7It0GQb68t2Te6rXuadV0em9XvQ_IRdv8ej15keZlFHg/exec";
+
+    async function loadChartData() {
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const data = await response.json();
+            
+            document.getElementById('loadingText').style.display = 'none';
+
+            const ctx = document.getElementById('rutinitasChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Jumlah Kegiatan Terlaksana (HADIR)',
+                        data: data.data,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#27ae60'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            title: {
+                                display: true,
+                                text: 'Jumlah Kegiatan'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tanggal'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            document.getElementById('loadingText').innerText = "Gagal memuat data grafik.";
+            console.error("Error loading chart data:", error);
+        }
+    }
+
+    loadChartData();
+</script>
+
+</body>
+</html>
