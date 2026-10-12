@@ -1,3 +1,5 @@
+--- START OF FILE Paste October 12, 2026 - 7:07PM ---
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,9 +9,6 @@
     <!-- Import Tailwind CSS dan Google Fonts (Amiri & Plus Jakarta Sans) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Import LameJS untuk Encoder MP3 murni di Browser -->
-    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     
     <style>
         body {
@@ -84,11 +83,11 @@
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
         </div>
 
-        <!-- FITUR UTAMA 2: PEREKAM MP3 LANGSUNG (RESPONSIF HP & LAPTOP) -->
+        <!-- FITUR UTAMA 2: PEREKAM LANGSUNG (MP3 INSTAN) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
             <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-2">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    🎙️ Perekam MP3 Langsung (Aman Saat Layar HP Ditutup)
+                    🎙️ Perekam Langsung (Format MP3 Otomatis & Cepat)
                 </h2>
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
@@ -120,14 +119,14 @@
             <div id="audioPlaybackBox" class="hidden border border-emerald-100 bg-emerald-50/50 p-4 rounded-xl space-y-4 transition duration-300">
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                        🎧 Putar Hasil Rekaman Terakhir (Format MP3):
+                        🎧 Putar Hasil Rekaman MP3 Terakhir:
                     </label>
                     <audio id="audioPlayer" controls class="w-full h-10 accent-emerald-600"></audio>
                 </div>
                 
                 <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
                     <p class="text-xs text-emerald-800">
-                        💡 Otomatis berformat MP3 & langsung dikirim ke AI.
+                        💡 Rekaman MP3 tersimpan secara lokal dan sudah dikirim otomatis ke AI.
                     </p>
                     <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
                         🔄 Kirim Ulang Rekaman Ini
@@ -278,45 +277,8 @@
         }
     }
 
-    // FUNGSI KONVERSI AUDIO KE FORMAT MP3 MENGGUNAKAN LAMEJS
-    async function convertBlobToMp3(blob) {
-        tampilkanStatus("⚙️ Mengonversi rekaman ke format MP3...", "bg-blue-50 border-blue-200 text-blue-700");
-        await new Promise(r => setTimeout(r, 100)); // Jeda agar UI browser tidak hang
-
-        const arrayBuffer = await blob.arrayBuffer();
-        const audioCtxConv = new (window.AudioContext || window.webkitAudioContext)();
-        const audioBuffer = await audioCtxConv.decodeAudioData(arrayBuffer);
-        
-        const channels = 1;
-        const sampleRate = audioBuffer.sampleRate;
-        const leftChannel = audioBuffer.getChannelData(0);
-        
-        const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 64);
-        const sampleBlockSize = 1152;
-        const mp3Data = [];
-
-        for (let i = 0; i < leftChannel.length; i += sampleBlockSize) {
-            const sampleChunk = leftChannel.subarray(i, i + sampleBlockSize);
-            const int16Samples = new Int16Array(sampleChunk.length);
-            for (let j = 0; j < sampleChunk.length; j++) {
-                let s = Math.max(-1, Math.min(1, sampleChunk[j]));
-                int16Samples[j] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-            }
-            const mp3buf = mp3encoder.encodeBuffer(int16Samples);
-            if (mp3buf.length > 0) {
-                mp3Data.push(new Int8Array(mp3buf));
-            }
-        }
-        const mp3buf = mp3encoder.flush();
-        if (mp3buf.length > 0) {
-            mp3Data.push(new Int8Array(mp3buf));
-        }
-
-        return new Blob(mp3Data, { type: 'audio/mp3' });
-    }
-
     // UPDATE PROGRESS BAR INTERFACE
-    function updateUploadProgress(percent, text = "⏳ Mengirim berkas audio ke server...") {
+    function updateUploadProgress(percent, text = "⏳ Mengirim berkas MP3 ke server...") {
         progressContainer.classList.remove('hidden');
         uploadProgressText.textContent = text;
         progressPercent.textContent = `${percent}%`;
@@ -327,7 +289,7 @@
         progressContainer.classList.add('hidden');
     }
 
-    // PARSER LOG KOREKSI KE ELEMEN HTML (DIKEMBALIKAN UTUH SEPERTI SEMULA)
+    // PARSER LOG KOREKSI KE ELEMEN HTML
     function parseKoreksiKeHTML(teksMentah) {
         const lines = teksMentah.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         
@@ -550,33 +512,37 @@
                 audioPlaybackBox.classList.add('hidden');
                 audioPlayer.src = "";
                 
-                let options = { mimeType: 'audio/webm;codecs=opus' };
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                    options = { mimeType: 'audio/mp4' }; 
+                // Cari format terbaik, dan paksakan berlabel audio/mp3 agar aman dibaca AI backend
+                let mimeType = 'audio/webm';
+                if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
+                    mimeType = 'audio/mpeg';
                 }
                 
-                mediaRecorder = new MediaRecorder(stream, options);
+                mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) audioChunks.push(e.data);
                 };
                 
                 mediaRecorder.onstop = async () => {
                     matikanWakeLock();
-                    const rawBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                     
-                    // OTOMATIS KONVERSI KE MP3 & LANGSUNG KIRIM KE AI
-                    const mp3Blob = await convertBlobToMp3(rawBlob);
-                    lastRecordedBlob = mp3Blob; 
+                    // PENGAMANAN FORMAT: Ubah kemasan blob menjadi format murni audio/mp3 instan
+                    const rawBlob = new Blob(audioChunks, { type: mimeType });
+                    const audioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
                     
-                    await simpanAudioKeHP(mp3Blob);
+                    lastRecordedBlob = audioBlob; 
                     
-                    const audioUrl = URL.createObjectURL(mp3Blob);
+                    await simpanAudioKeHP(audioBlob);
+                    
+                    const audioUrl = URL.createObjectURL(audioBlob);
                     audioPlayer.src = audioUrl;
                     audioPlaybackBox.classList.remove('hidden'); 
                     
                     if (navigator.onLine) {
                         tampilkanStatus("Rekaman MP3 disimpan & Mengirim ke server AI...", "bg-blue-50 border-blue-200 text-blue-700");
-                        kirimBlobAudio(mp3Blob);
+                        kirimBlobAudio(audioBlob);
                     } else {
                         tampilkanStatus("Offline: Rekaman MP3 aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
                     }
@@ -689,10 +655,10 @@
         const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
         
         const randomId = Math.random().toString(36).substring(2, 15) + "_" + Date.now();
-        const filename = `${randomId}.mp3`;
+        const filename = `${randomId}.mp3`; // EKSTENSI PASTI .MP3
         
         updateUploadProgress(0, "📦 Mempersiapkan berkas MP3...");
-        tampilkanStatus(`📦 Mempersiapkan berkas audio MP3 Anda (${(totalSize / (1024*1024)).toFixed(2)} MB)...`, "bg-blue-50 border-blue-200 text-blue-700");
+        tampilkanStatus(`📦 Mempersiapkan berkas MP3 Anda (${(totalSize / (1024*1024)).toFixed(2)} MB)...`, "bg-blue-50 border-blue-200 text-blue-700");
 
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
             const start = chunkIndex * CHUNK_SIZE;
@@ -722,44 +688,48 @@
         }
         
         updateUploadProgress(100, "🤖 AI sedang memproses analisis hafalan..");
-        tampilkanStatus(`🎉 <strong>Berkas MP3 Terkirim!</strong> Google Gemini AI sedang menyimak hafalan Anda secara utuh. Laporan koreksi otomatis akan muncul di tabel bawah sebentar lagi.`, "bg-green-50 border-green-200 text-green-700");
+        tampilkanStatus(`🎉 <strong>Berkas MP3 Terkirim!</strong> Google Gemini AI sedang menyimak hafalan Anda. Laporan koreksi otomatis akan muncul di tabel bawah sebentar lagi.`, "bg-green-50 border-green-200 text-green-700");
         
         setTimeout(() => { muatLaporan(true); }, 5000);
         setTimeout(() => { muatLaporan(true); }, 15000);
     }
 
     function kirimSatuChunk(chunkBlob, filename, chunkIndex, totalChunks, surahHint) {
-        return new Promise((resolve, reject) => {
-            const formData = new FormData();
-            formData.append('file', chunkBlob, `part_${chunkIndex}.mp3`);
-            formData.append('filename', filename);
-            formData.append('chunk_index', chunkIndex);
-            formData.append('total_chunks', totalChunks);
-            if (surahHint) {
-                formData.append('surah_hint', surahHint);
-            }
-            
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', BACKEND_URL, true);
-            
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        resolve(data);
-                    } catch (e) {
-                        reject(new Error("Gagal membaca respon server."));
-                    }
-                } else {
-                    reject(new Error(`Server merespon dengan status ${xhr.status}`));
+        return new Response(chunkBlob).arrayBuffer().then(buffer => {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                // Memastikan blob dikemas dengan nama file dan tipe audio/mp3 yang diterima backend AI
+                const mp3ChunkBlob = new Blob([buffer], { type: 'audio/mp3' });
+                formData.append('file', mp3ChunkBlob, `part_${chunkIndex}`);
+                formData.append('filename', filename);
+                formData.append('chunk_index', chunkIndex);
+                formData.append('total_chunks', totalChunks);
+                if (surahHint) {
+                    formData.append('surah_hint', surahHint);
                 }
-            };
-            
-            xhr.onerror = () => {
-                reject(new Error("Terjadi kesalahan jaringan saat mengunggah bagian berkas."));
-            };
-            
-            xhr.send(formData);
+                
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', BACKEND_URL, true);
+                
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            resolve(data);
+                        } catch (e) {
+                            reject(new Error("Gagal membaca respon server."));
+                        }
+                    } else {
+                        reject(new Error(`Server merespon dengan status ${xhr.status}`));
+                    }
+                };
+                
+                xhr.onerror = () => {
+                    reject(new Error("Terjadi kesalahan jaringan saat mengunggah bagian berkas."));
+                };
+                
+                xhr.send(formData);
+            });
         });
     }
 
