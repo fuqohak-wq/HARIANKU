@@ -1,3 +1,5 @@
+--- START OF FILE Paste October 12, 2026 - 7:07PM ---
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,7 +72,7 @@
             <!-- INDIKATOR PROGRESS BAR PENGIRIMAN -->
             <div id="progressContainer" class="hidden space-y-1.5 mt-4">
                 <div class="flex justify-between text-xs font-bold text-emerald-700">
-                    <span id="uploadProgressText">⏳ Mengirim berkas audio ke server...</span>
+                    <span id="uploadProgressText">⏳ Mengirim berkas MP3 ke server...</span>
                     <span id="progressPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
@@ -81,11 +83,11 @@
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
         </div>
 
-        <!-- FITUR UTAMA 2: PEREKAM LANGSUNG (MP3 INSTAN) -->
+        <!-- FITUR UTAMA 2: PEREKAM LANGSUNG (MP3 INSTAN + BACKGROUND SAFE) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
             <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-2">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                    🎙️ Perekam Langsung (Format MP3 Otomatis & Cepat)
+                    🎙️ Perekam Langsung (Anti Terhenti Saat Layar Mati / Pindah Aplikasi)
                 </h2>
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
@@ -219,6 +221,7 @@
     let isTestingMic = false;
     let lastRecordedBlob = null; 
     let wakeLock = null;
+    let silentAudioNode = null;
     let lastDataString = "";
 
     // INDEXEDDB UNTUK PENYELAMATAN AUDIO
@@ -437,6 +440,7 @@
         document.body.style.overflow = "";
     });
 
+    // SISTEM PENCEGAH MATI LAYAR & BACKGROUND FREEZE
     async function aktifkanWakeLock() {
         try {
             if ('wakeLock' in navigator) {
@@ -453,10 +457,48 @@
         }
     }
 
-    async function inisialisasiAudioVisualizer(stream) {
-        if (audioCtx) audioCtx.close();
+    // Trik memutar audio kosong agar HP menganggap aplikasi aktif di latar belakang
+    function mulaiAudioKeepAlive() {
         try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // Buat osilator senyap berfrekuensi 0
+            const bufferSize = audioCtx.sampleRate * 2;
+            const emptyBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            silentAudioNode = audioCtx.createBufferSource();
+            silentAudioNode.buffer = emptyBuffer;
+            silentAudioNode.loop = true;
+            silentAudioNode.connect(audioCtx.destination);
+            silentAudioNode.start(0);
+        } catch (e) {
+            console.warn("Keep-alive audio gagal:", e);
+        }
+    }
+
+    function hentikanAudioKeepAlive() {
+        try {
+            if (silentAudioNode) {
+                silentAudioNode.stop();
+                silentAudioNode.disconnect();
+                silentAudioNode = null;
+            }
+        } catch (e) {}
+    }
+
+    // Auto re-request Wake Lock jika pengguna kembali membuka tab/layar
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible' && isRecording && !wakeLock) {
+            await aktifkanWakeLock();
+        }
+    });
+
+    async function inisialisasiAudioVisualizer(stream) {
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioCtx.createAnalyser();
             const source = audioCtx.createMediaStreamSource(stream);
             source.connect(analyser);
@@ -510,7 +552,6 @@
                 audioPlaybackBox.classList.add('hidden');
                 audioPlayer.src = "";
                 
-                // Cari format terbaik, dan paksakan berlabel audio/mp3 agar aman dibaca AI backend
                 let mimeType = 'audio/webm';
                 if (MediaRecorder.isTypeSupported('audio/mp4')) {
                     mimeType = 'audio/mp4';
@@ -518,6 +559,7 @@
                     mimeType = 'audio/mpeg';
                 }
                 
+                // Set timeslice 1000ms agar chunks masuk secara periodik dan tidak mudah corrupt
                 mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) audioChunks.push(e.data);
@@ -525,13 +567,12 @@
                 
                 mediaRecorder.onstop = async () => {
                     matikanWakeLock();
+                    hentikanAudioKeepAlive();
                     
-                    // PENGAMANAN FORMAT: Ubah kemasan blob menjadi format murni audio/mp3 instan
                     const rawBlob = new Blob(audioChunks, { type: mimeType });
                     const audioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
                     
                     lastRecordedBlob = audioBlob; 
-                    
                     await simpanAudioKeHP(audioBlob);
                     
                     const audioUrl = URL.createObjectURL(audioBlob);
@@ -544,7 +585,9 @@
                     } else {
                         tampilkanStatus("Offline: Rekaman MP3 aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
                     }
-                    streamGlobal.getTracks().forEach(track => track.stop());
+                    if (streamGlobal) {
+                        streamGlobal.getTracks().forEach(track => track.stop());
+                    }
                 };
                 
                 mediaRecorder.start(1000); 
@@ -552,7 +595,9 @@
                 isPaused = false;
                 totalElapsedTime = 0;
                 
+                // Aktifkan Pengaman Layar Mati & Background Freeze
                 await aktifkanWakeLock();
+                mulaiAudioKeepAlive();
                 
                 recordBtn.textContent = "⏹️ Selesai & Kirim";
                 recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
@@ -653,7 +698,7 @@
         const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
         
         const randomId = Math.random().toString(36).substring(2, 15) + "_" + Date.now();
-        const filename = `${randomId}.mp3`; // EKSTENSI PASTI .MP3
+        const filename = `${randomId}.mp3`;
         
         updateUploadProgress(0, "📦 Mempersiapkan berkas MP3...");
         tampilkanStatus(`📦 Mempersiapkan berkas MP3 Anda (${(totalSize / (1024*1024)).toFixed(2)} MB)...`, "bg-blue-50 border-blue-200 text-blue-700");
@@ -696,7 +741,6 @@
         return new Response(chunkBlob).arrayBuffer().then(buffer => {
             return new Promise((resolve, reject) => {
                 const formData = new FormData();
-                // Memastikan blob dikemas dengan nama file dan tipe audio/mp3 yang diterima backend AI
                 const mp3ChunkBlob = new Blob([buffer], { type: 'audio/mp3' });
                 formData.append('file', mp3ChunkBlob, `part_${chunkIndex}`);
                 formData.append('filename', filename);
@@ -857,6 +901,7 @@
         submitBtn.disabled = true;
         
         try {
+            dataAudioTerakhir = file;
             await simpanAudioKeHP(file); 
             await kirimBlobAudio(file);
             uploadForm.reset();
