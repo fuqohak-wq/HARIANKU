@@ -16,7 +16,10 @@
 <link rel="manifest" href="manifest.json">
 
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=500;600;700;800&display=swap" rel="stylesheet">
+<!-- Library Chart.js untuk Grafik Kedua -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 body { 
 font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -262,7 +265,7 @@ top: 100%;
 </a>
 </div>
 
-<!-- GRAFIK TREN MOOD -->
+<!-- GRAFIK TREN MOOD & PRODUKTIVITAS -->
 <div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-riwayat">
 <div class="flex justify-between items-center mb-0.5">
 <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
@@ -271,6 +274,17 @@ top: 100%;
 <div id="container-grafik" class="h-10 w-full relative flex items-end justify-between px-1">
 <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
 </svg>
+</div>
+</div>
+
+<!-- GRAFIK KEDUA: KEHADIRAN RUTINITAS HARIAN -->
+<div class="glass-card p-2 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-rutinitas">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📊 Grafik Kehadiran Rutinitas</span>
+<span id="loading-rutinitas-text" class="text-[7px] font-bold text-emerald-600">Memuat...</span>
+</div>
+<div class="w-full relative" style="height: 100px;">
+<canvas id="rutinitasChart"></canvas>
 </div>
 </div>
 
@@ -482,6 +496,7 @@ Buka Dashboard Bekerja ➔
 
 <script>
 const BASE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwmoFTtkirE50b-YFn4ekS4-2M3JES337UBKLsjGFERmDc-V6XXrfyOn6mOxwvN9YKukA/exec";
+const ROUTINE_CHART_URL = "https://script.google.com/macros/s/AKfycbwjFTxxRYT8VbeS52xa4JPISA7It0GQb68t2Te6rXuadV0em9XvQ_IRdv8ej15keZlFHg/exec";
 const PERSONAL_AI_URL = "/api/nasehat";
 
 const API_URL = BASE_WEB_APP_URL;
@@ -539,6 +554,7 @@ lastUpdated: 0
 let localAiAdvices = [];
 let currentAdviceIndex = 0;
 let aiRotationInterval = null;
+let rutinitasChartInstance = null;
 
 window.onload = function() {
   initWaterLocal();
@@ -549,6 +565,7 @@ window.onload = function() {
   muatDataDariOffline(); 
   inisialisasiRotasiNasehatLokal();
   muatNasehatLatarBelakang();
+  loadRoutineChartData();
 
   sinkronisasiDataLatarBelakangLegacy();
   setInterval(sinkronisasiDataLatarBelakangLegacy, 25000);
@@ -675,6 +692,61 @@ renderDataKeLayar(json.data);
 } catch (e) {
 console.warn("Koneksi bermasalah saat memuat dasbor.");
 }
+}
+
+async function loadRoutineChartData() {
+    try {
+        const response = await fetch(ROUTINE_CHART_URL);
+        const data = await response.json();
+        
+        const loadingText = document.getElementById('loading-rutinitas-text');
+        if (loadingText) loadingText.style.display = 'none';
+
+        const ctx = document.getElementById('rutinitasChart').getContext('2d');
+        if (rutinitasChartInstance) {
+            rutinitasChartInstance.destroy();
+        }
+
+        rutinitasChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Kegiatan Terlaksana',
+                    data: data.data,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#059669'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { size: 8 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { font: { size: 8 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        const loadingText = document.getElementById('loading-rutinitas-text');
+        if (loadingText) loadingText.innerText = "Gagal memuat grafik.";
+        console.error("Error loading routine chart data:", error);
+    }
 }
 
 function normalizeRow(row) {
@@ -826,7 +898,6 @@ document.getElementById("display-quote").innerText = `"${data["MOTIVASI"].value}
 
 globalTasks = data["LIST_TUGAS"] || [];
 
-// Membaca data Ceramah dari cache lokal jika tersedia
 const localCeramah = localStorage.getItem("fuqohak_ceramah_cache");
 if (localCeramah) {
   try {
@@ -838,7 +909,6 @@ if (localCeramah) {
   globalCeramah = data["LIST_CERAMAH"] || [];
 }
 
-// Membaca data Kampus dari cache lokal jika tersedia (agar tersinkronisasi dengan kampus.html)
 const localKampus = localStorage.getItem("fuqohak_kampus_cache");
 if (localKampus) {
   try {
@@ -950,7 +1020,6 @@ document.getElementById("val-hp").innerText = (data["MENGURANGI HP"] && data["ME
 document.getElementById("val-english").innerText = ((data["ENGLISH"] && data["ENGLISH"].value) ? data["ENGLISH"].value : 0) + " M";
 document.getElementById("val-menulis").innerText = (data["MENULIS"] && data["MENULIS"].value) ? data["MENULIS"].value : 0;
 
-// Menghitung sisa tugas aktif secara presisi
 const sisaTugasAktif = globalTasks.filter(function(t) {
   const statusString = String(t.status || t.STATUS || t.Status || "BELUM").toUpperCase().trim();
   const isBelum = statusString === "BELUM" || statusString === "";
@@ -961,7 +1030,6 @@ const sisaTugasAktif = globalTasks.filter(function(t) {
 }).length;
 document.getElementById("badge-tugas").innerText = sisaTugasAktif;
 
-// Menghitung sisa ceramah aktif secara presisi
 const sisaCeramahAktif = globalCeramah.filter(function(c) {
   const statusString = String(c.status || c.STATUS || c.Status || "BELUM").toUpperCase().trim();
   const isBelum = statusString === "BELUM" || statusString === "";
@@ -972,7 +1040,6 @@ const sisaCeramahAktif = globalCeramah.filter(function(c) {
 }).length;
 document.getElementById("badge-ceramah").innerText = sisaCeramahAktif;
 
-// Menghitung sisa agenda kampus aktif secara presisi
 const sisaKampusAktif = globalKampus.filter(function(k) {
   const statusString = String(k.status || k.STATUS || k.Status || "BELUM").toUpperCase().trim();
   const isBelum = statusString === "BELUM" || statusString === "";
