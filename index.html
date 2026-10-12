@@ -1,5 +1,3 @@
---- START OF FILE Paste October 12, 2026 - 6:55PM ---
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -28,11 +26,10 @@ font-family: 'Plus Jakarta Sans', sans-serif;
 background: #070d19; 
 margin: 0; 
 padding: 0; 
-height: 100vh;
-height: 100dvh;
-overflow: hidden; 
+min-height: 100vh; 
 display: flex; 
 justify-content: center; 
+overflow-x: hidden; 
 }
 .app-container { 
 width: 100%; 
@@ -43,9 +40,9 @@ background: #f1f5f9;
 display: flex; 
 flex-direction: column; 
 justify-content: space-between; 
-gap: 3px; 
-padding: 6px 10px; 
-overflow: hidden; 
+gap: 5px; 
+padding: 10px; 
+overflow-y: auto; 
 position: relative; 
 box-sizing: border-box;
 }
@@ -274,25 +271,25 @@ top: 100%;
 <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📈 Tren Mood & Produktivitas</span>
 <span id="label-tren" class="text-[7px] font-black bg-blue-100 text-blue-700 px-1 rounded">MEMUAT</span>
 </div>
-<div id="container-grafik" class="h-8 w-full relative flex items-end justify-between px-1">
+<div id="container-grafik" class="h-10 w-full relative flex items-end justify-between px-1">
 <svg id="grafik-svg" class="w-full h-full" viewBox="0 0 100 35" preserveAspectRatio="none">
 </svg>
 </div>
 </div>
 
 <!-- GRAFIK KEDUA: KEHADIRAN RUTINITAS HARIAN -->
-<div class="glass-card p-1.5 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-rutinitas">
-<div class="flex justify-between items-center mb-0.5">
+<div class="glass-card p-2 rounded-xl shadow-sm flex flex-col justify-between shrink-0 animate-fade" id="card-grafik-rutinitas">
+<div class="flex justify-between items-center mb-1">
 <span class="text-[7.5px] font-extrabold text-slate-400 uppercase tracking-wider">📊 Grafik Kehadiran Rutinitas</span>
-<span id="loading-rutinitas-text" class="text-[7px] font-bold text-emerald-600" style="display:none;">Cache Loaded</span>
+<span id="loading-rutinitas-text" class="text-[7px] font-bold text-emerald-600">Memuat...</span>
 </div>
-<div class="w-full relative" style="height: 75px;">
+<div class="w-full relative" style="height: 100px;">
 <canvas id="rutinitasChart"></canvas>
 </div>
 </div>
 
 <!-- KARTU NASEHAT AI CEREWET -->
-<div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-20" id="card-rekomendasi-ai">
+<div class="glass-card p-1.5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-gradient-to-r from-purple-500/5 to-indigo-500/5 flex flex-col justify-between shrink-0 h-24" id="card-rekomendasi-ai">
 <div class="flex justify-between items-center mb-0.5 border-b border-purple-500/10 pb-0.5">
 <span class="text-[7.5px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider">🤖 KONSULTASI ASISTEN AI (CEREWET & WITTY)</span>
 <div class="flex items-center gap-1">
@@ -301,18 +298,18 @@ top: 100%;
 </div>
 </div>
 <div class="flex-1 overflow-y-auto scroll-ai pr-1 flex flex-col justify-start">
-<div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-0.5">
+<div id="ai-rutinitas-loading" class="text-[8px] text-slate-500 font-semibold italic flex items-center gap-1.5 py-1">
 <div class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping"></div>
 Mengkalkulasi koordinasi waktu produktif Anda...
 </div>
-<p id="ai-rutinitas-teks" onclick="tampilkanNasehatBerikutnya()" title="Klik untuk nasehat berikutnya" class="text-[10px] text-slate-700 dark:text-slate-200 font-bold leading-tight transition-all duration-500 ease-in-out hidden opacity-0 text-justify cursor-pointer select-none active:scale-[0.99] hover:text-purple-600 dark:hover:text-purple-400">
+<p id="ai-rutinitas-teks" onclick="tampilkanNasehatBerikutnya()" title="Klik untuk nasehat berikutnya" class="text-[11px] text-slate-700 dark:text-slate-200 font-bold leading-relaxed transition-all duration-500 ease-in-out hidden opacity-0 text-justify cursor-pointer select-none active:scale-[0.99] hover:text-purple-600 dark:hover:text-purple-400">
 Menghubungkan satelit harian...
 </p>
 </div>
 </div>
 
 <!-- SCAN MAKANAN LINK -->
-<div class="shrink-0" id="container-scan-makanan">
+<div class="shrink-0 mt-0.5" id="container-scan-makanan">
 <a href="makanan.html" id="btn-upload" class="bg-gradient-to-r from-slate-900 to-slate-950 text-white rounded-xl p-1.5 shadow-sm flex items-center justify-center gap-1.5 hover:from-slate-800 hover:to-slate-900 active:scale-95 transition duration-300 border border-slate-800">
 <span class="text-xs">📸</span>
 <span class="font-black text-[8px] tracking-wide uppercase">Analisis Foto Makanan (Kamera HP)</span>
@@ -320,7 +317,7 @@ Menghubungkan satelit harian...
 </div>
 
 <!-- DOMPET FINANSIAL GLOBAL -->
-<div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-2 px-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-20" id="card-keuangan">
+<div onclick="bukaModalKeuangan()" class="premium-saving-card rounded-2xl p-2 px-3 shrink-0 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition duration-300 text-white flex flex-col justify-between h-24" id="card-keuangan">
 <div class="flex justify-between items-start leading-none">
 <div class="flex flex-col">
 <span class="text-[6px] font-black text-emerald-400 tracking-widest uppercase">VIP Black Saving Card</span>
@@ -568,10 +565,6 @@ window.onload = function() {
   muatDataDariOffline(); 
   inisialisasiRotasiNasehatLokal();
   muatNasehatLatarBelakang();
-  
-  // Load routine chart directly from cache instantly
-  loadRoutineChartFromCache();
-  // Fetch fresh routine chart data in background
   loadRoutineChartData();
 
   sinkronisasiDataLatarBelakangLegacy();
@@ -701,71 +694,57 @@ console.warn("Koneksi bermasalah saat memuat dasbor.");
 }
 }
 
-function renderRoutineChart(data) {
-    const ctx = document.getElementById('rutinitasChart').getContext('2d');
-    if (rutinitasChartInstance) {
-        rutinitasChartInstance.destroy();
-    }
-
-    rutinitasChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.labels,
-            datasets: [{
-                label: 'Kegiatan Terlaksana',
-                data: data.data,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3,
-                pointBackgroundColor: '#059669'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0, font: { size: 8 } },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
-                },
-                x: {
-                    ticks: { font: { size: 8 } },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-}
-
-function loadRoutineChartFromCache() {
-    const cachedData = localStorage.getItem("fuqohak_routine_chart_cache");
-    if (cachedData) {
-        try {
-            const data = JSON.parse(cachedData);
-            renderRoutineChart(data);
-        } catch (e) {
-            console.error("Gagal memparsing cache chart rutinitas:", e);
-        }
-    }
-}
-
 async function loadRoutineChartData() {
     try {
         const response = await fetch(ROUTINE_CHART_URL);
         const data = await response.json();
         
-        // Simpan ke localStorage agar bisa diakses instan selanjutnya
-        localStorage.setItem("fuqohak_routine_chart_cache", JSON.stringify(data));
-        
-        renderRoutineChart(data);
+        const loadingText = document.getElementById('loading-rutinitas-text');
+        if (loadingText) loadingText.style.display = 'none';
+
+        const ctx = document.getElementById('rutinitasChart').getContext('2d');
+        if (rutinitasChartInstance) {
+            rutinitasChartInstance.destroy();
+        }
+
+        rutinitasChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Kegiatan Terlaksana',
+                    data: data.data,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#059669'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0, font: { size: 8 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { font: { size: 8 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     } catch (error) {
+        const loadingText = document.getElementById('loading-rutinitas-text');
+        if (loadingText) loadingText.innerText = "Gagal memuat grafik.";
         console.error("Error loading routine chart data:", error);
     }
 }
