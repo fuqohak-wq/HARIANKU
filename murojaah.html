@@ -84,15 +84,16 @@
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
         </div>
 
-        <!-- FITUR UTAMA 2: ALAT PEREKAM LANGSUNG BROWSER -->
+        <!-- FITUR UTAMA 2: PEREKAM MP3 LANGSUNG (RESPONSIF HP & LAPTOP) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
-            <div class="flex flex-wrap justify-between items-center border-b pb-3">
+            <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-2">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
                     🎙️ Perekam MP3 Langsung (Aman Saat Layar HP Ditutup)
                 </h2>
                 <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
             </div>
 
+            <!-- GRID TAMPILAN SAMA PERSIS DI HP & LAPTOP -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
                 <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
                     🔴 Mulai Rekam Murojaah
@@ -126,7 +127,7 @@
                 
                 <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
                     <p class="text-xs text-emerald-800">
-                        💡 Otomatis berformat MP3 & aman dikirim ke AI.
+                        💡 Otomatis berformat MP3 & langsung dikirim ke AI.
                     </p>
                     <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
                         🔄 Kirim Ulang Rekaman Ini
@@ -280,15 +281,17 @@
     // FUNGSI KONVERSI AUDIO KE FORMAT MP3 MENGGUNAKAN LAMEJS
     async function convertBlobToMp3(blob) {
         tampilkanStatus("⚙️ Mengonversi rekaman ke format MP3...", "bg-blue-50 border-blue-200 text-blue-700");
+        await new Promise(r => setTimeout(r, 100)); // Jeda agar UI browser tidak hang
+
         const arrayBuffer = await blob.arrayBuffer();
         const audioCtxConv = new (window.AudioContext || window.webkitAudioContext)();
         const audioBuffer = await audioCtxConv.decodeAudioData(arrayBuffer);
         
-        const channels = 1; // Mono agar ukuran file padat & suara vokal jernih
+        const channels = 1;
         const sampleRate = audioBuffer.sampleRate;
         const leftChannel = audioBuffer.getChannelData(0);
         
-        const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 64); // 64kbps kualitas tinggi untuk suara
+        const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 64);
         const sampleBlockSize = 1152;
         const mp3Data = [];
 
@@ -333,7 +336,6 @@
         let cakupanBacaanList = [];
         let detailKoreksiHTML = "";
         
-        // 1. Ambil Ayat Terakhir menggunakan pencocokan regex
         const ayatTerakhirIdx = lines.findIndex(l => /ayat\s*terakhir/i.test(l) || l.includes("🏁"));
         if (ayatTerakhirIdx !== -1) {
             const line = lines[ayatTerakhirIdx];
@@ -342,7 +344,6 @@
                                   .replace(/^[:\s\-]+/, '')
                                   .trim();
             
-            // Periksa baris berikutnya untuk lafaz Arab
             if (ayatTerakhirIdx + 1 < lines.length) {
                 const nextLine = lines[ayatTerakhirIdx + 1];
                 if (!nextLine.includes("==") && !/cakupan/i.test(nextLine) && !/koreksi/i.test(nextLine) && !nextLine.includes("📖")) {
@@ -351,7 +352,6 @@
             }
         }
         
-        // 2. Ambil Cakupan Bacaan
         const cakupanIdx = lines.findIndex(l => /cakupan/i.test(l) || l.includes("📖"));
         if (cakupanIdx !== -1) {
             for (let j = cakupanIdx + 1; j < lines.length; j++) {
@@ -365,7 +365,6 @@
             }
         }
         
-        // 3. Ambil Detail Koreksi (Side-by-side Layout)
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             if (line.startsWith("●") || line.startsWith("-") || line.startsWith("*") || /ayat\s*\d+\s*\(menit/i.test(line)) {
@@ -397,12 +396,10 @@
                                     📌 ${header || "Koreksi Bacaan"}
                                 </span>
                                 <div class="grid grid-cols-2 gap-3 sm:gap-4 mt-1">
-                                    <!-- Kolom Salah / Ragu (Kiri) -->
                                     <div class="bg-rose-50/40 border border-rose-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
                                         <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-rose-500 uppercase tracking-wider block mb-2">❌ Salah/Ragu (Potongan)</span>
                                         <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-gray-700 leading-relaxed select-all">${salah}</p>
                                     </div>
-                                    <!-- Kolom Seharusnya (Kanan) -->
                                     <div class="bg-emerald-50/40 border border-emerald-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
                                         <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-2">✅ Seharusnya (Satu Ayat Utuh)</span>
                                         <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-emerald-900 leading-relaxed font-medium select-all">${benar}</p>
@@ -480,7 +477,6 @@
         document.body.style.overflow = "";
     });
 
-    // SCREEN WAKE LOCK AGAR REKAMAN TETAP BERJALAN SAAT LAYAR DITUTUP
     async function aktifkanWakeLock() {
         try {
             if ('wakeLock' in navigator) {
@@ -568,7 +564,7 @@
                     matikanWakeLock();
                     const rawBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                     
-                    // KONVERSI OTOMATIS KE FORMAT MP3 MURNI SEBELUM DIKIRIM
+                    // OTOMATIS KONVERSI KE MP3 & LANGSUNG KIRIM KE AI
                     const mp3Blob = await convertBlobToMp3(rawBlob);
                     lastRecordedBlob = mp3Blob; 
                     
@@ -688,7 +684,7 @@
 
     // SISTEM KIRIM BERTINGKAT (CHUNKED UPLOAD)
     async function kirimBlobAudio(blob) {
-        const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5 MB per paket agar lancar di jaringan mobile
+        const CHUNK_SIZE = 1.5 * 1024 * 1024;
         const totalSize = blob.size;
         const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
         
