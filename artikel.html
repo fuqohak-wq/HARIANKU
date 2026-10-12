@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scopus Q1 Academic Article Generator & Cloud Editor (All-in-One)</title>
+
+  <!-- CSS Murni Tanpa Ketergantungan CDN External -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 1.5rem; line-height: 1.5; }
+    .container { max-width: 80rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+    header { border-bottom: 1px solid #334155; padding-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    h1 { font-size: 1.5rem; font-weight: bold; color: #38bdf8; }
+    p.subtitle { color: #94a3b8; font-size: 0.875rem; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    label { font-weight: 600; color: #cbd5e1; font-size: 0.9rem; }
+    textarea, input[type="text"] { width: 100%; padding: 0.75rem; background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; color: #e2e8f0; font-family: monospace; font-size: 0.875rem; resize: vertical; }
+    textarea { height: 14rem; }
+    textarea:focus, input:focus { outline: 2px solid #38bdf8; }
+    
+    button { cursor: pointer; border: none; border-radius: 0.5rem; font-weight: bold; padding: 0.75rem 1rem; font-size: 0.875rem; color: white; transition: background-color 0.2s; }
+    .btn-main { width: 100%; padding: 1rem; background-color: #0284c7; font-size: 1.125rem; }
+    .btn-main:hover { background-color: #0369a1; }
+    .btn-main:disabled { background-color: #475569; cursor: not-allowed; }
+    .btn-indigo { background-color: #4f46e5; } .btn-indigo:hover { background-color: #4338ca; }
+    .btn-amber { background-color: #d97706; } .btn-amber:hover { background-color: #b45309; }
+    .btn-emerald { background-color: #059669; } .btn-emerald:hover { background-color: #047857; }
+    
+    .box { background-color: #1e293b; border: 1px solid #334155; padding: 1.5rem; border-radius: 0.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .hidden { display: none !important; }
+    
+    .progress-bar-bg { width: 100%; background-color: #334155; height: 0.75rem; border-radius: 9999px; overflow: hidden; }
+    .progress-bar-fill { background-color: #38bdf8; height: 100%; width: 0%; transition: width 0.3s; }
+    .log-box { font-family: monospace; font-size: 0.75rem; color: #94a3b8; max-height: 8rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; background: #0f172a; padding: 0.5rem; border-radius: 0.25rem; }
+    
+    .status-badge { font-size: 0.75rem; padding: 0.375rem 0.75rem; border-radius: 9999px; background-color: #1e293b; border: 1px solid #334155; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem; }
+    .dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; background-color: #64748b; }
+    
+    .editor-section { background-color: rgba(30, 41, 59, 0.5); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(51, 65, 85, 0.6); display: flex; flex-direction: column; gap: 1rem; }
+    .section-title { font-size: 1.125rem; font-weight: bold; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+    .editor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .editor-textarea { height: 9rem; }
+  </style>
+
+  <!-- Library untuk Native OpenXML .docx & FileSaver -->
+  <script src="https://unpkg.com/docx@8.2.2/build/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div>
+        <h1>Scopus Q1 Manuscript Generator & Cloud Editor</h1>
+        <p class="subtitle">Single-Page Engine - Human-like Academic Style + Zotero Pandoc BibTeX Support</p>
+      </div>
+      <div id="cloudStatus" class="status-badge">
+        <span id="syncDot" class="dot"></span>
+        <span id="syncText">Cloud Standby</span>
+      </div>
+    </header>
+
+    <!-- Form Inputs -->
+    <div id="inputSection" class="grid">
+      <div class="form-group">
+        <label>API Key Gemini (Opsional jika ingin pakai key sendiri, kosongkan untuk menggunakan sistem):</label>
+        <input type="text" id="customApiKey" placeholder="Tempelkan Gemini API Key Anda (Opsional)">
+      </div>
+
+      <div class="form-group">
+        <label>1. Draft / Naskah Mentah (10+ Halaman):</label>
+        <textarea id="rawArticle" placeholder="Tempelkan seluruh teks artikel/catatan mentah Anda di sini..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>2. Pool Referensi Utama (Opsional):</label>
+        <textarea id="rawReferences" placeholder="Boleh dikosongkan jika referensi sudah ada di dalam naskah mentah!"></textarea>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <button id="btnGenerate" onclick="startGenerationProcess()" class="btn-main">
+      Mulai Generasi Manuskrip Dual-Language (Abstract + 7 Seksi)
+    </button>
+
+    <!-- Progress & Status Box -->
+    <div id="progressContainer" class="box hidden">
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+        <span id="statusText" style="font-weight: 600; color: #38bdf8;">Menyiapkan data...</span>
+        <span id="percentText" style="font-weight: bold; color: #cbd5e1;">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progressBar" class="progress-bar-fill"></div>
+      </div>
+      <div id="logList" class="log-box"></div>
+    </div>
+
+    <!-- Interactive Editor Output View -->
+    <div id="outputContainer" class="box hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: bold; color: white;">Interactive Dual-Language Editor</h2>
+          <p class="subtitle">Kolom Kiri: Bahasa Indonesia | Kolom Kanan: Scopus Q1 Academic English (Human-like Style)</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button onclick="copyShareLink()" class="btn-indigo">📋 Salin Link Akses</button>
+          <button onclick="downloadBibTeX()" class="btn-amber">Unduh .BIB (Zotero Pandoc)</button>
+          <button onclick="downloadDocx()" class="btn-emerald">📄 Unduh .DOCX (English Manuscript)</button>
+        </div>
+      </div>
+
+      <div id="editorContent" style="display: flex; flex-direction: column; gap: 2rem;"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwlwo6MBtHnmyr9gkXwCgBRp9J0UcEkbS7R6eKt_8Bv5XZztk19BijJWHznZRCc3qlhZA/exec";
+
+    const DEFAULT_KEYS = [
+      "AIzaSyD-FallbackKeyPlaceholder1234567890", // Ganti dengan API key valid Anda jika diperlukan
+    ];
+
+    let finalManuscript = { sections: [] };
+    let currentDocId = null;
+    let debounceSaveTimer = null;
+
+    function cleanHtmlEntities(text) {
+      if (!text) return "";
+      const txt = document.createElement("textarea");
+      txt.innerHTML = text;
+      return txt.value
+        .replace(/&apos;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+    }
+
+    const sectionConfigs = [
+      { name: "Abstract and Keywords", targetParagraphs: 2 },
+      { name: "1. Introduction", targetParagraphs: 6 },
+      { name: "2. Literature Review", targetParagraphs: 4 },
+      { name: "3. Conceptual Framework", targetParagraphs: 4 },
+      { name: "4. Research Methodology", targetParagraphs: 3 },
+      { name: "5. Results and Findings", targetParagraphs: 5 },
+      { name: "6. Discussion", targetParagraphs: 6 },
+      { name: "7. Conclusion", targetParagraphs: 2 }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const docParam = urlParams.get('doc');
+      if (docParam) {
+        currentDocId = docParam;
+        loadManuscriptFromCloud(docParam);
+      }
+    });
+
+    function updateSyncStatus(status, message) {
+      const dot = document.getElementById('syncDot');
+      const text = document.getElementById('syncText');
+
+      if (status === 'saving') {
+        dot.style.backgroundColor = "#fbbf24";
+        text.textContent = "Menyimpan ke Cloud...";
+      } else if (status === 'saved') {
+        dot.style.backgroundColor = "#34d399";
+        text.textContent = "Tersimpan di Cloud";
+      } else if (status === 'error') {
+        dot.style.backgroundColor = "#f43f5e";
+        text.textContent = "Gagal Sync Cloud";
+      } else {
+        dot.style.backgroundColor = "#64748b";
+        text.textContent = message || "Cloud Standby";
+      }
+    }
+
+    async function saveToCloud() {
+      if (!currentDocId) return;
+      updateSyncStatus('saving');
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            docId: currentDocId,
+            manuscriptData: finalManuscript
+          })
+        });
+        updateSyncStatus('saved');
+      } catch (e) {
+        console.error("Cloud Sync Error:", e);
+        updateSyncStatus('error');
+      }
+    }
+
+    function triggerAutoSave() {
+      clearTimeout(debounceSaveTimer);
+      debounceSaveTimer = setTimeout(saveToCloud, 1000);
+    }
+
+    async function loadManuscriptFromCloud(docId) {
+      updateSyncStatus('saving', 'Memuat naskah...');
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?doc=${encodeURIComponent(docId)}`);
+        const responseText = await res.text();
+        const data = JSON.parse(responseText);
+
+        if (data.error || !data.sections) {
+          throw new Error("Dokumen tidak ditemukan.");
+        }
+
+        finalManuscript = data;
+        document.getElementById('inputSection').classList.add('hidden');
+        document.getElementById('btnGenerate').classList.add('hidden');
+        
+        renderEditorUI();
+        updateSyncStatus('saved', 'Dokumen dimuat dari Cloud');
+      } catch (err) {
+        alert("Gagal memuat dokumen: " + err.message);
+        updateSyncStatus('error');
+      }
+    }
+
+    function logMessage(msg) {
+      const logList = document.getElementById('logList');
+      const item = document.createElement('div');
+      item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logList.appendChild(item);
+      logList.scrollTop = logList.scrollHeight;
+    }
+
+    function updateProgress(percent, text) {
+      document.getElementById('progressBar').style.width = percent + '%';
+      document.getElementById('percentText').textContent = percent + '%';
+      document.getElementById('statusText').textContent = text;
+      logMessage(text);
+    }
+
+    // Direct Gemini API Call dari Browser (Menghindari Serverless Error)
+    async function callGeminiAPI(promptText) {
+      const userKey = document.getElementById('customApiKey').value.trim();
+      const keys = userKey ? [userKey, ...DEFAULT_KEYS] : DEFAULT_KEYS;
+      const models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+
+      for (let model of models) {
+        for (let key of keys) {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+          try {
+            const response = await fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { temperature: 0.3, maxOutputTokens: 8192 }
+              })
+            });
+            const json = await response.json();
+            if (json.candidates?.[0]?.content?.parts?.[0]?.text) {
+              return json.candidates[0].content.parts[0].text.trim();
+            }
+          } catch (e) {
+            console.warn(`Model ${model} gagal dengan key tertentu, mencoba alternatif...`);
+          }
+        }
+      }
+      throw new Error("Semua percobaan API Gemini gagal. Periksa kembali API Key Anda.");
+    }
+
+    async function startGenerationProcess() {
+      const rawArticle = document.getElementById('rawArticle').value.trim();
+      const rawReferences = document.getElementById('rawReferences').value.trim();
+
+      if (!rawArticle) {
+        alert("Mohon isi naskah mentah terlebih dahulu.");
+        return;
+      }
+
+      currentDocId = 'ms-' + Date.now();
+      const newUrl = `${window.location.pathname}?doc=${currentDocId}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+
+      document.getElementById('btnGenerate').disabled = true;
+      document.getElementById('progressContainer').classList.remove('hidden');
+      document.getElementById('outputContainer').classList.add('hidden');
+      document.getElementById('logList').innerHTML = '';
+      document.getElementById('editorContent').innerHTML = '';
+      finalManuscript = { sections: [] };
+
+      try {
+        const total = sectionConfigs.length;
+        for (let i = 0; i < total; i++) {
+          const cfg = sectionConfigs[i];
+          const currentPercent = Math.round(((i + 1) / total) * 100);
+          
+          updateProgress(currentPercent, `Menyusun Seksi: ${cfg.name}...`);
+
+          const isAbstract = cfg.name.toLowerCase().includes("abstract");
+          const prompt = isAbstract ? `
+Act as a Native English Senior Professor and Scopus Q1 Journal Editor. Rewrite the following raw text into a top-tier Academic ABSTRACT and Keywords in TWO languages (Indonesian first, then English).
+HUMAN-LIKE WRITING STYLE INSTRUCTIONS:
+- Avoid robotic AI transition clichés (e.g., "In conclusion," "This paper aims to," "It is important to note that"). Write with direct, authoritative academic prose.
+- Provide fluid academic syntax.
+
+STRICT FORMAT:
+[Indonesian Abstract Paragraph]
+---PARAGRAPH_BREAK---
+Kata Kunci: kata1; kata2; kata3; kata4; kata5
+===LANGUAGE_SPLIT===
+[English Abstract Paragraph]
+---PARAGRAPH_BREAK---
+Keywords: keyword1; keyword2; keyword3; keyword4; keyword5
+
+Raw Manuscript:
+${rawArticle.slice(0, 6000)}
+          ` : `
+Act as a Senior Researcher publishing in Scopus Q1 journals. Write the section: "${cfg.name}" consisting of exactly ${cfg.targetParagraphs} comprehensive paragraphs in TWO languages (Indonesian first, then English).
+
+HUMAN-LIKE & CITATION RULES:
+1. NATURAL WRITING: Write with deep academic nuance, variable sentence lengths, and analytical depth. Avoid generic AI phrasing.
+2. MANDATORY PANDOC CITATIONS: Every source mention MUST use valid Pandoc citation syntax (e.g., [@kamali2003principles, p. 45] or [@brown2020islamic]). 
+3. FORMAT:
+First write all ${cfg.targetParagraphs} Indonesian paragraphs separated by "---PARAGRAPH_BREAK---".
+Then write exact line "===LANGUAGE_SPLIT==="
+Then write all ${cfg.targetParagraphs} English paragraphs translated with Scopus Q1 academic tone, separated by "---PARAGRAPH_BREAK---".
+
+Raw Material Context & References:
+${rawArticle.slice(0, 6000)}
+${rawReferences}
+          `;
+
+          const aiResponseText = await callGeminiAPI(prompt);
+          
+          let cleanedText = aiResponseText;
+          if (cleanedText.startsWith("```")) {
+            cleanedText = cleanedText.replace(/^```[a-zA-Z]*\n?/, "").replace(/\n?```$/, "").trim();
+          }
+
+          const langParts = cleanedText.split("===LANGUAGE_SPLIT===");
+          const textIdRaw = langParts[0] || "";
+          const textEnRaw = langParts[1] || textIdRaw;
+
+          const paragraphs_id = textIdRaw.split("---PARAGRAPH_BREAK---").map(p => p.trim()).filter(p => p.length > 0);
+          const paragraphs_en = textEnRaw.split("---PARAGRAPH_BREAK---").map(p => p.trim()).filter(p => p.length > 0);
+
+          finalManuscript.sections.push({
+            heading: cfg.name,
+            paragraphs_id: paragraphs_id,
+            paragraphs_en: paragraphs_en
+          });
+        }
+
+        updateProgress(100, "Manuskrip Dual-Language Selesai Dibuat!");
+        await saveToCloud();
+        renderEditorUI();
+
+      } catch (err) {
+        alert("Terjadi kesalahan: " + err.message);
+        logMessage("ERROR: " + err.message);
+      } finally {
+        document.getElementById('btnGenerate').disabled = false;
+      }
+    }
+
+    function renderEditorUI() {
+      const container = document.getElementById('editorContent');
+      container.innerHTML = '';
+
+      finalManuscript.sections.forEach((sec, secIdx) => {
+        const secBox = document.createElement('div');
+        secBox.className = "editor-section";
+
+        const title = document.createElement('h3');
+        title.className = "section-title";
+        title.textContent = sec.heading;
+        secBox.appendChild(title);
+
+        const pCount = Math.max((sec.paragraphs_id || []).length, (sec.paragraphs_en || []).length);
+
+        for (let pIdx = 0; pIdx < pCount; pIdx++) {
+          const grid = document.createElement('div');
+          grid.className = "editor-grid";
+
+          const textareaId = document.createElement('textarea');
+          textareaId.className = "editor-textarea";
+          textareaId.value = cleanHtmlEntities(sec.paragraphs_id?.[pIdx] || "");
+          
+          const textareaEn = document.createElement('textarea');
+          textareaEn.className = "editor-textarea";
+          textareaEn.style.color = "#bae6fd";
+          textareaEn.value = cleanHtmlEntities(sec.paragraphs_en?.[pIdx] || "");
+
+          textareaId.addEventListener('input', (e) => {
+            sec.paragraphs_id[pIdx] = e.target.value;
+            triggerAutoSave();
+          });
+
+          textareaEn.addEventListener('input', (e) => {
+            sec.paragraphs_en[pIdx] = e.target.value;
+            triggerAutoSave();
+          });
+
+          grid.appendChild(textareaId);
+          grid.appendChild(textareaEn);
+          secBox.appendChild(grid);
+        }
+
+        container.appendChild(secBox);
+      });
+
+      document.getElementById('outputContainer').classList.remove('hidden');
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link naskah berhasil disalin! Anda dapat membuka link ini di perangkat lain.");
+    }
+
+    // Scanner Pandoc Citations untuk Zotero (.BIB generator)
+    function downloadBibTeX() {
+      let fullText = "";
+      (finalManuscript.sections || []).forEach(sec => {
+        fullText += (sec.paragraphs_en || []).join("\n") + "\n" + (sec.paragraphs_id || []).join("\n") + "\n";
+      });
+
+      const matches = fullText.match(/\[@([a-zA-Z0-9_\-]+)(?:,\s*[^\]]+)?\]/g);
+
+      if (!matches || matches.length === 0) {
+        alert("Tidak ada sitasi Pandoc (seperti [@kamali2003principles]) yang terdeteksi di dalam teks.");
+        return;
+      }
+
+      const extractedKeys = new Set();
+      matches.forEach(m => {
+        const keyMatch = m.match(/\[@([a-zA-Z0-9_\-]+)/);
+        if (keyMatch && keyMatch[1]) extractedKeys.add(keyMatch[1]);
+      });
+
+      let bibEntries = [];
+      extractedKeys.forEach(key => {
+        const yearMatch = key.match(/(19\d\d|20\d\d)/);
+        const year = yearMatch ? yearMatch[1] : "2024";
+
+        let author = "Author";
+        let title = key;
+
+        if (yearMatch) {
+          const parts = key.split(yearMatch[1]);
+          if (parts[0]) author = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+          if (parts[1]) title = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+        }
+
+        bibEntries.push(`@article{${key},\n  author = {${author}},\n  title = {${title}},\n  year = {${year}}\n}`);
+      });
+
+      const bibContent = bibEntries.join("\n\n");
+      const blob = new Blob([bibContent], { type: "application/x-bibtex;charset=utf-8" });
+      saveAs(blob, "references.bib");
+    }
+
+    async function downloadDocx() {
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
+      const docChildren = [];
+
+      (finalManuscript.sections || []).forEach(sec => {
+        docChildren.push(
+          new Paragraph({
+            text: sec.heading,
+            heading: HeadingLevel.HEADING_2,
+            spacing: { before: 300, after: 120 }
+          })
+        );
+
+        (sec.paragraphs_en || []).forEach(pTextRaw => {
+          const pText = cleanHtmlEntities(pTextRaw);
+          const runs = [];
+          const parts = pText.split(/(\*.*?\*)/g);
+
+          parts.forEach(part => {
+            if (part.startsWith('*') && part.endsWith('*')) {
+              runs.push(new TextRun({ text: part.slice(1, -1), italics: true, font: "Times New Roman", size: 24 }));
+            } else if (part) {
+              runs.push(new TextRun({ text: part, font: "Times New Roman", size: 24 }));
+            }
+          });
+
+          const isKeywords = pText.toLowerCase().startsWith("keywords:");
+
+          docChildren.push(
+            new Paragraph({
+              children: runs,
+              alignment: isKeywords ? AlignmentType.LEFT : AlignmentType.JUSTIFY,
+              spacing: { line: 360, after: 120 },
+              indent: isKeywords ? { firstLine: 0 } : { firstLine: 720 }
+            })
+          );
+        });
+      });
+
+      const doc = new Document({
+        sections: [{
+          properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } },
+          children: docChildren
+        }]
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, "scopus_manuscript_english.docx");
+    }
+  </script>
+</body>
+</html>
