@@ -135,9 +135,12 @@
 
         <!-- DAFTAR LAPORAN RIWAYAT -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
                 <h2 class="text-lg font-semibold text-gray-700">📊 Hasil Laporan Murojaah Terakhir</h2>
-                <button onclick="muatLaporan(true)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="hapusSemuaData()" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg transition font-medium border border-red-200">🗑️ Hapus Semua</button>
+                    <button onclick="muatLaporan(true)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
+                </div>
             </div>
             <div id="containerLaporan" class="space-y-4 text-sm text-gray-500">
                 Sedang memuat riwayat laporan...
@@ -464,7 +467,6 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            // Buat osilator senyap berfrekuensi 0
             const bufferSize = audioCtx.sampleRate * 2;
             const emptyBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             silentAudioNode = audioCtx.createBufferSource();
@@ -487,7 +489,6 @@
         } catch (e) {}
     }
 
-    // Auto re-request Wake Lock jika pengguna kembali membuka tab/layar
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible' && isRecording && !wakeLock) {
             await aktifkanWakeLock();
@@ -557,7 +558,6 @@
                     mimeType = 'audio/mpeg';
                 }
                 
-                // Set timeslice 1000ms agar chunks masuk secara periodik dan tidak mudah corrupt
                 mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) audioChunks.push(e.data);
@@ -593,7 +593,6 @@
                 isPaused = false;
                 totalElapsedTime = 0;
                 
-                // Aktifkan Pengaman Layar Mati & Background Freeze
                 await aktifkanWakeLock();
                 mulaiAudioKeepAlive();
                 
@@ -689,7 +688,6 @@
         timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // SISTEM KIRIM BERTINGKAT (CHUNKED UPLOAD)
     async function kirimBlobAudio(blob) {
         const CHUNK_SIZE = 1.5 * 1024 * 1024;
         const totalSize = blob.size;
@@ -884,6 +882,21 @@
         }
     }
 
+    async function hapusSemuaData() {
+        if (confirm("⚠️ PERINGATAN: Apakah Anda yakin ingin menghapus SELURUH riwayat murojaah? Tindakan ini tidak dapat dibatalkan.")) {
+            try {
+                tampilkanStatus("Sedang menghapus seluruh riwayat di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
+                await fetch(`${GSCRIPT_GET_URL}?aksi=hapus_semua`, { method: 'GET' });
+                setTimeout(() => {
+                    tampilkanStatus("🗑️ Seluruh riwayat berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
+                    muatLaporan(true);
+                }, 1500);
+            } catch (err) {
+                alert("Gagal menghapus semua data: " + err.message);
+            }
+        }
+    }
+
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
             uploadPrompt.classList.add('hidden');
@@ -899,7 +912,6 @@
         submitBtn.disabled = true;
         
         try {
-            dataAudioTerakhir = file;
             await simpanAudioKeHP(file); 
             await kirimBlobAudio(file);
             uploadForm.reset();
