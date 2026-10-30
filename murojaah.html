@@ -87,7 +87,12 @@
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
                     🎙️ Perekam Langsung (Anti Terhenti Saat Layar Mati / Pindah Aplikasi)
                 </h2>
-                <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
+                <div class="flex items-center gap-2">
+                    <span id="networkStatus" class="text-xs px-2.5 py-1 rounded-full font-semibold bg-green-100 text-green-700">🟢 Online</span>
+                    <button id="lockScreenBtn" class="text-xs bg-gray-800 hover:bg-gray-900 text-white px-3 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-sm">
+                        🔒 Kunci Layar Saku
+                    </button>
+                </div>
             </div>
 
             <!-- GRID TAMPILAN SAMA PERSIS DI HP & LAPTOP -->
@@ -171,6 +176,24 @@
         </div>
     </div>
 
+    <!-- POCKET MODE OVERLAY (LAYAR HITAM PENGUNCI SAKU) -->
+    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none touch-none">
+        <div class="w-full flex justify-between items-center opacity-40 pt-4">
+            <span class="text-xs tracking-widest font-mono">🔒 POCKET MODE ACTIVE</span>
+            <span id="pocketTimer" class="text-xs font-mono">00:00:00</span>
+        </div>
+        <div class="text-center space-y-3 my-auto">
+            <div class="inline-block animate-pulse text-5xl">🛡️</div>
+            <p class="text-sm font-medium text-gray-400">Layar Terkunci & Aman dari Sentuhan Saku</p>
+            <p class="text-[11px] text-gray-600 pt-4">Ketuk layar ini <strong class="text-emerald-400">3 Kali Berturut-turut</strong> untuk membuka kunci.</p>
+        </div>
+        <div class="pb-6">
+            <button id="unlockPocketBtn" class="bg-gray-900 border border-gray-800 text-gray-400 text-xs px-6 py-2.5 rounded-full hover:bg-gray-800 transition">
+                Buka Kunci Manual
+            </button>
+        </div>
+    </div>
+
 <script>
     const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
     const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
@@ -208,6 +231,12 @@
     const modalBody = document.getElementById('modalBody');
     const modalDate = document.getElementById('modalDate');
 
+    // Pocket Lock Elements
+    const lockScreenBtn = document.getElementById('lockScreenBtn');
+    const pocketLockScreen = document.getElementById('pocketLockScreen');
+    const unlockPocketBtn = document.getElementById('unlockPocketBtn');
+    const pocketTimer = document.getElementById('pocketTimer');
+
     // Perekam Variables
     let mediaRecorder = null;
     let audioChunks = [];
@@ -224,6 +253,34 @@
     let wakeLock = null;
     let silentAudioNode = null;
     let lastDataString = "";
+    let tapCount = 0;
+    let tapTimer = null;
+
+    // POCKET LOCK EVENT HANDLERS
+    lockScreenBtn.addEventListener('click', () => {
+        pocketLockScreen.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+    });
+
+    unlockPocketBtn.addEventListener('click', () => {
+        pocketLockScreen.classList.add('hidden');
+        document.body.style.overflow = "";
+    });
+
+    // Triple Tap untuk unlock layar saku
+    pocketLockScreen.addEventListener('click', () => {
+        tapCount++;
+        if (tapCount === 1) {
+            tapTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 600);
+        } else if (tapCount === 3) {
+            clearTimeout(tapTimer);
+            tapCount = 0;
+            pocketLockScreen.classList.add('hidden');
+            document.body.style.overflow = "";
+        }
+    });
 
     // INDEXEDDB UNTUK PENYELAMATAN AUDIO
     const dbName = "MurojaahOfflineDB";
@@ -685,7 +742,9 @@
         const secs = Math.floor((elapsedTime / 1000) % 60);
         const mins = Math.floor((elapsedTime / 1000 / 60) % 60);
         const hrs = Math.floor((elapsedTime / 1000 / 60 / 60));
-        timerLabel.textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        const formattedTime = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        timerLabel.textContent = formattedTime;
+        pocketTimer.textContent = formattedTime;
     }
 
     async function kirimBlobAudio(blob) {
