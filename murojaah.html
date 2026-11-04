@@ -1,3 +1,5 @@
+--- START OF FILE Paste November 04, 2026 - 10:21AM ---
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -20,6 +22,12 @@
         }
         #fullscreenModal {
             -webkit-overflow-scrolling: touch;
+        }
+        /* Proteksi total layar saku */
+        #pocketLockScreen {
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
     </style>
 </head>
@@ -68,13 +76,19 @@
             </form>
 
             <!-- INDIKATOR PROGRESS BAR PENGIRIMAN -->
-            <div id="progressContainer" class="hidden space-y-1.5 mt-4">
+            <div id="progressContainer" class="hidden space-y-3 mt-4">
                 <div class="flex justify-between text-xs font-bold text-emerald-700">
                     <span id="uploadProgressText">⏳ Mengirim berkas MP3 ke server...</span>
                     <span id="progressPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
                     <div id="uploadProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
+                </div>
+                <!-- Tombol Coba Ulang Terisolasi (Tidak Ganggu Record On-Going) -->
+                <div id="retryUploadBox" class="hidden pt-1">
+                    <button id="retryUploadBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        🔄 Ulangi Upload Saja (Tanpa Ganggu Hafalan)
+                    </button>
                 </div>
             </div>
 
@@ -176,19 +190,19 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY (LAYAR HITAM PENGUNCI SAKU) -->
-    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none touch-none">
+    <!-- POCKET MODE OVERLAY (TRUE ANTI-TOUCH KUNCI SAKU) -->
+    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none pointer-events-auto">
         <div class="w-full flex justify-between items-center opacity-40 pt-4">
-            <span class="text-xs tracking-widest font-mono">🔒 POCKET MODE ACTIVE</span>
+            <span class="text-xs tracking-widest font-mono">🔒 POCKET MODE ACTIVE (TRUE SECURE)</span>
             <span id="pocketTimer" class="text-xs font-mono">00:00:00</span>
         </div>
         <div class="text-center space-y-3 my-auto">
             <div class="inline-block animate-pulse text-5xl">🛡️</div>
-            <p class="text-sm font-medium text-gray-400">Layar Terkunci & Aman dari Sentuhan Saku</p>
+            <p class="text-sm font-medium text-gray-400">Layar Terkunci Total & 100% Aman dari Kain Saku</p>
             <p class="text-[11px] text-gray-600 pt-4">Ketuk layar ini <strong class="text-emerald-400">3 Kali Berturut-turut</strong> untuk membuka kunci.</p>
         </div>
         <div class="pb-6">
-            <button id="unlockPocketBtn" class="bg-gray-900 border border-gray-800 text-gray-400 text-xs px-6 py-2.5 rounded-full hover:bg-gray-800 transition">
+            <button id="unlockPocketBtn" class="bg-gray-900 border border-gray-800 text-gray-400 text-xs px-6 py-2.5 rounded-full hover:bg-gray-800 transition pointer-events-auto">
                 Buka Kunci Manual
             </button>
         </div>
@@ -211,6 +225,8 @@
     const progressPercent = document.getElementById('progressPercent');
     const uploadProgressBar = document.getElementById('uploadProgressBar');
     const uploadProgressText = document.getElementById('uploadProgressText');
+    const retryUploadBox = document.getElementById('retryUploadBox');
+    const retryUploadBtn = document.getElementById('retryUploadBtn');
     
     const recordBtn = document.getElementById('recordBtn');
     const pauseBtn = document.getElementById('pauseBtn');
@@ -255,20 +271,22 @@
     let lastDataString = "";
     let tapCount = 0;
     let tapTimer = null;
+    let lastFailedBlob = null;
 
-    // POCKET LOCK EVENT HANDLERS
+    // POCKET LOCK EVENT HANDLERS (TRUE HARD SECURITY)
     lockScreenBtn.addEventListener('click', () => {
         pocketLockScreen.classList.remove('hidden');
         document.body.style.overflow = "hidden";
     });
 
-    unlockPocketBtn.addEventListener('click', () => {
+    unlockPocketBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         pocketLockScreen.classList.add('hidden');
         document.body.style.overflow = "";
     });
 
-    // Triple Tap untuk unlock layar saku
-    pocketLockScreen.addEventListener('click', () => {
+    // Triple Tap khusus pada area aman pocket lock
+    pocketLockScreen.addEventListener('click', (e) => {
         tapCount++;
         if (tapCount === 1) {
             tapTimer = setTimeout(() => {
@@ -342,11 +360,27 @@
         uploadProgressText.textContent = text;
         progressPercent.textContent = `${percent}%`;
         uploadProgressBar.style.width = `${percent}%`;
+        retryUploadBox.classList.add('hidden');
+    }
+
+    function showRetryUploadOption(blob) {
+        lastFailedBlob = blob;
+        retryUploadBox.classList.remove('hidden');
     }
 
     function hideUploadProgress() {
         progressContainer.classList.add('hidden');
+        retryUploadBox.classList.add('hidden');
     }
+
+    retryUploadBtn.addEventListener('click', () => {
+        if (lastFailedBlob) {
+            retryUploadBox.classList.add('hidden');
+            kirimBlobAudio(lastFailedBlob);
+        } else {
+            alert("Tidak ada antrean file gagal yang tersimpan.");
+        }
+    });
 
     // PARSER LOG KOREKSI KE ELEMEN HTML
     function parseKoreksiKeHTML(teksMentah) {
@@ -515,7 +549,6 @@
         }
     }
 
-    // Trik memutar audio kosong agar HP menganggap aplikasi aktif di latar belakang
     function mulaiAudioKeepAlive() {
         try {
             if (!audioCtx) {
@@ -777,8 +810,9 @@
                     percobaan--;
                     if (percobaan === 0) {
                         hideUploadProgress();
-                        tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Gagal mengirim potongan ke-${chunkIndex + 1}. Silakan coba 'Kirim Ulang'.`, "bg-red-50 border-red-200 text-red-700");
-                        throw err;
+                        showRetryUploadOption(blob);
+                        tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Gagal mengirim potongan ke-${chunkIndex + 1}. Silakan klik tombol 'Ulangi Upload Saja' di atas tanpa mengganggu aktivitas lain.`, "bg-red-50 border-red-200 text-red-700");
+                        return; // Berhenti tanpa melempar error global yang mengganggu state
                     }
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
@@ -927,32 +961,40 @@
     }
 
     async function hapusBaris(index) {
-        if (confirm("Apakah Anda yakin ingin menghapus baris riwayat ini?")) {
-            try {
-                tampilkanStatus("Sedang menghapus data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
-                await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
-                setTimeout(() => {
-                    tampilkanStatus("🗑️ Data berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
-                    muatLaporan(true);
-                }, 1500);
-            } catch (err) {
-                alert("Gagal menghapus data: " + err.message);
-            }
+        const pass = prompt("🔐 Masukkan Password Penghapusan (Ketik: 123):");
+        if (pass !== "123") {
+            if (pass !== null) alert("❌ Password salah! Penghapusan dibatalkan.");
+            return;
+        }
+
+        try {
+            tampilkanStatus("Sedang menghapus data di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
+            await fetch(`${GSCRIPT_GET_URL}?aksi=hapus&baris_ke=${index}`, { method: 'GET' });
+            setTimeout(() => {
+                tampilkanStatus("🗑️ Data berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
+                muatLaporan(true);
+            }, 1500);
+        } catch (err) {
+            alert("Gagal menghapus data: " + err.message);
         }
     }
 
     async function hapusSemuaData() {
-        if (confirm("⚠️ PERINGATAN: Apakah Anda yakin ingin menghapus SELURUH riwayat murojaah? Tindakan ini tidak dapat dibatalkan.")) {
-            try {
-                tampilkanStatus("Sedang menghapus seluruh riwayat di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
-                await fetch(`${GSCRIPT_GET_URL}?aksi=hapus_semua`, { method: 'GET' });
-                setTimeout(() => {
-                    tampilkanStatus("🗑️ Seluruh riwayat berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
-                    muatLaporan(true);
-                }, 1500);
-            } catch (err) {
-                alert("Gagal menghapus semua data: " + err.message);
-            }
+        const pass = prompt("⚠️ PERINGATAN: Masukkan Password Master untuk Menghapus SEMUA Riwayat (Ketik: 123):");
+        if (pass !== "123") {
+            if (pass !== null) alert("❌ Password salah! Penghapusan dibatalkan.");
+            return;
+        }
+
+        try {
+            tampilkanStatus("Sedang menghapus seluruh riwayat di Google Sheets...", "bg-amber-50 border-amber-200 text-amber-700");
+            await fetch(`${GSCRIPT_GET_URL}?aksi=hapus_semua`, { method: 'GET' });
+            setTimeout(() => {
+                tampilkanStatus("🗑️ Seluruh riwayat berhasil dihapus!", "bg-green-50 border-green-200 text-green-700");
+                muatLaporan(true);
+            }, 1500);
+        } catch (err) {
+            alert("Gagal menghapus semua data: " + err.message);
         }
     }
 
