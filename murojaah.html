@@ -1,5 +1,3 @@
---- START OF FILE Paste November 04, 2026 - 10:21AM ---
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -23,11 +21,12 @@
         #fullscreenModal {
             -webkit-overflow-scrolling: touch;
         }
-        /* Proteksi total layar saku */
+        /* Proteksi total layar saku anti sentuh kain */
         #pocketLockScreen {
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -84,12 +83,14 @@
                 <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
                     <div id="uploadProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
                 </div>
-                <!-- Tombol Coba Ulang Terisolasi (Tidak Ganggu Record On-Going) -->
-                <div id="retryUploadBox" class="hidden pt-1">
-                    <button id="retryUploadBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition flex items-center justify-center gap-1.5">
-                        🔄 Ulangi Upload Saja (Tanpa Ganggu Hafalan)
-                    </button>
-                </div>
+            </div>
+
+            <!-- KOTAK KHUSUS UPLOAD GAGAL & TOMBOL ULANGI (TERISOLASI DARI REKAMAN ON-GOING) -->
+            <div id="retryUploadBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800 space-y-3">
+                <div id="retryStatusText" class="text-xs font-semibold">⚠️ Ada file rekaman lama yang gagal terkirim sebelumnya di tengah jalan.</div>
+                <button id="retryUploadBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
+                    🔄 Ulangi Upload Rekaman Lama Ini Saja (Aman, Tanpa Mengganggu Rekaman Baru)
+                </button>
             </div>
 
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
@@ -190,20 +191,20 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY (TRUE ANTI-TOUCH KUNCI SAKU) -->
-    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none pointer-events-auto">
+    <!-- POCKET MODE OVERLAY (TRUE PIN PROTECTED POCKET LOCK) -->
+    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none">
         <div class="w-full flex justify-between items-center opacity-40 pt-4">
-            <span class="text-xs tracking-widest font-mono">🔒 POCKET MODE ACTIVE (TRUE SECURE)</span>
+            <span class="text-xs tracking-widest font-mono">🔒 SECURE POCKET MODE ACTIVE</span>
             <span id="pocketTimer" class="text-xs font-mono">00:00:00</span>
         </div>
         <div class="text-center space-y-3 my-auto">
             <div class="inline-block animate-pulse text-5xl">🛡️</div>
-            <p class="text-sm font-medium text-gray-400">Layar Terkunci Total & 100% Aman dari Kain Saku</p>
-            <p class="text-[11px] text-gray-600 pt-4">Ketuk layar ini <strong class="text-emerald-400">3 Kali Berturut-turut</strong> untuk membuka kunci.</p>
+            <p class="text-sm font-medium text-gray-400">Layar Terkunci Sempurna (Anti Kain Saku)</p>
+            <p class="text-[11px] text-gray-600 pt-2">Sentuhan layar biasa tidak akan merespon apa pun.</p>
         </div>
-        <div class="pb-6">
-            <button id="unlockPocketBtn" class="bg-gray-900 border border-gray-800 text-gray-400 text-xs px-6 py-2.5 rounded-full hover:bg-gray-800 transition pointer-events-auto">
-                Buka Kunci Manual
+        <div class="pb-6 w-full max-w-xs">
+            <button id="unlockPocketBtn" class="w-full bg-gray-900 border border-gray-700 text-emerald-400 font-semibold text-sm px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow-lg">
+                🔓 Masukkan PIN Buka Kunci (123)
             </button>
         </div>
     </div>
@@ -269,34 +270,21 @@
     let wakeLock = null;
     let silentAudioNode = null;
     let lastDataString = "";
-    let tapCount = 0;
-    let tapTimer = null;
     let lastFailedBlob = null;
 
-    // POCKET LOCK EVENT HANDLERS (TRUE HARD SECURITY)
+    // POCKET LOCK DENGAN PIN 123
     lockScreenBtn.addEventListener('click', () => {
         pocketLockScreen.classList.remove('hidden');
         document.body.style.overflow = "hidden";
     });
 
-    unlockPocketBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        pocketLockScreen.classList.add('hidden');
-        document.body.style.overflow = "";
-    });
-
-    // Triple Tap khusus pada area aman pocket lock
-    pocketLockScreen.addEventListener('click', (e) => {
-        tapCount++;
-        if (tapCount === 1) {
-            tapTimer = setTimeout(() => {
-                tapCount = 0;
-            }, 600);
-        } else if (tapCount === 3) {
-            clearTimeout(tapTimer);
-            tapCount = 0;
+    unlockPocketBtn.addEventListener('click', () => {
+        const pinInput = prompt("🔐 Masukkan PIN Buka Kunci (Ketik: 123):");
+        if (pinInput === "123") {
             pocketLockScreen.classList.add('hidden');
             document.body.style.overflow = "";
+        } else if (pinInput !== null) {
+            alert("❌ PIN Salah! Layar tetap terkunci demi keamanan saku.");
         }
     });
 
@@ -365,6 +353,7 @@
 
     function showRetryUploadOption(blob) {
         lastFailedBlob = blob;
+        progressContainer.classList.add('hidden');
         retryUploadBox.classList.remove('hidden');
     }
 
@@ -811,8 +800,8 @@
                     if (percobaan === 0) {
                         hideUploadProgress();
                         showRetryUploadOption(blob);
-                        tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Gagal mengirim potongan ke-${chunkIndex + 1}. Silakan klik tombol 'Ulangi Upload Saja' di atas tanpa mengganggu aktivitas lain.`, "bg-red-50 border-red-200 text-red-700");
-                        return; // Berhenti tanpa melempar error global yang mengganggu state
+                        tampilkanStatus(`❌ <strong>Kesalahan Koneksi:</strong> Gagal mengirim potongan ke-${chunkIndex + 1}.`, "bg-red-50 border-red-200 text-red-700");
+                        return;
                     }
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
