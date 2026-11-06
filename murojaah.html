@@ -507,20 +507,26 @@
         return outputHTML;
     }
 
-    window.bukaDetailKoreksi = function(teksEncoded, tanggal) {
-        const teksLengkap = decodeURIComponent(teksEncoded);
-        modalDate.textContent = tanggal;
-        modalBody.innerHTML = parseKoreksiKeHTML(teksLengkap);
-        
-        fullscreenModal.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-    };
+window.bukaDetailKoreksi = async function(teksEncoded, tanggal) {
+    const teksLengkap = decodeURIComponent(teksEncoded);
+    modalDate.textContent = tanggal;
+    modalBody.innerHTML = parseKoreksiKeHTML(teksLengkap);
+    
+    fullscreenModal.classList.remove('hidden');
+    document.body.style.overflow = "hidden";
+    
+    // AKTIFKAN LAYAR AGAR TIDAK MATI
+    await aktifkanWakeLock(); 
+};
 
-    closeModalBtn.addEventListener('click', () => {
-        fullscreenModal.classList.add('hidden');
-        document.body.style.overflow = "";
-    });
-
+// MODIFIKASI: Tutup Modal
+closeModalBtn.addEventListener('click', () => {
+    fullscreenModal.classList.add('hidden');
+    document.body.style.overflow = "";
+    
+    // MATIKAN WAKE LOCK SAAT MODAL DITUTUP
+    matikanWakeLock();
+});
     // SISTEM PENCEGAH MATI LAYAR & BACKGROUND FREEZE
     async function aktifkanWakeLock() {
         try {
