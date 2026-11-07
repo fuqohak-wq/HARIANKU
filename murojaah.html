@@ -331,16 +331,45 @@
     let jumlahDitampilkan = 20;
 
     // ========================================================================
+    // SISTEM PENGHITUNG JUMLAH KOREKSI PER SESI
+    // ========================================================================
+    function hitungJumlahKoreksi(teksMentah) {
+        if (!teksMentah) return 0;
+        const lower = teksMentah.toLowerCase();
+
+        // 1. Hitung berdasarkan separator baku '---' (salah --- benar)
+        const lines = teksMentah.split('\n');
+        let count = 0;
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.includes('---')) {
+                const parts = trimmed.split('---');
+                if (parts.length === 2 && parts[0].trim().length > 0 && parts[1].trim().length > 0) {
+                    count++;
+                }
+            }
+        }
+
+        // 2. Jika tidak ada format '---', cek apakah ada butir peluru koreksi ayat
+        if (count === 0 && !lower.includes('lancar') && !lower.includes('tidak ditemukan')) {
+            const bulletMatches = teksMentah.match(/^[●\-*]\s*(?:ayat|qs|surah|\d+)/gim);
+            if (bulletMatches) {
+                count = bulletMatches.length;
+            }
+        }
+
+        return count;
+    }
+
+    // ========================================================================
     // SISTEM TOTAL LAYAR TERJAGA (ALWAYS-ON KEEP AWAKE UNTUK SEMUA FITUR)
     // ========================================================================
-
     async function mintaWakeLockPermanen() {
         try {
             if ('wakeLock' in navigator) {
                 if (!wakeLock || wakeLock.released) {
                     wakeLock = await navigator.wakeLock.request('screen');
                     wakeLock.addEventListener('release', () => {
-                        // Jangan biarkan mati jika browser melepasnya, mintakan ulang otomatis!
                         setTimeout(() => {
                             if (document.visibilityState === 'visible') {
                                 mintaWakeLockPermanen();
@@ -350,13 +379,12 @@
                 }
             }
         } catch (err) {
-            console.warn("WakeLock request error (akan fallback ke audio/video keepalive):", err.message);
+            console.warn("WakeLock request error:", err.message);
         }
     }
 
     function inisialisasiFallbackMediaKeepAlive() {
         try {
-            // Gunakan canvas stream sebagai video keep-alive untuk Safari & browser Android
             const canvas = document.createElement('canvas');
             canvas.width = 16;
             canvas.height = 16;
@@ -746,7 +774,7 @@
                 };
                 
                 mediaRecorder.onstop = async () => {
-                    mintaWakeLockPermanen(); // Tetap jaga layar aktif
+                    mintaWakeLockPermanen();
                     
                     const rawBlob = new Blob(audioChunks, { type: mimeType });
                     const audioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
@@ -981,7 +1009,6 @@
                 containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data dari server...</p>`;
             }
             
-            // Tambahkan cache buster & parameter limit jika didukung
             const cacheBuster = `_t=${Date.now()}`;
             const urlFetch = GSCRIPT_GET_URL.includes('?') ? `${GSCRIPT_GET_URL}&${cacheBuster}` : `${GSCRIPT_GET_URL}?${cacheBuster}`;
             
@@ -995,7 +1022,6 @@
             
             lastDataString = currentDataString;
             
-            // Simpan indeks data asli Google Sheets agar hapus baris selalu akurat
             semuaDataRiwayat = (Array.isArray(data) ? data : []).map((item, originalIndex) => ({
                 ...item,
                 sheetIndex: originalIndex
@@ -1056,13 +1082,40 @@
                 cakupanSesi = matchCakupan[1].trim();
             }
 
+            // HITUNG JUMLAH KOREKSI UNTUK BADGE
+            const jumlahSalah = hitungJumlahKoreksi(item.koreksi);
+            let badgeKoreksiHTML = "";
+
+            if (jumlahSalah === 0) {
+                badgeKoreksiHTML = `
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shadow-2xs">
+                        ✨ Lancar (0 Koreksi)
+                    </span>
+                `;
+            } else if (jumlahSalah < 5) {
+                badgeKoreksiHTML = `
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full shadow-2xs">
+                        ⚠️ ${jumlahSalah} Koreksi
+                    </span>
+                `;
+            } else {
+                badgeKoreksiHTML = `
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-rose-700 bg-rose-50 border border-rose-300 px-2 py-0.5 rounded-full shadow-2xs">
+                        🚨 ${jumlahSalah} Koreksi
+                    </span>
+                `;
+            }
+
             const kartuLaporan = document.createElement('div');
             kartuLaporan.className = "p-4 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-emerald-200 hover:shadow";
             
             kartuLaporan.innerHTML = `
                 <div class="space-y-1 overflow-hidden">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-bold text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">${item.menit || 'Rekaman'}</span>
+                        <span class="font-bold text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                            ${item.menit || 'Sesi Murojaah Lengkap'}
+                        </span>
+                        ${badgeKoreksiHTML}
                         <span class="text-[11px] text-gray-400">${tanggal}</span>
                     </div>
                     <h3 class="text-sm font-bold text-gray-800 truncate">🏁 Terakhir: ${ayatTerakhirSesi}</h3>
@@ -1086,7 +1139,6 @@
             containerLaporan.appendChild(kartuLaporan);
         });
 
-        // Update info paginasi
         if (dataTerfilter.length > itemPerHalaman) {
             paginationControls.classList.remove('hidden');
             paginationInfo.textContent = `Menampilkan ${Math.min(jumlahDitampilkan, dataTerfilter.length)} dari ${dataTerfilter.length} data`;
