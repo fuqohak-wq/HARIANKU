@@ -24,7 +24,11 @@
                     <i class="fa-solid fa-heart-pulse text-amber-500 dark:text-amber-400 animate-pulse"></i> AI Nutrition Tracker
                 </h1>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button id="wakeLockToggle" title="Menjaga layar tetap menyala meskipun mode hemat baterai aktif" class="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+                    <i id="wakeLockIcon" class="fa-solid fa-sun animate-pulse text-emerald-500"></i>
+                    <span id="wakeLockText">Layar Hidup: Aktif</span>
+                </button>
                 <button id="themeToggle" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs font-semibold flex items-center gap-1.5 transition">
                     <i id="themeIcon" class="fa-solid fa-moon text-indigo-500"></i>
                     <span id="themeText">Mode Gelap</span>
@@ -42,7 +46,13 @@
                 <i class="fa-solid fa-utensils animate-bounce"></i>
             </div>
             <div class="flex-1 w-full">
-                <p id="aiAdviceTitle" class="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest mb-1">Rekomendasi Menu Anda</p>
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                    <p id="aiAdviceTitle" class="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest">Rekomendasi Menu Anda</p>
+                    <span id="aiCurrentDateBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/80 dark:bg-slate-900/70 text-slate-700 dark:text-slate-200 border border-blue-500/20">
+                        <i class="fa-regular fa-calendar-check text-blue-500"></i>
+                        <span id="aiCurrentDateText">Memuat tanggal...</span>
+                    </span>
+                </div>
                 <p id="aiMotivationText" class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">"Menganalisis waktu hari ini untuk saran terbaik..."</p>
                 <div class="bg-white/50 dark:bg-slate-900/40 p-3 rounded-xl border border-white/60 dark:border-slate-700/50 mb-3">
                     <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block mb-1">Ide Masak Jomblo (Mudah & Cepat):</span>
@@ -154,36 +164,121 @@
         </section>
     </main>
 
-    <!-- Modal Pop-up Analisis AI -->
+    <!-- Modal Pop-up Analisis AI (Dengan Tanggal Jelas, Pertimbangan Ketat & Pengganti Sebelahnya) -->
     <div id="nutritionModal" class="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-950 w-full max-w-md rounded-3xl p-6 text-center shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div class="text-amber-500 text-3xl mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-            <h3 class="text-xl font-bold mb-1">Hasil Analisis AI</h3>
-            <div id="modalFoodTitle" class="text-blue-600 font-black uppercase text-sm mb-6 tracking-wide">-</div>
+        <div class="bg-white dark:bg-slate-950 w-full max-w-3xl rounded-3xl p-6 text-center shadow-2xl overflow-y-auto max-h-[92vh] border border-slate-200 dark:border-slate-800">
+            <!-- Header Tanggal & Judul -->
+            <div class="flex flex-col items-center mb-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold mb-2">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span id="modalCurrentDate">-</span>
+                </div>
+                <div class="text-amber-500 text-3xl mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <h3 class="text-xl font-bold">Hasil Analisis AI</h3>
+                <div id="modalFoodTitle" class="text-blue-600 dark:text-blue-400 font-black uppercase text-sm tracking-wide mt-1">-</div>
+            </div>
 
-            <div class="grid grid-cols-3 gap-2 mb-6">
-                <div class="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl">
-                    <p class="text-[10px] text-blue-500 font-bold">KALORI</p>
+            <!-- Ringkasan Angka Nutrisi -->
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+                <div class="bg-orange-50 dark:bg-orange-900/20 p-2.5 rounded-xl border border-orange-200/60 dark:border-orange-800/40">
+                    <p class="text-[10px] text-orange-500 font-bold">KALORI</p>
                     <p id="popKalori" class="font-bold text-sm">0</p>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/30 p-2 rounded-xl">
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40">
                     <p class="text-[10px] text-emerald-500 font-bold">PROTEIN</p>
                     <p id="popProtein" class="font-bold text-sm">0</p>
                 </div>
-                <div class="bg-rose-50 dark:bg-rose-900/30 p-2 rounded-xl">
+                <div class="bg-rose-50 dark:bg-rose-900/20 p-2.5 rounded-xl border border-rose-200/60 dark:border-rose-800/40">
                     <p class="text-[10px] text-rose-500 font-bold">LEMAK</p>
                     <p id="popLemak" class="font-bold text-sm">0</p>
                 </div>
+                <div class="bg-amber-50 dark:bg-amber-900/20 p-2.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40">
+                    <p class="text-[10px] text-amber-500 font-bold">KARBO</p>
+                    <p id="popKarbo" class="font-bold text-sm">0</p>
+                </div>
+                <div class="bg-teal-50 dark:bg-teal-900/20 p-2.5 rounded-xl border border-teal-200/60 dark:border-teal-800/40 col-span-3 sm:col-span-1">
+                    <p class="text-[10px] text-teal-500 font-bold">SERAT</p>
+                    <p id="popSerat" class="font-bold text-sm">0</p>
+                </div>
             </div>
 
-            <div class="text-left mb-6">
-                <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Analisis Kesehatan:</p>
-                <div id="modalConclusion" class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl text-sm leading-relaxed italic"></div>
+            <!-- Banner Status Dampak ke Target Harian -->
+            <div id="modalDecisionBanner" class="text-left p-3.5 rounded-2xl border mb-4 text-xs">
+                <!-- Diisi dinamis oleh JS -->
+            </div>
+
+            <!-- Analisis Kesehatan AI Asli -->
+            <div class="text-left mb-4">
+                <p class="text-[11px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">Analisis Kesehatan AI:</p>
+                <div id="modalConclusion" class="bg-slate-50 dark:bg-slate-900 p-3.5 rounded-xl text-xs sm:text-sm leading-relaxed italic border border-slate-200/60 dark:border-slate-800"></div>
+            </div>
+
+            <!-- GRID SEBELAH-SEBELAHAN: PERTIMBANGAN KETAT (KIRI) & PENGGANTI LEBIH SEHAT + RESEP (KANAN) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-5">
+                <!-- Kolom Kiri: Penyebab, Yang Harus Dikurangi & Pilihan Penyesuaian -->
+                <div class="bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-wide flex items-center gap-1.5 mb-2.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Pertimbangan Ketat Sebelum Makan
+                        </h4>
+                        <div class="mb-3">
+                            <p class="text-[10px] font-bold text-rose-500 uppercase mb-1">Penyebab Utama Risiko / Kalori:</p>
+                            <ul id="modalCulpritsList" class="text-xs text-slate-700 dark:text-slate-300 space-y-1 list-disc pl-4"></ul>
+                        </div>
+                        <div class="mb-3">
+                            <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase mb-1">Yang Mestinya Dikurangi / Disisihkan:</p>
+                            <ul id="modalReduceList" class="text-xs text-slate-700 dark:text-slate-300 space-y-1 list-disc pl-4"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Penyesuaian Porsi Sebelum Simpan -->
+                    <div class="pt-2.5 border-t border-rose-200/70 dark:border-rose-800/40">
+                        <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1.5">Pilihan Keputusan Anda:</p>
+                        <div class="flex flex-col gap-1.5" id="portionChoiceGroup">
+                            <label class="flex items-center gap-2 text-xs bg-white/80 dark:bg-slate-900/70 p-2 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                <input type="radio" name="portionOption" value="full" checked class="accent-blue-600">
+                                <span>Makan Penuh (100% porsi awal)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-xs bg-white/80 dark:bg-slate-900/70 p-2 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                <input type="radio" name="portionOption" value="reduce_carb" class="accent-blue-600">
+                                <span>Kurangi Porsi Karbo/Makan (-30% Kalori)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-xs bg-white/80 dark:bg-slate-900/70 p-2 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer">
+                                <input type="radio" name="portionOption" value="remove_fat" class="accent-blue-600">
+                                <span>Sisihkan Minyak/Kuah/Kulit (-35% Lemak)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan (Sebelahnya): Usulan Pengganti Lebih Sehat & Resep Pengganti -->
+                <div class="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-4 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide flex items-center gap-1.5 mb-2.5">
+                            <i class="fa-solid fa-leaf"></i> Usulan Pengganti Lebih Sehat
+                        </h4>
+                        <div class="bg-white/80 dark:bg-slate-900/60 p-3 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 mb-3">
+                            <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-0.5">Sebaiknya Ganti Dengan:</p>
+                            <p id="modalHealthySwapTitle" class="text-xs font-extrabold text-slate-800 dark:text-slate-100 mb-1">-</p>
+                            <p id="modalHealthySwapReason" class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">-</p>
+                        </div>
+                        <div class="bg-white/80 dark:bg-slate-900/60 p-3 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 mb-3">
+                            <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase mb-1">
+                                <i class="fa-solid fa-kitchen-set mr-1"></i> Resep Pengganti Praktis:
+                            </p>
+                            <p id="modalReplacementRecipe" class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed italic">-</p>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnUseHealthySwap" class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-arrows-rotate"></i> Batal & Analisis Pengganti Sehat Ini
+                    </button>
+                </div>
             </div>
 
             <div class="space-y-2">
-                <button id="btnConfirmSave" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl">Simpan ke Jurnal</button>
-                <button onclick="closeModal()" class="w-full text-slate-500 text-sm font-semibold">Batal</button>
+                <button id="btnConfirmSave" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-blue-500/20">Tetap Simpan ke Jurnal</button>
+                <button onclick="closeModal()" class="w-full py-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-sm font-semibold">Batal / Tidak Jadi Makan</button>
             </div>
         </div>
     </div>
@@ -194,10 +289,158 @@
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxyR-YR6cfWMYrvgZsavVqWCZVDh_FFIdyDDTWWIzM4SxibMkDAdNlOaA2T3pCa1SpA/exec"; 
 
         let temporaryAiData = null; 
+        let baseAiData = null; // Menyimpan data asli sebelum opsi pengurangan porsi
         let currentRawInput = "";   
         let currentRecommendedFood = ""; 
+        let latestDashboard = {};
+        let latestTargets = { kalori: 2000, protein: 60, karbohidrat: 250, lemak: 65, serat: 30, air: 2000 };
+        let currentSuggestedSwap = "";
 
         const modal = document.getElementById("nutritionModal");
+
+        // =========================================================================
+        // 1. FITUR LAYAR SELALU HIDUP (WAKE LOCK + SILENT VIDEO FALLBACK BATTERY SAVER)
+        // =========================================================================
+        let wakeLockSentinel = null;
+        let keepAwakeEnabled = true;
+        let fallbackVideoEl = null;
+
+        // Mini MP4 hening 1 frame untuk menjaga layar tetap aktif jika OS Battery Saver memblokir WakeLock
+        const SILENT_MP4_BASE64 = "data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0OCByMjc5NSA2YThhOWI2IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNyAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwcyk9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmb3JtYXQ9aTRwIHRocmVhZHM9NiBsb29rYWhlYWRfdGhyZWFkcz0xIHNsaWNlZF90aHJlYWRzPTAgbnI9MCBkZWNpbWF0ZT0xIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTIgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcnVjdD0xIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MiBrZXlpbnQ9MjUwIGtleWludF9taW49MjUgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgYnRyZWU9MSBjcmY9MjMuMCBxY29tcD0wLjYwIHFwbWluPTEwIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAABhIZWFkAAAAQAAAAABhdmMx";
+
+        function ensureFallbackVideo() {
+            if (!fallbackVideoEl) {
+                fallbackVideoEl = document.createElement("video");
+                fallbackVideoEl.setAttribute("playsinline", "");
+                fallbackVideoEl.setAttribute("muted", "");
+                fallbackVideoEl.setAttribute("loop", "");
+                fallbackVideoEl.muted = true;
+                fallbackVideoEl.loop = true;
+                fallbackVideoEl.style.position = "fixed";
+                fallbackVideoEl.style.width = "1px";
+                fallbackVideoEl.style.height = "1px";
+                fallbackVideoEl.style.opacity = "0.001";
+                fallbackVideoEl.style.pointerEvents = "none";
+                fallbackVideoEl.style.zIndex = "-1";
+                fallbackVideoEl.src = SILENT_MP4_BASE64;
+                document.body.appendChild(fallbackVideoEl);
+            }
+            return fallbackVideoEl;
+        }
+
+        function updateWakeLockUI(active, detailText = "") {
+            const btn = document.getElementById("wakeLockToggle");
+            const icon = document.getElementById("wakeLockIcon");
+            const text = document.getElementById("wakeLockText");
+            if (!btn) return;
+            if (active) {
+                btn.className = "px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition";
+                icon.className = "fa-solid fa-sun animate-pulse text-emerald-500";
+                text.innerText = detailText || "Layar Hidup: Aktif";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 text-xs font-semibold flex items-center gap-1.5 transition";
+                icon.className = "fa-regular fa-moon text-slate-400";
+                text.innerText = "Layar Hidup: Nonaktif";
+            }
+        }
+
+        async function activateKeepScreenAwake() {
+            if (!keepAwakeEnabled) return;
+            let wakeOk = false;
+
+            // 1. Coba Screen Wake Lock API resmi
+            if ("wakeLock" in navigator) {
+                try {
+                    if (!wakeLockSentinel || wakeLockSentinel.released) {
+                        wakeLockSentinel = await navigator.wakeLock.request("screen");
+                        wakeLockSentinel.addEventListener("release", () => {
+                            if (keepAwakeEnabled && document.visibilityState === "visible") {
+                                setTimeout(activateKeepScreenAwake, 500);
+                            }
+                        });
+                    }
+                    wakeOk = true;
+                } catch (err) {
+                    // Sering terjadi jika mode hemat baterai aktif di perangkat
+                    wakeOk = false;
+                }
+            }
+
+            // 2. Jalankan fallback video hening agar layar tetap hidup meski di mode hemat baterai
+            try {
+                const vid = ensureFallbackVideo();
+                const playPromise = vid.play();
+                if (playPromise && typeof playPromise.then === "function") {
+                    await playPromise;
+                }
+                updateWakeLockUI(true, wakeOk ? "Layar Hidup: Aktif" : "Layar Hidup (Anti-Sleep)");
+            } catch (e) {
+                updateWakeLockUI(true, wakeOk ? "Layar Hidup: Aktif" : "Layar Hidup: Siaga");
+            }
+        }
+
+        function deactivateKeepScreenAwake() {
+            if (wakeLockSentinel) {
+                try { wakeLockSentinel.release(); } catch (e) {}
+                wakeLockSentinel = null;
+            }
+            if (fallbackVideoEl) {
+                try { fallbackVideoEl.pause(); } catch (e) {}
+            }
+            updateWakeLockUI(false);
+        }
+
+        document.getElementById("wakeLockToggle").onclick = () => {
+            keepAwakeEnabled = !keepAwakeEnabled;
+            if (keepAwakeEnabled) {
+                activateKeepScreenAwake();
+            } else {
+                deactivateKeepScreenAwake();
+            }
+        };
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && keepAwakeEnabled) {
+                activateKeepScreenAwake();
+            }
+        });
+
+        // Aktivasi ulang saat sentuhan/klik pertama (memastikan autoplay video fallback berjalan mulus di mobile)
+        ["click", "touchstart"].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (keepAwakeEnabled) activateKeepScreenAwake();
+            }, { passive: true });
+        });
+
+        // =========================================================================
+        // 2. FORMAT TANGGAL & HARI REAL-TIME SEKARANG
+        // =========================================================================
+        function getCurrentIndoDateTimeString() {
+            const now = new Date();
+            const datePart = now.toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+            const timePart = now.toLocaleTimeString("id-ID", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false
+            }).replace(/\./g, ":");
+            return `${datePart} • ${timePart}`;
+        }
+
+        function refreshCurrentDateBadges() {
+            const formatted = getCurrentIndoDateTimeString();
+            const aiDateEl = document.getElementById("aiCurrentDateText");
+            const modalDateEl = document.getElementById("modalCurrentDate");
+            if (aiDateEl) aiDateEl.innerText = formatted;
+            if (modalDateEl && !modal.classList.contains("hidden")) {
+                modalDateEl.innerText = formatted;
+            }
+        }
+        setInterval(refreshCurrentDateBadges, 15000);
 
         // Manajemen Tema
         const htmlEl = document.documentElement;
@@ -226,7 +469,11 @@
             applyTheme(htmlEl.classList.contains("dark") ? "light" : "dark");
         };
 
-        document.addEventListener("DOMContentLoaded", fetchData);
+        document.addEventListener("DOMContentLoaded", () => {
+            refreshCurrentDateBadges();
+            activateKeepScreenAwake();
+            fetchData();
+        });
 
         // Tab Switcher
         const tabs = [
@@ -294,8 +541,19 @@
                 const res = await fetch(GAS_WEB_APP_URL);
                 const result = await res.json();
                 if (result.status === "success") {
+                    latestDashboard = result.dashboard || {};
+                    latestTargets = {
+                        kalori: (result.targets && result.targets.kalori) || 2000,
+                        protein: (result.targets && result.targets.protein) || 60,
+                        karbohidrat: (result.targets && result.targets.karbohidrat) || 250,
+                        lemak: (result.targets && result.targets.lemak) || 65,
+                        serat: (result.targets && result.targets.serat) || 30,
+                        air: (result.targets && result.targets.air) || 2000
+                    };
+
                     renderDashboard(result.dashboard, result.targets);
                     renderRiwayat(result.riwayat);
+                    refreshCurrentDateBadges();
                     
                     if (result.motivation) {
                         document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
@@ -328,8 +586,10 @@
                 const res = await fetch(`${GAS_WEB_APP_URL}?refresh=true`);
                 const result = await res.json();
                 if (result.status === "success") {
+                    latestDashboard = result.dashboard || latestDashboard;
                     renderDashboard(result.dashboard, result.targets);
                     renderRiwayat(result.riwayat);
+                    refreshCurrentDateBadges();
                     
                     if (result.motivation) {
                         document.getElementById("aiAdviceTitle").innerText = result.adviceLabel || "Rekomendasi Menu Anda";
@@ -355,8 +615,9 @@
                 const json = await res.json();
                 if (json.status === "success") {
                     if (action === "analyze") {
-                        temporaryAiData = json.data;
-                        openModal(json.data);
+                        baseAiData = JSON.parse(JSON.stringify(json.data));
+                        temporaryAiData = JSON.parse(JSON.stringify(json.data));
+                        openModal(temporaryAiData);
                     } else {
                         closeModal();
                         fetchData();
@@ -391,14 +652,215 @@
             postAction("save", { action: "save", data: temporaryAiData, originalInput: currentRawInput }, document.getElementById("btnConfirmSave"));
         };
 
+        // =========================================================================
+        // 3. ENGINE PERTIMBANGAN KETAT, PENYEBAB, YANG DIKURANGI & RESEP PENGGANTI
+        // =========================================================================
+        function buildStrictFoodConsideration(d, rawInput) {
+            const textAll = `${d.nama_makanan || ""} ${rawInput || ""} ${d.analisis_kesehatan || ""}`.toLowerCase();
+            const kal = Number(d.kalori_kkal) || 0;
+            const prot = Number(d.protein_g) || 0;
+            const fat = Number(d.lemak_total_g) || 0;
+            const carb = Number(d.karbohidrat_g) || 0;
+            const fiber = Number(d.serat_g) || 0;
+
+            const curKal = Number(latestDashboard.kalori_hari_ini) || 0;
+            const curFat = Number(latestDashboard.lemak) || 0;
+            const curCarb = Number(latestDashboard.karbohidrat) || 0;
+
+            const projKal = curKal + kal;
+            const projFat = curFat + fat;
+            const projCarb = curCarb + carb;
+
+            const culprits = [];
+            const reductions = [];
+
+            // Cek jika API AI sudah mengirim field khusus
+            if (d.penyebab_kurang_sehat) culprits.push(d.penyebab_kurang_sehat);
+            if (d.saran_pengurangan) reductions.push(d.saran_pengurangan);
+
+            // Analisis berbasis angka nutrisi & target harian
+            if (projKal > latestTargets.kalori) {
+                const over = Math.round(projKal - latestTargets.kalori);
+                culprits.push(`Kalori harian Anda akan tembus ${Math.round(projKal)} kkal (kelebihan +${over} kkal dari target ${latestTargets.kalori} kkal).`);
+                reductions.push("Kurangi porsi makan ini menjadi 1/2 atau 2/3 bagian saja, atau tunda camilan berikutnya.");
+            } else if (kal >= 650) {
+                culprits.push(`Kalori sekali makan cukup padat (${kal} kkal), menghabiskan >30% jatah harian dalam satu waktu.`);
+                reductions.push("Sisihkan 1/3 porsi karbohidrat/nasi untuk menjaga defisit atau keseimbangan kalori.");
+            }
+
+            if (fat >= 22 || projFat > latestTargets.lemak) {
+                culprits.push(`Kandungan lemak cukup tinggi (${fat}g, total harian menjadi ${Math.round(projFat)}/${latestTargets.lemak}g).`);
+                reductions.push("Buang/sisihkan minyak yang menempel, kulit ayam/daging berlemak, atau kuah berminyak.");
+            }
+
+            if (carb >= 75 || projCarb > latestTargets.karbohidrat) {
+                culprits.push(`Karbohidrat tinggi (${carb}g) yang dapat memicu lonjakan gula darah dan rasa kantuk.`);
+                reductions.push("Kurangi nasi/mie/roti/tepung minimal 3-4 sendok makan dan ganti volumenya dengan sayur.");
+            }
+
+            if (fiber < 3 && kal > 250) {
+                culprits.push(`Sangat rendah serat (${fiber}g), sehingga cepat lapar lagi meski kalorinya tinggi.`);
+                reductions.push("Tambahkan lalapan, timun, tomat, atau rebusan sayur hijau sebelum menyantap menu utama.");
+            }
+
+            // Deteksi pola bahan makanan dari teks
+            let swapTitle = "Dada Ayam Panggang / Telur Rebus + Sayur Tumis Sedikit Minyak & Nasi Merah/Porsi Kecil";
+            let swapReason = "Tinggi protein, rendah lemak jenuh, lebih mengenyangkan dengan kalori sekitar 350–420 kkal saja.";
+            let swapRecipe = "Lumuri 120g dada ayam dengan bawang putih, lada, dan perasan jeruk nipis; panggang di teflon anti lengket (1 sdt minyak zaitun). Sajikan dengan sawi/brokoli rebus dan 100g nasi hangat.";
+
+            if (/(goreng|crispy|geprek|kerupuk|kremes|bakwan|mendoan|risol|tempe goreng|ayam goreng)/.test(textAll)) {
+                culprits.push("Proses penggorengan menyerap minyak jenuh berlebih yang menyumbang kalori tersembunyi.");
+                reductions.push("Kupas lapisan tepung/kulit crispy dan tiriskan dengan tisu dapur sebelum dimakan.");
+                swapTitle = "Ayam/Tahu/Tempe Panggang Teflon atau Air Fryer + Sambal Tomat Segar";
+                swapReason = "Memangkas hingga 45% lemak jenuh dari minyak goreng tanpa menghilangkan rasa gurih.";
+                swapRecipe = "Bumbui ayam tanpa kulit/tempe dengan kunyit, ketumbar & bawang putih. Panggang di teflon/air fryer 12 menit. Sajikan dengan sambal tomat rebus (tanpa digoreng minyak banyak) dan timun.";
+            } else if (/(mie|mi instan|indomie|bakmi|ramen|kwetiau|bihun)/.test(textAll)) {
+                culprits.push("Tepung olahan tinggi karbohidrat sederhana serta bumbu tinggi natrium (garam/MSG).");
+                reductions.push("Gunakan maksimal 1/2 bungkus bumbu minyak/asin, buang air rebusan pertama, dan kurangi mie setengahnya.");
+                swapTitle = "Sup Soun/Shirataki Kuah Bening + 2 Telur & Sawi Hijau";
+                swapReason = "Jauh lebih rendah kalori dan natrium, namun tetap hangat, gurih, dan tinggi protein.";
+                swapRecipe = "Tumis 2 siung bawang putih dengan sedikit minyak, tuang 300ml air, masukkan sawi hijau, wortel, dan 1-2 butir telur orak-arik. Tambahkan soun/shirataki, lada, dan sedikit garam/kaldu jamur.";
+            } else if (/(santan|rendang|gulai|opor|lodeh|soto betawi|padang|curry)/.test(textAll)) {
+                culprits.push("Kuah santan kental tinggi lemak jenuh dan kolesterol.");
+                reductions.push("Jangan habiskan kuahnya—ambil lauknya saja dengan sedikit kuah (maksimal 2 sendok makan).");
+                swapTitle = "Soto Ayam Kuah Bening / Pepes / Sup Ikan Asam Manis";
+                swapReason = "Rasa rempah tetap kuat dan nikmat tanpa beban lemak jenuh dari santan kental.";
+                swapRecipe = "Rebus daging/ayam tanpa kulit dengan serai, daun salam, jahe, kunyit geprek, bawang merah & putih. Tambahkan kol, tauge, seledri, dan perasan jeruk nipis.";
+            } else if (/(manis|gula|boba|teh manis|es teh|kopi susu|sirup|soda|cake|martabak|coklat|donat|roti manis)/.test(textAll)) {
+                culprits.push("Gula tambahan tinggi (kalori kosong) yang cepat menumpuk lemak perut tanpa membuat kenyang.");
+                reductions.push("Minta less sugar / tanpa gula, atau minum setengahnya saja lalu imbangi dengan air putih.");
+                swapTitle = "Teh Hijau / Kopi Hitam / Air Lemon Chia Tanpa Gula (atau Pemanis Stevia)";
+                swapReason = "Nol hingga sangat rendah kalori, menjaga sensitivitas insulin, dan tetap menyegarkan.";
+                swapRecipe = "Seduh teh hijau/kopi hitam dengan air hangat atau es batu. Jika ingin manis, tambahkan 1-2 tetes stevia atau potongan buah segar seperti lemon/stroberi dan 1 sdt biji chia.";
+            } else if (/(nasi goreng|nasi uduk|nasi padang|fast food|burger|pizza|sosis|nugget)/.test(textAll)) {
+                culprits.push("Kombinasi karbohidrat padat + minyak/saus berlemak yang membuat total kalori melonjak.");
+                reductions.push("Kurangi porsi nasi/roti menjadi separuh, hilangkan saus mayo/keju berlebih, dan buang kerupuk.");
+                swapTitle = "Nasi Putih/Merah Porsi Kecil + Orak-Arik Telur Sayur & Dada Ayam";
+                swapReason = "Mengontrol porsi karbohidrat dan mengganti minyak berlebih dengan protein berkualitas.";
+                swapRecipe = "Panaskan teflon dengan 1/2 sdt minyak, orak-arik 2 telur bersama irisan buncis, wortel, dan daun bawang. Beri kecap asin rendah garam dan lada, sajikan dengan 100g nasi hangat.";
+            }
+
+            if (culprits.length === 0) {
+                culprits.push("Tidak ditemukan pemicu berlebih yang ekstrem, namun tetap perhatikan keseimbangan porsi harian.");
+            }
+            if (reductions.length === 0) {
+                reductions.push("Jika ingin lebih ringan lagi, kurangi sedikit minyak/saus tambahan dan perbanyak porsi sayur.");
+            }
+
+            // Override jika API mengirimkan data pengganti khusus
+            if (d.pengganti_sehat) swapTitle = d.pengganti_sehat;
+            if (d.resep_pengganti) swapRecipe = d.resep_pengganti;
+
+            // Tentukan level keputusan ketat
+            let decisionLevel = "safe";
+            let bannerHtml = "";
+            if (projKal > latestTargets.kalori || projFat > latestTargets.lemak || kal >= 750 || fat >= 28) {
+                decisionLevel = "danger";
+                bannerHtml = `
+                    <div class="flex items-start gap-2.5 text-rose-700 dark:text-rose-300">
+                        <i class="fa-solid fa-circle-exclamation text-lg mt-0.5"></i>
+                        <div>
+                            <p class="font-black uppercase text-[11px]">PERINGATAN KETAT: KALORI / LEMAK BERISIKO BERLEBIH</p>
+                            <p class="mt-0.5 leading-relaxed">Jika dimakan penuh, total hari ini menjadi <strong>${Math.round(projKal)} / ${latestTargets.kalori} kkal</strong> dan lemak <strong>${Math.round(projFat)} / ${latestTargets.lemak}g</strong>. Pertimbangkan mengurangi porsi atau memilih pengganti sehat di sebelah kanan!</p>
+                        </div>
+                    </div>`;
+                document.getElementById("modalDecisionBanner").className = "text-left p-3.5 rounded-2xl border mb-4 text-xs bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800";
+            } else if (kal >= 500 || fat >= 18 || carb >= 65) {
+                decisionLevel = "warning";
+                bannerHtml = `
+                    <div class="flex items-start gap-2.5 text-amber-700 dark:text-amber-300">
+                        <i class="fa-solid fa-triangle-exclamation text-lg mt-0.5"></i>
+                        <div>
+                            <p class="font-black uppercase text-[11px]">PERTIMBANGAN MODERAT: PERLU PENYESUAIAN PORSI</p>
+                            <p class="mt-0.5 leading-relaxed">Total harian akan menjadi <strong>${Math.round(projKal)} / ${latestTargets.kalori} kkal</strong>. Aman jika Anda menerapkan pengurangan bagian yang berlemak/tinggi karbo.</p>
+                        </div>
+                    </div>`;
+                document.getElementById("modalDecisionBanner").className = "text-left p-3.5 rounded-2xl border mb-4 text-xs bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800";
+            } else {
+                bannerHtml = `
+                    <div class="flex items-start gap-2.5 text-emerald-700 dark:text-emerald-300">
+                        <i class="fa-solid fa-circle-check text-lg mt-0.5"></i>
+                        <div>
+                            <p class="font-black uppercase text-[11px]">PILIHAN CUKUP SEHAT & TERKENDALI</p>
+                            <p class="mt-0.5 leading-relaxed">Total kalori hari ini akan menjadi <strong>${Math.round(projKal)} / ${latestTargets.kalori} kkal</strong>. Masih berada dalam batas aman target harian Anda.</p>
+                        </div>
+                    </div>`;
+                document.getElementById("modalDecisionBanner").className = "text-left p-3.5 rounded-2xl border mb-4 text-xs bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800";
+            }
+
+            return {
+                bannerHtml,
+                culprits,
+                reductions,
+                swapTitle,
+                swapReason,
+                swapRecipe
+            };
+        }
+
+        function updateModalNumbersDisplay(d) {
+            document.getElementById("modalFoodTitle").innerText = d.nama_makanan || "-";
+            document.getElementById("popKalori").innerText = (d.kalori_kkal || 0) + " kcal";
+            document.getElementById("popProtein").innerText = (d.protein_g || 0) + "g";
+            document.getElementById("popLemak").innerText = (d.lemak_total_g || 0) + "g";
+            document.getElementById("popKarbo").innerText = (d.karbohidrat_g || 0) + "g";
+            document.getElementById("popSerat").innerText = (d.serat_g || 0) + "g";
+        }
+
         function openModal(d) {
-            document.getElementById("modalFoodTitle").innerText = d.nama_makanan;
-            document.getElementById("popKalori").innerText = d.kalori_kkal + " kcal";
-            document.getElementById("popProtein").innerText = d.protein_g + "g";
-            document.getElementById("popLemak").innerText = d.lemak_total_g + "g";
-            document.getElementById("modalConclusion").innerText = d.analisis_kesehatan;
+            document.getElementById("modalCurrentDate").innerText = getCurrentIndoDateTimeString();
+            updateModalNumbersDisplay(d);
+            document.getElementById("modalConclusion").innerText = d.analisis_kesehatan || "-";
+
+            // Reset radio option ke "full"
+            const radios = document.querySelectorAll('input[name="portionOption"]');
+            radios.forEach(r => { r.checked = (r.value === "full"); });
+
+            // Render Pertimbangan Ketat & Pengganti Sehat
+            const analysis = buildStrictFoodConsideration(d, currentRawInput);
+            document.getElementById("modalDecisionBanner").innerHTML = analysis.bannerHtml;
+            document.getElementById("modalCulpritsList").innerHTML = analysis.culprits.map(c => `<li>${c}</li>`).join("");
+            document.getElementById("modalReduceList").innerHTML = analysis.reductions.map(r => `<li>${r}</li>`).join("");
+
+            document.getElementById("modalHealthySwapTitle").innerText = analysis.swapTitle;
+            document.getElementById("modalHealthySwapReason").innerText = analysis.swapReason;
+            document.getElementById("modalReplacementRecipe").innerText = analysis.swapRecipe;
+            currentSuggestedSwap = analysis.swapTitle;
+
             modal.classList.remove("hidden");
         }
+
+        // Listener pilihan penyesuaian porsi sebelum simpan
+        document.getElementById("portionChoiceGroup").addEventListener("change", (e) => {
+            if (!baseAiData) return;
+            const opt = e.target.value;
+            const adjusted = JSON.parse(JSON.stringify(baseAiData));
+
+            if (opt === "reduce_carb") {
+                adjusted.kalori_kkal = Math.round((Number(baseAiData.kalori_kkal) || 0) * 0.7);
+                adjusted.karbohidrat_g = Math.round((Number(baseAiData.karbohidrat_g) || 0) * 0.6);
+                adjusted.lemak_total_g = Math.round((Number(baseAiData.lemak_total_g) || 0) * 0.85);
+                adjusted.protein_g = Math.round((Number(baseAiData.protein_g) || 0) * 0.9);
+                adjusted.nama_makanan = `${baseAiData.nama_makanan} (Porsi Dikurangi)`;
+            } else if (opt === "remove_fat") {
+                adjusted.kalori_kkal = Math.round((Number(baseAiData.kalori_kkal) || 0) * 0.8);
+                adjusted.lemak_total_g = Math.round((Number(baseAiData.lemak_total_g) || 0) * 0.65);
+                adjusted.nama_makanan = `${baseAiData.nama_makanan} (Minyak/Kuah Disisihkan)`;
+            }
+
+            temporaryAiData = adjusted;
+            updateModalNumbersDisplay(adjusted);
+            const updatedAnalysis = buildStrictFoodConsideration(adjusted, currentRawInput);
+            document.getElementById("modalDecisionBanner").innerHTML = updatedAnalysis.bannerHtml;
+        });
+
+        // Tombol "Batal & Analisis Pengganti Sehat Ini"
+        document.getElementById("btnUseHealthySwap").onclick = async () => {
+            if (!currentSuggestedSwap) return;
+            const btn = document.getElementById("btnUseHealthySwap");
+            currentRawInput = currentSuggestedSwap;
+            await postAction("analyze", { action: "analyze", input: currentSuggestedSwap }, btn);
+        };
 
         function closeModal() { modal.classList.add("hidden"); }
 
