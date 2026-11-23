@@ -129,6 +129,34 @@
                 </div>
             </div>
 
+            <!-- KOTAK DRAFT REKAMAN TERSIMPAN (UNTUK DILANJUTKAN) -->
+            <div id="draftRecorderBox" class="hidden border border-amber-200 bg-amber-50/80 p-4 rounded-xl space-y-3 transition duration-300">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <p class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                            💾 Rekaman Tersimpan Sementara (Siap Dilanjutkan)
+                        </p>
+                        <p id="draftRecorderInfo" class="text-xs text-amber-700 mt-0.5">
+                            Total durasi tersimpan: 00:00:00 (1 bagian)
+                        </p>
+                    </div>
+                    <button id="discardDraftBtn" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-lg font-semibold transition">
+                        🗑️ Hapus Draft
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <button id="resumeDraftBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                        🎙️ Lanjutkan Rekaman Ini
+                    </button>
+                    <button id="sendDraftBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                        🚀 Selesai & Kirim ke AI
+                    </button>
+                    <button id="downloadDraftBtn" class="bg-white hover:bg-gray-100 text-gray-800 border border-gray-200 font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                        ⬇️ Simpan Audio ke HP
+                    </button>
+                </div>
+            </div>
+
             <!-- GRID TAMPILAN -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
                 <button id="recordBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
@@ -156,18 +184,23 @@
             <div id="audioPlaybackBox" class="hidden border border-emerald-100 bg-emerald-50/50 p-4 rounded-xl space-y-4 transition duration-300">
                 <div class="space-y-1.5">
                     <label class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                        🎧 Putar Hasil Rekaman MP3 Terakhir:
+                        🎧 Putar Hasil Rekaman Terakhir:
                     </label>
                     <audio id="audioPlayer" controls class="w-full h-10 accent-emerald-600"></audio>
                 </div>
                 
                 <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                    <p class="text-xs text-emerald-800">
-                        💡 Rekaman MP3 tersimpan secara lokal dan sudah dikirim otomatis ke AI.
+                    <p id="audioPlaybackNote" class="text-xs text-emerald-800">
+                        💡 Rekaman tersimpan secara lokal di HP Anda.
                     </p>
-                    <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
-                        🔄 Kirim Ulang Rekaman Ini
-                    </button>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button id="downloadLastBtn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-emerald-800 border border-emerald-200 font-bold py-2 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
+                            ⬇️ Simpan ke HP
+                        </button>
+                        <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+                            🔄 Kirim Ulang Rekaman Ini
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,6 +245,33 @@
         </div>
 
     </main>
+
+    <!-- MODAL PILIHAN SAAT KLIK SELESAI REKAMAN -->
+    <div id="finishChoiceModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-100 p-6 space-y-5">
+            <div class="text-center space-y-1.5">
+                <span class="text-4xl inline-block">🎙️</span>
+                <h3 class="text-lg font-bold text-gray-800">Akhiri Sesi Rekaman?</h3>
+                <p class="text-xs text-gray-500">Durasi terekam saat ini: <span id="finishModalDuration" class="font-mono font-bold text-emerald-700">00:00:00</span></p>
+            </div>
+
+            <div class="space-y-3">
+                <button id="choiceSaveDraftBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition flex flex-col items-center justify-center text-sm">
+                    <span>💾 Simpan Dulu (Untuk Dilanjutkan Nanti)</span>
+                    <span class="text-[11px] font-normal opacity-90 mt-0.5">Aman disimpan di HP. Rekaman sebelumnya tidak hilang & bisa disambung lagi.</span>
+                </button>
+
+                <button id="choiceSendNowBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition flex flex-col items-center justify-center text-sm">
+                    <span>🚀 Selesai & Kirim ke AI Sekarang</span>
+                    <span class="text-[11px] font-normal opacity-90 mt-0.5">Mengakhiri rekaman dan langsung mengirim ke server AI untuk dikoreksi.</span>
+                </button>
+
+                <button id="choiceContinueNowBtn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition text-sm">
+                    🔄 Batal Selesai (Terus Lanjutkan Rekam Sekarang)
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL VIEWER LAYAR PENUH -->
     <div id="fullscreenModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto h-screen w-screen">
@@ -290,7 +350,23 @@
     
     const audioPlaybackBox = document.getElementById('audioPlaybackBox');
     const audioPlayer = document.getElementById('audioPlayer');
+    const audioPlaybackNote = document.getElementById('audioPlaybackNote');
     const resendBtn = document.getElementById('resendBtn');
+    const downloadLastBtn = document.getElementById('downloadLastBtn');
+
+    // Draft & Pilihan Selesai Elements
+    const draftRecorderBox = document.getElementById('draftRecorderBox');
+    const draftRecorderInfo = document.getElementById('draftRecorderInfo');
+    const resumeDraftBtn = document.getElementById('resumeDraftBtn');
+    const sendDraftBtn = document.getElementById('sendDraftBtn');
+    const downloadDraftBtn = document.getElementById('downloadDraftBtn');
+    const discardDraftBtn = document.getElementById('discardDraftBtn');
+
+    const finishChoiceModal = document.getElementById('finishChoiceModal');
+    const finishModalDuration = document.getElementById('finishModalDuration');
+    const choiceSaveDraftBtn = document.getElementById('choiceSaveDraftBtn');
+    const choiceSendNowBtn = document.getElementById('choiceSendNowBtn');
+    const choiceContinueNowBtn = document.getElementById('choiceContinueNowBtn');
 
     // Modal Viewer Elements
     const fullscreenModal = document.getElementById('fullscreenModal');
@@ -324,11 +400,125 @@
     let lastDataString = "";
     let lastFailedBlob = null;
 
+    // State Draft / Lanjut Rekaman
+    let draftSegments = []; // Array of { blob: Blob, durationMs: number }
+    let draftBaseDurationMs = 0;
+    let pendingStopAction = 'send_now'; // 'save_draft' | 'send_now'
+    let wasPausedBeforeModal = false;
+
     // Manajemen Dataset Riwayat Besar & Paginasi
     let semuaDataRiwayat = [];
     let dataTerfilter = [];
     let itemPerHalaman = 20;
     let jumlahDitampilkan = 20;
+
+    // ========================================================================
+    // HELPER FORMAT WAKTU & DOWNLOAD AUDIO
+    // ========================================================================
+    function formatDurasiMs(ms) {
+        const safeMs = Math.max(0, ms || 0);
+        const secs = Math.floor((safeMs / 1000) % 60);
+        const mins = Math.floor((safeMs / 1000 / 60) % 60);
+        const hrs = Math.floor((safeMs / 1000 / 60 / 60));
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function downloadBlobKeHP(blob, prefix = "Murojaah") {
+        if (!blob) return;
+        const ext = blob.type && blob.type.includes('wav') ? 'wav' : 'mp3';
+        const now = new Date();
+        const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${prefix}_${stamp}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // Gabungkan beberapa segmen rekaman menjadi satu file WAV 16kHz Mono agar mulus saat diputar & dikirim
+    async function gabungAudioSegments(segments) {
+        if (!segments || segments.length === 0) return null;
+        if (segments.length === 1) {
+            return segments[0].blob;
+        }
+
+        const TARGET_SAMPLE_RATE = 16000;
+        let tempCtx = null;
+
+        try {
+            tempCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const resampledChunks = [];
+            let totalSamples = 0;
+
+            for (let i = 0; i < segments.length; i++) {
+                const arrayBuffer = await segments[i].blob.arrayBuffer();
+                const decoded = await tempCtx.decodeAudioData(arrayBuffer);
+                const targetLength = Math.ceil(decoded.duration * TARGET_SAMPLE_RATE);
+                if (targetLength <= 0) continue;
+
+                const offlineCtx = new OfflineAudioContext(1, targetLength, TARGET_SAMPLE_RATE);
+                const src = offlineCtx.createBufferSource();
+                src.buffer = decoded;
+                src.connect(offlineCtx.destination);
+                src.start(0);
+
+                const renderedBuffer = await offlineCtx.startRendering();
+                const channelData = renderedBuffer.getChannelData(0);
+                resampledChunks.push(channelData);
+                totalSamples += channelData.length;
+            }
+
+            if (totalSamples === 0) {
+                return segments[0].blob;
+            }
+
+            // Encode PCM 16-bit WAV
+            const wavBuffer = new ArrayBuffer(44 + totalSamples * 2);
+            const view = new DataView(wavBuffer);
+
+            const writeString = (offset, str) => {
+                for (let j = 0; j < str.length; j++) {
+                    view.setUint8(offset + j, str.charCodeAt(j));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + totalSamples * 2, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, 1, true); // Mono
+            view.setUint32(24, TARGET_SAMPLE_RATE, true);
+            view.setUint32(28, TARGET_SAMPLE_RATE * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, totalSamples * 2, true);
+
+            let byteOffset = 44;
+            for (const chunk of resampledChunks) {
+                for (let s = 0; s < chunk.length; s++) {
+                    let sample = Math.max(-1, Math.min(1, chunk[s]));
+                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                    view.setInt16(byteOffset, sample, true);
+                    byteOffset += 2;
+                }
+            }
+
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        } catch (err) {
+            console.warn("Gagal menggabungkan via AudioContext, memakai fallback blob concat:", err);
+            return new Blob(segments.map(s => s.blob), { type: segments[0].blob.type || 'audio/mp3' });
+        } finally {
+            if (tempCtx && tempCtx.state !== 'closed') {
+                try { await tempCtx.close(); } catch (e) {}
+            }
+        }
+    }
 
     // ========================================================================
     // SISTEM PENGHITUNG JUMLAH KOREKSI PER SESI
@@ -464,7 +654,7 @@
     });
 
     // ========================================================================
-    // INDEXEDDB UNTUK PENYELAMATAN AUDIO
+    // INDEXEDDB UNTUK PENYELAMATAN AUDIO & DRAFT LANJUT REKAMAN
     // ========================================================================
     const dbName = "MurojaahOfflineDB";
     const storeName = "AudioStore";
@@ -509,7 +699,74 @@
         }
     }
 
+    async function simpanDraftKeHP(segments) {
+        try {
+            const db = await bukaDatabase();
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.put(segments, "rekaman_draft");
+        } catch (err) {
+            console.error("Gagal simpan draft ke DB lokal:", err);
+        }
+    }
+
+    async function ambilDraftDariHP() {
+        try {
+            const db = await bukaDatabase();
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readonly");
+                const store = tx.objectStore(storeName);
+                const request = store.get("rekaman_draft");
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => resolve(null);
+            });
+        } catch (err) {
+            return null;
+        }
+    }
+
+    async function hapusDraftDariHP() {
+        try {
+            const db = await bukaDatabase();
+            const tx = db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            store.delete("rekaman_draft");
+        } catch (err) {
+            console.error("Gagal hapus draft dari DB lokal:", err);
+        }
+    }
+
+    function perbaruiTampilanDraft() {
+        if (draftSegments.length > 0) {
+            const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+            const durasiStr = formatDurasiMs(totalMs);
+            draftRecorderInfo.textContent = `Total durasi tersimpan: ${durasiStr} (${draftSegments.length} bagian rekaman)`;
+            draftRecorderBox.classList.remove('hidden');
+
+            if (!isRecording) {
+                timerLabel.textContent = durasiStr;
+                pocketTimer.textContent = durasiStr;
+                recordBtn.textContent = `🎙️ Lanjutkan Rekaman (${durasiStr})`;
+                recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
+            }
+        } else {
+            draftRecorderBox.classList.add('hidden');
+            if (!isRecording) {
+                timerLabel.textContent = "00:00:00";
+                pocketTimer.textContent = "00:00:00";
+                recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
+                recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+            }
+        }
+    }
+
     async function cekRekamanTerselamatkan() {
+        const draftSaved = await ambilDraftDariHP();
+        if (Array.isArray(draftSaved) && draftSaved.length > 0) {
+            draftSegments = draftSaved;
+            perbaruiTampilanDraft();
+        }
+
         const blobSelamat = await ambilAudioDariHP();
         if (blobSelamat) {
             lastRecordedBlob = blobSelamat;
@@ -745,89 +1002,251 @@
         }
     }
 
+    async function mulaiSesiRekamBaruAtauLanjut() {
+        mintaWakeLockPermanen();
+        aktifkanAudioKeepAlivePermanen();
+
+        if (isTestingMic) testMicBtn.click();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+            });
+            
+            streamGlobal = stream;
+            audioChunks = [];
+            
+            let mimeType = 'audio/webm';
+            if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                mimeType = 'audio/mp4';
+            } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
+                mimeType = 'audio/mpeg';
+            }
+            
+            mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                mintaWakeLockPermanen();
+                if (streamGlobal) {
+                    streamGlobal.getTracks().forEach(track => track.stop());
+                }
+
+                const rawBlob = new Blob(audioChunks, { type: mimeType });
+                const segmentBlob = new Blob([rawBlob], { type: mimeType });
+                const segmentDurationMs = Math.max(0, totalElapsedTime - draftBaseDurationMs);
+
+                if (pendingStopAction === 'save_draft') {
+                    draftSegments.push({
+                        blob: segmentBlob,
+                        durationMs: segmentDurationMs
+                    });
+                    await simpanDraftKeHP(draftSegments);
+
+                    tampilkanStatus("⏳ Menyusun pratinjau rekaman tersimpan...", "bg-amber-50 border-amber-200 text-amber-700");
+                    const mergedPreviewBlob = await gabungAudioSegments(draftSegments);
+                    if (mergedPreviewBlob) {
+                        lastRecordedBlob = mergedPreviewBlob;
+                        await simpanAudioKeHP(mergedPreviewBlob);
+                        const audioUrl = URL.createObjectURL(mergedPreviewBlob);
+                        audioPlayer.src = audioUrl;
+                        audioPlaybackBox.classList.remove('hidden');
+                        audioPlaybackNote.textContent = "💾 Tersimpan sebagai draft. Anda dapat melanjutkan rekaman kapan saja tanpa kehilangan bagian ini.";
+                    }
+
+                    perbaruiTampilanDraft();
+                    tampilkanStatus(`💾 <strong>Rekaman Tersimpan Sementara (${formatDurasiMs(totalElapsedTime)})!</strong> Bagian yang sudah direkam aman. Klik <strong>Lanjutkan Rekaman</strong> kapan saja untuk menyambungnya.`, "bg-amber-50 border-amber-200 text-amber-800");
+                } else {
+                    const semuaSegmen = [...draftSegments, { blob: segmentBlob, durationMs: segmentDurationMs }];
+                    tampilkanStatus("⏳ Menyiapkan & menggabungkan file rekaman...", "bg-blue-50 border-blue-200 text-blue-700");
+
+                    let finalAudioBlob = await gabungAudioSegments(semuaSegmen);
+                    if (!finalAudioBlob) {
+                        finalAudioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
+                    }
+
+                    draftSegments = [];
+                    draftBaseDurationMs = 0;
+                    await hapusDraftDariHP();
+                    perbaruiTampilanDraft();
+
+                    lastRecordedBlob = finalAudioBlob; 
+                    await simpanAudioKeHP(finalAudioBlob);
+                    
+                    const audioUrl = URL.createObjectURL(finalAudioBlob);
+                    audioPlayer.src = audioUrl;
+                    audioPlaybackBox.classList.remove('hidden');
+                    audioPlaybackNote.textContent = "💡 Rekaman tersimpan secara lokal dan siap dikirim/diputar ulang.";
+                    
+                    if (navigator.onLine) {
+                        tampilkanStatus("Rekaman disimpan & Mengirim ke server AI...", "bg-blue-50 border-blue-200 text-blue-700");
+                        kirimBlobAudio(finalAudioBlob);
+                    } else {
+                        tampilkanStatus("Offline: Rekaman aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
+                    }
+                }
+            };
+            
+            draftBaseDurationMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+            totalElapsedTime = draftBaseDurationMs;
+
+            mediaRecorder.start(1000); 
+            isRecording = true;
+            isPaused = false;
+            
+            recordBtn.textContent = "⏹️ Selesai Rekaman";
+            recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+            
+            pauseBtn.textContent = "⏸️ Jeda Rekaman";
+            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+            pauseBtn.classList.remove('hidden');
+
+            startTime = Date.now();
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+            inisialisasiAudioVisualizer(stream);
+            
+        } catch (err) {
+            alert("Gagal mengakses mikrofon browser: " + err.message);
+        }
+    }
+
     recordBtn.addEventListener('click', async () => {
         mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
 
         if (!isRecording) {
-            if (isTestingMic) testMicBtn.click();
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
-                });
-                
-                streamGlobal = stream;
-                audioChunks = [];
-                audioPlaybackBox.classList.add('hidden');
-                audioPlayer.src = "";
-                
-                let mimeType = 'audio/webm';
-                if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                    mimeType = 'audio/mp4';
-                } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
-                    mimeType = 'audio/mpeg';
-                }
-                
-                mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) audioChunks.push(e.data);
-                };
-                
-                mediaRecorder.onstop = async () => {
-                    mintaWakeLockPermanen();
-                    
-                    const rawBlob = new Blob(audioChunks, { type: mimeType });
-                    const audioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
-                    
-                    lastRecordedBlob = audioBlob; 
-                    await simpanAudioKeHP(audioBlob);
-                    
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    audioPlayer.src = audioUrl;
-                    audioPlaybackBox.classList.remove('hidden'); 
-                    
-                    if (navigator.onLine) {
-                        tampilkanStatus("Rekaman MP3 disimpan & Mengirim ke server AI...", "bg-blue-50 border-blue-200 text-blue-700");
-                        kirimBlobAudio(audioBlob);
-                    } else {
-                        tampilkanStatus("Offline: Rekaman MP3 aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
-                    }
-                    if (streamGlobal) {
-                        streamGlobal.getTracks().forEach(track => track.stop());
-                    }
-                };
-                
-                mediaRecorder.start(1000); 
-                isRecording = true;
-                isPaused = false;
-                totalElapsedTime = 0;
-                
-                recordBtn.textContent = "⏹️ Selesai & Kirim";
-                recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-                
-                pauseBtn.textContent = "⏸️ Jeda Rekaman";
-                pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-                pauseBtn.classList.remove('hidden');
-
-                startTime = Date.now();
-                timerInterval = setInterval(updateTimer, 1000);
-                inisialisasiAudioVisualizer(stream);
-                
-            } catch (err) {
-                alert("Gagal mengakses mikrofon browser: " + err.message);
-            }
+            await mulaiSesiRekamBaruAtauLanjut();
         } else {
-            mediaRecorder.stop();
-            isRecording = false;
-            isPaused = false;
-            recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
-            recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-            
-            pauseBtn.classList.add('hidden');
-            clearInterval(timerInterval);
-            timerLabel.textContent = "00:00:00";
-            totalElapsedTime = 0;
+            // Saat klik Selesai: jeda sementara agar user bisa memilih Simpan Dulu / Kirim / Lanjut Rekam
+            wasPausedBeforeModal = isPaused;
+            if (!isPaused && mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.pause();
+                isPaused = true;
+                totalElapsedTime += Date.now() - startTime;
+            }
+            finishModalDuration.textContent = formatDurasiMs(totalElapsedTime);
+            finishChoiceModal.classList.remove('hidden');
         }
+    });
+
+    // Pilihan 1 di Modal Selesai: Simpan Dulu (Untuk Dilanjutkan Nanti)
+    choiceSaveDraftBtn.addEventListener('click', () => {
+        finishChoiceModal.classList.add('hidden');
+        pendingStopAction = 'save_draft';
+        isRecording = false;
+        isPaused = false;
+        clearInterval(timerInterval);
+        pauseBtn.classList.add('hidden');
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    });
+
+    // Pilihan 2 di Modal Selesai: Selesai & Kirim ke AI Sekarang
+    choiceSendNowBtn.addEventListener('click', () => {
+        finishChoiceModal.classList.add('hidden');
+        pendingStopAction = 'send_now';
+        isRecording = false;
+        isPaused = false;
+        clearInterval(timerInterval);
+        pauseBtn.classList.add('hidden');
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+    });
+
+    // Pilihan 3 di Modal Selesai: Batal Selesai & Terus Lanjutkan Merekam
+    choiceContinueNowBtn.addEventListener('click', () => {
+        finishChoiceModal.classList.add('hidden');
+        if (!mediaRecorder || !isRecording) return;
+        mintaWakeLockPermanen();
+        if (!wasPausedBeforeModal) {
+            if (mediaRecorder.state === 'paused') {
+                mediaRecorder.resume();
+            }
+            isPaused = false;
+            startTime = Date.now();
+            pauseBtn.textContent = "⏸️ Jeda Rekaman";
+            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+        } else {
+            isPaused = true;
+            pauseBtn.textContent = "▶️ Lanjutkan";
+            pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+        }
+    });
+
+    // Aksi Tombol di Kotak Draft Tersimpan
+    resumeDraftBtn.addEventListener('click', async () => {
+        if (isRecording) return;
+        await mulaiSesiRekamBaruAtauLanjut();
+    });
+
+    sendDraftBtn.addEventListener('click', async () => {
+        if (draftSegments.length === 0) return;
+        sendDraftBtn.disabled = true;
+        sendDraftBtn.textContent = "⏳ Menggabungkan...";
+        try {
+            const mergedBlob = await gabungAudioSegments(draftSegments);
+            if (!mergedBlob) throw new Error("Gagal menggabungkan draft audio");
+
+            draftSegments = [];
+            draftBaseDurationMs = 0;
+            await hapusDraftDariHP();
+            perbaruiTampilanDraft();
+
+            lastRecordedBlob = mergedBlob;
+            await simpanAudioKeHP(mergedBlob);
+            audioPlayer.src = URL.createObjectURL(mergedBlob);
+            audioPlaybackBox.classList.remove('hidden');
+
+            if (navigator.onLine) {
+                await kirimBlobAudio(mergedBlob);
+            } else {
+                tampilkanStatus("Offline: Gabungan rekaman aman disimpan di HP. Kirim saat online kembali.", "bg-amber-50 border-amber-200 text-amber-700");
+            }
+        } catch (err) {
+            alert("Gagal memproses draft: " + err.message);
+        } finally {
+            sendDraftBtn.disabled = false;
+            sendDraftBtn.textContent = "🚀 Selesai & Kirim ke AI";
+        }
+    });
+
+    downloadDraftBtn.addEventListener('click', async () => {
+        if (draftSegments.length === 0) return;
+        downloadDraftBtn.disabled = true;
+        downloadDraftBtn.textContent = "⏳ Menyiapkan...";
+        try {
+            const mergedBlob = await gabungAudioSegments(draftSegments);
+            if (mergedBlob) {
+                downloadBlobKeHP(mergedBlob, "Draft_Murojaah");
+            }
+        } catch (err) {
+            alert("Gagal menyiapkan file download: " + err.message);
+        } finally {
+            downloadDraftBtn.disabled = false;
+            downloadDraftBtn.textContent = "⬇️ Simpan Audio ke HP";
+        }
+    });
+
+    discardDraftBtn.addEventListener('click', async () => {
+        if (confirm("🗑️ Yakin ingin menghapus rekaman draft yang tersimpan? Aksi ini tidak bisa dibatalkan.")) {
+            draftSegments = [];
+            draftBaseDurationMs = 0;
+            await hapusDraftDariHP();
+            perbaruiTampilanDraft();
+            tampilkanStatus("🗑️ Draft rekaman telah dihapus. Siap merekam sesi baru.", "bg-gray-50 border-gray-200 text-gray-700");
+        }
+    });
+
+    downloadLastBtn.addEventListener('click', () => {
+        if (!lastRecordedBlob) {
+            alert("Belum ada rekaman untuk disimpan.");
+            return;
+        }
+        downloadBlobKeHP(lastRecordedBlob, "Murojaah");
     });
 
     pauseBtn.addEventListener('click', () => {
@@ -890,10 +1309,7 @@
     function updateTimer() {
         if (isPaused) return; 
         const elapsedTime = totalElapsedTime + (Date.now() - startTime);
-        const secs = Math.floor((elapsedTime / 1000) % 60);
-        const mins = Math.floor((elapsedTime / 1000 / 60) % 60);
-        const hrs = Math.floor((elapsedTime / 1000 / 60 / 60));
-        const formattedTime = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        const formattedTime = formatDurasiMs(elapsedTime);
         timerLabel.textContent = formattedTime;
         pocketTimer.textContent = formattedTime;
     }
