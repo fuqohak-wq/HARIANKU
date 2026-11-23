@@ -28,6 +28,9 @@
             -webkit-user-select: none;
             pointer-events: auto;
         }
+        #pocketPauseBtn, #unlockPocketBtn {
+            touch-action: manipulation;
+        }
         /* Hidden keep-alive canvas video */
         #keepAliveMedia {
             position: fixed;
@@ -48,11 +51,14 @@
     <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center relative">
         <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
         <p class="text-sm mt-2 opacity-90">Sistem Murojaah: Kirim file rekaman audio hafalan Anda untuk dianalisis oleh AI secara otomatis.</p>
-        <div class="mt-3 flex justify-center items-center gap-2">
+        <div class="mt-3 flex flex-wrap justify-center items-center gap-2">
             <span id="wakeLockStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-700/80 text-emerald-100 border border-emerald-400/30">
                 <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
                 <span>🔆 Layar Terjaga Aktif (Anti Mati)</span>
             </span>
+            <button id="fullscreenToggleBtn" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/30 transition cursor-pointer">
+                🖥️ Mode Layar Penuh
+            </button>
         </div>
     </header>
 
@@ -295,18 +301,31 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY (TRUE PIN PROTECTED POCKET LOCK) -->
-    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none">
-        <div class="w-full flex justify-between items-center opacity-40 pt-4">
-            <span class="text-xs tracking-widest font-mono">🔒 SECURE POCKET MODE ACTIVE</span>
-            <span id="pocketTimer" class="text-xs font-mono">00:00:00</span>
+    <!-- POCKET MODE OVERLAY (TRUE PIN PROTECTED POCKET LOCK + FULLSCREEN + MINI PAUSE BUTTON) -->
+    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-6 sm:p-8 select-none">
+        <div class="w-full flex justify-between items-center pt-2 gap-2">
+            <div class="flex items-center gap-2 opacity-70">
+                <span class="text-[10px] sm:text-xs tracking-widest font-mono">🔒 POCKET MODE</span>
+                <span id="pocketRecStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">⚪ STANDBY</span>
+            </div>
+            <span id="pocketTimer" class="text-xs sm:text-sm font-mono text-emerald-400/80">00:00:00</span>
         </div>
-        <div class="text-center space-y-3 my-auto">
+
+        <div class="text-center space-y-3 my-auto px-4">
             <div class="inline-block animate-pulse text-5xl">🛡️</div>
             <p class="text-sm font-medium text-gray-400">Layar Terkunci Sempurna (Anti Kain Saku)</p>
-            <p class="text-[11px] text-gray-600 pt-2">Sentuhan layar biasa tidak akan merespon apa pun.</p>
+            <p class="text-[11px] text-gray-600">Mode layar penuh menyembunyikan tombol navigasi HP. Sentuhan biasa diabaikan.</p>
+
+            <!-- TOMBOL KECIL JEDA SEMENTARA (ANTI SALAH PENCET SAKU: PERLU KETUK 2x CEPAT) -->
+            <div class="pt-5 flex flex-col items-center gap-2">
+                <button id="pocketPauseBtn" class="hidden bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition">
+                    ⏸️ Jeda Sementara (Ketuk 2x)
+                </button>
+                <span id="pocketPauseHint" class="hidden text-[10px] text-gray-500 font-mono"></span>
+            </div>
         </div>
-        <div class="pb-6 w-full max-w-xs">
+
+        <div class="pb-4 w-full max-w-xs space-y-2">
             <button id="unlockPocketBtn" class="w-full bg-gray-900 border border-gray-700 text-emerald-400 font-semibold text-sm px-6 py-3 rounded-xl hover:bg-gray-800 transition shadow-lg">
                 🔓 Masukkan PIN Buka Kunci (123)
             </button>
@@ -374,11 +393,15 @@
     const modalBody = document.getElementById('modalBody');
     const modalDate = document.getElementById('modalDate');
 
-    // Pocket Lock Elements
+    // Pocket Lock & Fullscreen Elements
     const lockScreenBtn = document.getElementById('lockScreenBtn');
     const pocketLockScreen = document.getElementById('pocketLockScreen');
     const unlockPocketBtn = document.getElementById('unlockPocketBtn');
     const pocketTimer = document.getElementById('pocketTimer');
+    const pocketRecStatus = document.getElementById('pocketRecStatus');
+    const pocketPauseBtn = document.getElementById('pocketPauseBtn');
+    const pocketPauseHint = document.getElementById('pocketPauseHint');
+    const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
     const wakeLockStatusBadge = document.getElementById('wakeLockStatusBadge');
     const keepAliveMedia = document.getElementById('keepAliveMedia');
 
@@ -406,11 +429,91 @@
     let pendingStopAction = 'send_now'; // 'save_draft' | 'send_now'
     let wasPausedBeforeModal = false;
 
+    // State Pocket Lock & Fullscreen
+    let isPocketLocked = false;
+    let wasFullscreenBeforeLock = false;
+    let pocketPauseArmed = false;
+    let pocketPauseArmTimer = null;
+
     // Manajemen Dataset Riwayat Besar & Paginasi
     let semuaDataRiwayat = [];
     let dataTerfilter = [];
     let itemPerHalaman = 20;
     let jumlahDitampilkan = 20;
+
+    // ========================================================================
+    // MODE FULLSCREEN IMMERSIVE & PROTEKSI TOMBOL BACK HP
+    // ========================================================================
+    function sedangFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    async function masukLayarPenuh() {
+        try {
+            const el = document.documentElement;
+            if (!sedangFullscreen()) {
+                if (el.requestFullscreen) {
+                    await el.requestFullscreen({ navigationUI: "hide" });
+                } else if (el.webkitRequestFullscreen) {
+                    await el.webkitRequestFullscreen();
+                }
+            }
+        } catch (err) {
+            console.warn("Mode layar penuh diblokir/tidak didukung:", err.message);
+        }
+    }
+
+    async function keluarLayarPenuh() {
+        try {
+            if (sedangFullscreen()) {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    await document.webkitExitFullscreen();
+                }
+            }
+        } catch (err) {
+            console.warn("Gagal keluar layar penuh:", err.message);
+        }
+    }
+
+    function perbaruiTombolFullscreen() {
+        if (sedangFullscreen()) {
+            fullscreenToggleBtn.textContent = "🗗 Keluar Layar Penuh";
+            fullscreenToggleBtn.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-400 text-amber-950 border border-amber-200 transition cursor-pointer shadow-sm";
+        } else {
+            fullscreenToggleBtn.textContent = "🖥️ Mode Layar Penuh";
+            fullscreenToggleBtn.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/30 transition cursor-pointer";
+        }
+    }
+
+    fullscreenToggleBtn.addEventListener('click', async () => {
+        mintaWakeLockPermanen();
+        if (sedangFullscreen()) {
+            await keluarLayarPenuh();
+        } else {
+            await masukLayarPenuh();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', perbaruiTombolFullscreen);
+    document.addEventListener('webkitfullscreenchange', perbaruiTombolFullscreen);
+
+    // Kunci tombol Back browser/HP saat sedang rekaman atau mode kunci layar saku aktif
+    function pasangPenjagaTombolBack() {
+        try {
+            history.pushState({ murojaahGuard: true }, "");
+        } catch (e) {}
+    }
+
+    window.addEventListener('popstate', () => {
+        if (isPocketLocked || isRecording) {
+            pasangPenjagaTombolBack();
+            if (isPocketLocked) {
+                masukLayarPenuh();
+            }
+        }
+    });
 
     // ========================================================================
     // HELPER FORMAT WAKTU & DOWNLOAD AUDIO
@@ -635,18 +738,104 @@
         }
     });
 
-    // POCKET LOCK DENGAN PIN 123
-    lockScreenBtn.addEventListener('click', () => {
-        mintaWakeLockPermanen();
-        pocketLockScreen.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
+    // ========================================================================
+    // POCKET LOCK DENGAN PIN 123 + FULLSCREEN + TOMBOL JEDA ANTI SALAH PENCET
+    // ========================================================================
+    function resetPocketPauseArm() {
+        pocketPauseArmed = false;
+        if (pocketPauseArmTimer) {
+            clearTimeout(pocketPauseArmTimer);
+            pocketPauseArmTimer = null;
+        }
+    }
+
+    function perbaruiStatusPocketLock() {
+        resetPocketPauseArm();
+        if (!isRecording) {
+            pocketRecStatus.textContent = "⚪ STANDBY";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400";
+            pocketPauseBtn.classList.add('hidden');
+            pocketPauseHint.classList.add('hidden');
+            return;
+        }
+
+        pocketPauseBtn.classList.remove('hidden');
+        pocketPauseHint.classList.remove('hidden');
+        pocketPauseHint.textContent = "Aman saku: ketuk 2x cepat untuk jeda/lanjut";
+
+        if (isPaused) {
+            pocketRecStatus.textContent = "⏸️ DIJEDA";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40";
+            pocketPauseBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
+            pocketPauseBtn.className = "bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition";
+        } else {
+            pocketRecStatus.textContent = "🔴 MEREKAM";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-300 border border-rose-500/40 animate-pulse";
+            pocketPauseBtn.textContent = "⏸️ Jeda Sementara (Ketuk 2x)";
+            pocketPauseBtn.className = "bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition";
+        }
+    }
+
+    pocketPauseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isRecording || !mediaRecorder) return;
+
+        if (!pocketPauseArmed) {
+            // Ketukan ke-1: siapkan konfirmasi (kain saku tidak akan melakukan 2 ketukan cepat)
+            pocketPauseArmed = true;
+            if (navigator.vibrate) navigator.vibrate(25);
+            if (isPaused) {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk LANJUT";
+                pocketPauseBtn.className = "bg-emerald-600 border border-emerald-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg transition";
+            } else {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk JEDA";
+                pocketPauseBtn.className = "bg-amber-600 border border-amber-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg transition";
+            }
+            pocketPauseArmTimer = setTimeout(() => {
+                perbaruiStatusPocketLock();
+            }, 1500);
+        } else {
+            // Ketukan ke-2 dalam 1.5 detik: jalankan Pause / Resume!
+            resetPocketPauseArm();
+            pauseBtn.click();
+            if (navigator.vibrate) {
+                navigator.vibrate(isPaused ? [50, 40, 50] : 80);
+            }
+            perbaruiStatusPocketLock();
+        }
     });
 
-    unlockPocketBtn.addEventListener('click', () => {
+    // Ketuk area hitam pocket lock untuk masuk fullscreen lagi jika navigasi HP sempat muncul
+    pocketLockScreen.addEventListener('click', (e) => {
+        if (e.target === pocketLockScreen || (!e.target.closest('#pocketPauseBtn') && !e.target.closest('#unlockPocketBtn'))) {
+            if (!sedangFullscreen()) {
+                masukLayarPenuh();
+            }
+        }
+    });
+
+    lockScreenBtn.addEventListener('click', async () => {
+        mintaWakeLockPermanen();
+        wasFullscreenBeforeLock = sedangFullscreen();
+        isPocketLocked = true;
+        pasangPenjagaTombolBack();
+        perbaruiStatusPocketLock();
+        pocketLockScreen.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+        await masukLayarPenuh();
+    });
+
+    unlockPocketBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
         const pinInput = prompt("🔐 Masukkan PIN Buka Kunci (Ketik: 123):");
         if (pinInput === "123") {
+            isPocketLocked = false;
+            resetPocketPauseArm();
             pocketLockScreen.classList.add('hidden');
             document.body.style.overflow = "";
+            if (!wasFullscreenBeforeLock) {
+                await keluarLayarPenuh();
+            }
             mintaWakeLockPermanen();
         } else if (pinInput !== null) {
             alert("❌ PIN Salah! Layar tetap terkunci demi keamanan saku.");
@@ -1029,6 +1218,7 @@
             
             mediaRecorder.onstop = async () => {
                 mintaWakeLockPermanen();
+                perbaruiStatusPocketLock();
                 if (streamGlobal) {
                     streamGlobal.getTracks().forEach(track => track.stop());
                 }
@@ -1094,6 +1284,8 @@
             mediaRecorder.start(1000); 
             isRecording = true;
             isPaused = false;
+            pasangPenjagaTombolBack();
+            perbaruiStatusPocketLock();
             
             recordBtn.textContent = "⏹️ Selesai Rekaman";
             recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
@@ -1125,6 +1317,7 @@
                 mediaRecorder.pause();
                 isPaused = true;
                 totalElapsedTime += Date.now() - startTime;
+                perbaruiStatusPocketLock();
             }
             finishModalDuration.textContent = formatDurasiMs(totalElapsedTime);
             finishChoiceModal.classList.remove('hidden');
@@ -1139,6 +1332,7 @@
         isPaused = false;
         clearInterval(timerInterval);
         pauseBtn.classList.add('hidden');
+        perbaruiStatusPocketLock();
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
@@ -1152,6 +1346,7 @@
         isPaused = false;
         clearInterval(timerInterval);
         pauseBtn.classList.add('hidden');
+        perbaruiStatusPocketLock();
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
@@ -1175,6 +1370,7 @@
             pauseBtn.textContent = "▶️ Lanjutkan";
             pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
         }
+        perbaruiStatusPocketLock();
     });
 
     // Aksi Tombol di Kotak Draft Tersimpan
@@ -1265,6 +1461,7 @@
             pauseBtn.textContent = "⏸️ Jeda Rekaman";
             pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
         }
+        perbaruiStatusPocketLock();
     });
 
     resendBtn.addEventListener('click', async () => {
@@ -1658,6 +1855,7 @@
         updateOnlineStatus();
         inisialisasiFallbackMediaKeepAlive();
         mintaWakeLockPermanen();
+        perbaruiTombolFullscreen();
         muatLaporan(true); 
         cekRekamanTerselamatkan(); 
         
