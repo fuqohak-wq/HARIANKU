@@ -230,17 +230,20 @@
             </div>
         </div>
 
-        <!-- DAFTAR LAPORAN RIWAYAT LENGKAP -->
+        <!-- DAFTAR LAPORAN RIWAYAT LENGKAP (DIKELOMPOKKAN PER HARI - 1 LAYAR PER HARI) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-                        📊 Hasil Laporan Murojaah Terakhir
+                    <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2 flex-wrap">
+                        📊 Hasil Laporan Murojaah (Per Hari)
                         <span id="totalDataBadge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0 Data</span>
                     </h2>
-                    <p class="text-xs text-gray-400 mt-0.5">Memuat riwayat murojaah langsung dari Google Sheets.</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Setiap tanggal digabung menjadi 1 layar agar semua hasil koreksi AI hari tersebut bisa dibaca sekaligus tanpa bolak-balik.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
+                    <button id="openTodayBtn" class="hidden text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg transition font-bold shadow-sm">
+                        📅 Buka Koreksi Hari Ini (1 Layar)
+                    </button>
                     <button onclick="hapusSemuaData()" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg transition font-medium border border-red-200">🗑️ Hapus Semua</button>
                     <button onclick="muatLaporan(true)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg transition font-medium">🔄 Segarkan Data</button>
                 </div>
@@ -248,7 +251,7 @@
 
             <!-- FITUR PENCARIAN & FILTER RIWAYAT BANYAK -->
             <div class="mb-4">
-                <input type="text" id="searchInput" placeholder="🔍 Cari ayat, surah, tanggal, atau catatan koreksi..." class="w-full px-4 py-2 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
+                <input type="text" id="searchInput" placeholder="🔍 Cari ayat, surah, tanggal (misal: 27 Nov atau 11/27), atau catatan koreksi..." class="w-full px-4 py-2 border border-gray-200 rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-gray-50/50">
             </div>
 
             <div id="containerLaporan" class="space-y-4 text-sm text-gray-500">
@@ -257,10 +260,10 @@
 
             <!-- KONTROL PAGINASI / MUAT LEBIH BANYAK -->
             <div id="paginationControls" class="hidden mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span id="paginationInfo" class="text-xs text-gray-500 font-medium">Menampilkan 0 dari 0 data</span>
+                <span id="paginationInfo" class="text-xs text-gray-500 font-medium">Menampilkan 0 dari 0 hari</span>
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <button id="loadMoreBtn" class="flex-1 sm:flex-initial bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold transition">
-                        ➕ Tampilkan Lebih Banyak (+20)
+                        ➕ Tampilkan Lebih Banyak (+20 Hari)
                     </button>
                     <button id="loadAllBtn" class="flex-1 sm:flex-initial bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition">
                         📖 Tampilkan Semua
@@ -274,22 +277,22 @@
     <!-- MODAL VIEWER LAYAR PENUH -->
     <div id="fullscreenModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto h-screen w-screen">
         <!-- Header Sticky -->
-        <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="text-3xl">🕌</span>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">Detail Hasil Koreksi AI</h2>
-                    <p id="modalDate" class="text-xs text-gray-400"></p>
+        <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <span class="text-3xl shrink-0">🕌</span>
+                <div class="min-w-0">
+                    <h2 id="modalTitle" class="text-base sm:text-lg font-bold text-gray-800 truncate">Detail Hasil Koreksi AI</h2>
+                    <p id="modalDate" class="text-xs text-gray-500 truncate"></p>
                 </div>
             </div>
-            <button id="closeModalBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-5 py-2.5 rounded-xl transition text-sm flex items-center gap-2 shadow-sm">
+            <button id="closeModalBtn" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-4 sm:px-5 py-2.5 rounded-xl transition text-xs sm:text-sm flex items-center gap-2 shadow-sm">
                 ✕ Tutup Layar Penuh
             </button>
         </div>
         
         <!-- Area Isi Laporan -->
-        <div class="max-w-4xl mx-auto px-6 py-8">
-            <div id="modalBody" class="space-y-8 pb-16"></div>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <div id="modalBody" class="space-y-6 pb-16"></div>
         </div>
     </div>
 
@@ -343,6 +346,7 @@
     const statusBox = document.getElementById('statusBox');
     const containerLaporan = document.getElementById('containerLaporan');
     const totalDataBadge = document.getElementById('totalDataBadge');
+    const openTodayBtn = document.getElementById('openTodayBtn');
     const searchInput = document.getElementById('searchInput');
     const paginationControls = document.getElementById('paginationControls');
     const paginationInfo = document.getElementById('paginationInfo');
@@ -381,6 +385,7 @@
     // Modal Viewer Elements
     const fullscreenModal = document.getElementById('fullscreenModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     const modalDate = document.getElementById('modalDate');
 
@@ -436,11 +441,13 @@
     let pocketFinishArmed = false;
     let pocketFinishArmTimer = null;
 
-    // Manajemen Dataset Riwayat Besar & Paginasi
+    // Manajemen Dataset Riwayat Besar, Pengelompokan Harian & Paginasi
     let semuaDataRiwayat = [];
     let dataTerfilter = [];
+    let grupHariTerfilter = [];
     let itemPerHalaman = 20;
     let jumlahDitampilkan = 20;
+    let activeModalDayKey = null;
 
     function getAutoSplitMs() {
         const mins = parseInt(autoSplitDurationSelect.value || '15', 10);
@@ -559,6 +566,84 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function ambilKunciHari(waktuStr) {
+        if (!waktuStr) return 'unknown';
+        const d = new Date(waktuStr);
+        if (isNaN(d.getTime())) return 'unknown';
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function ambilKunciHariIni() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatLabelHari(dayKey) {
+        if (!dayKey || dayKey === 'unknown') return 'Waktu Tidak Tercatat';
+        const parts = dayKey.split('-').map(Number);
+        if (parts.length !== 3) return dayKey;
+        const [y, m, day] = parts;
+        const d = new Date(y, m - 1, day);
+        const now = new Date();
+        const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const yesterdayKey = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
+
+        const tglIndo = d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        const shortSlash = `${m}/${day}`;
+
+        if (dayKey === todayKey) return `Hari Ini • ${tglIndo} (${shortSlash})`;
+        if (dayKey === yesterdayKey) return `Kemarin • ${tglIndo} (${shortSlash})`;
+        return `${tglIndo} (${shortSlash})`;
+    }
+
+    function ekstrakRingkasanSesi(koreksiText) {
+        const text = koreksiText || '';
+        let ayatTerakhir = "";
+        let lafazTerakhir = "";
+        let cakupanList = [];
+
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        const ayatIdx = lines.findIndex(l => /ayat\s*terakhir/i.test(l) || l.includes("🏁"));
+        if (ayatIdx !== -1) {
+            ayatTerakhir = lines[ayatIdx]
+                .replace(/^[🏁\s*]+/, '')
+                .replace(/ayat\s*terakhir\s*(yang\s*benar-benar\s*dibaca\s*dan\s*jangan\s*ngarang)?/i, '')
+                .replace(/^[:\s\-]+/, '')
+                .trim();
+            if (ayatIdx + 1 < lines.length) {
+                const nextLine = lines[ayatIdx + 1];
+                if (!nextLine.includes("==") && !/cakupan/i.test(nextLine) && !/koreksi/i.test(nextLine) && !nextLine.includes("📖")) {
+                    lafazTerakhir = nextLine;
+                }
+            }
+        }
+
+        const cakupanIdx = lines.findIndex(l => /cakupan/i.test(l) || l.includes("📖"));
+        if (cakupanIdx !== -1) {
+            const firstLineClean = lines[cakupanIdx]
+                .replace(/^[📖\s*]+/, '')
+                .replace(/cakupan\s*(bacaan|murojaah)?/i, '')
+                .replace(/^[:\s\-]+/, '')
+                .trim();
+            if (firstLineClean) cakupanList.push(firstLineClean);
+
+            for (let j = cakupanIdx + 1; j < lines.length; j++) {
+                const nextLine = lines[j];
+                if (nextLine.startsWith("==") || /koreksi/i.test(nextLine) || nextLine.includes("⚠️") || nextLine.startsWith("●") || nextLine.startsWith("-") || nextLine.startsWith("*")) {
+                    break;
+                }
+                if (nextLine) cakupanList.push(nextLine);
+            }
+        }
+
+        return {
+            ayatTerakhir: ayatTerakhir || "Murojaah Selesai",
+            lafazTerakhir,
+            cakupan: cakupanList.join(", ") || "Detail Bacaan"
+        };
     }
 
     function ambilEkstensiDariBlobAtauNama(blob, originalName = "") {
@@ -1810,10 +1895,11 @@
     }
 
     // ========================================================================
-    // PARSER LOG KOREKSI KE ELEMEN HTML
+    // PARSER LOG KOREKSI KE ELEMEN HTML (SESI TUNGGAL & GABUNGAN HARIAN 1 LAYAR)
     // ========================================================================
-    function parseKoreksiKeHTML(teksMentah) {
+    function parseKoreksiKeHTML(teksMentah, opsi = {}) {
         if (!teksMentah) return "<p class='text-gray-400'>Data koreksi kosong.</p>";
+        const sembunyikanHeaderRingkas = !!opsi.sembunyikanHeaderRingkas;
         const lines = teksMentah.split('\n').map(l => l.trim()).filter(l => l.length > 0);
         
         let teksAyatTerakhir = "";
@@ -1839,6 +1925,13 @@
         
         const cakupanIdx = lines.findIndex(l => /cakupan/i.test(l) || l.includes("📖"));
         if (cakupanIdx !== -1) {
+            const firstLineClean = lines[cakupanIdx]
+                .replace(/^[📖\s*]+/, '')
+                .replace(/cakupan\s*(bacaan|murojaah)?/i, '')
+                .replace(/^[:\s\-]+/, '')
+                .trim();
+            if (firstLineClean) cakupanBacaanList.push(firstLineClean);
+
             for (let j = cakupanIdx + 1; j < lines.length; j++) {
                 const nextLine = lines[j];
                 if (nextLine.startsWith("==") || /koreksi/i.test(nextLine) || nextLine.includes("⚠️") || nextLine.startsWith("●") || nextLine.startsWith("-") || nextLine.startsWith("*")) {
@@ -1876,18 +1969,18 @@
                         const benar = bagian[1].trim();
                         
                         detailKoreksiHTML += `
-                            <div class="mt-6 border-t border-gray-100 pt-5 first:mt-0 first:border-0 first:pt-0">
-                                <span class="inline-block text-[10px] md:text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full mb-3">
-                                    📌 ${header || "Koreksi Bacaan"}
+                            <div class="mt-5 border-t border-gray-100 pt-4 first:mt-0 first:border-0 first:pt-0">
+                                <span class="inline-block text-[10px] md:text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full mb-2.5">
+                                    📌 ${escapeHtml(header || "Koreksi Bacaan")}
                                 </span>
                                 <div class="grid grid-cols-2 gap-3 sm:gap-4 mt-1">
                                     <div class="bg-rose-50/40 border border-rose-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
                                         <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-rose-500 uppercase tracking-wider block mb-2">❌ Salah/Ragu (Potongan)</span>
-                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-gray-700 leading-relaxed select-all">${salah}</p>
+                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-gray-700 leading-relaxed select-all">${escapeHtml(salah)}</p>
                                     </div>
                                     <div class="bg-emerald-50/40 border border-emerald-100 p-2.5 sm:p-4 rounded-xl flex flex-col justify-between">
                                         <span class="text-[7px] sm:text-[9px] md:text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-2">✅ Seharusnya (Satu Ayat Utuh)</span>
-                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-emerald-900 leading-relaxed font-medium select-all">${benar}</p>
+                                        <p class="arabic-text text-base sm:text-xl md:text-2xl text-right text-emerald-900 leading-relaxed font-medium select-all">${escapeHtml(benar)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -1899,18 +1992,18 @@
         
         let outputHTML = "";
         
-        if (teksAyatTerakhir) {
+        if (!sembunyikanHeaderRingkas && teksAyatTerakhir) {
             outputHTML += `
-                <div class="bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200 p-6 rounded-2xl shadow-sm text-center">
+                <div class="bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200 p-5 sm:p-6 rounded-2xl shadow-sm text-center">
                     <span class="text-[11px] font-bold text-amber-800 uppercase tracking-widest block mb-2">🏁 Ayat Terakhir Yang Dibaca</span>
-                    <h3 class="text-md font-bold text-amber-950 mb-4">${teksAyatTerakhir}</h3>
-                    ${lafazAyatTerakhir ? `<p class="arabic-text text-3xl sm:text-4xl text-center text-amber-900 leading-loose select-all">${lafazAyatTerakhir}</p>` : ""}
+                    <h3 class="text-md font-bold text-amber-950 mb-4">${escapeHtml(teksAyatTerakhir)}</h3>
+                    ${lafazAyatTerakhir ? `<p class="arabic-text text-3xl sm:text-4xl text-center text-amber-900 leading-loose select-all">${escapeHtml(lafazAyatTerakhir)}</p>` : ""}
                 </div>
             `;
         }
         
-        if (cakupanBacaanList.length > 0) {
-            const cakupanJoined = cakupanBacaanList.join("<br>");
+        if (!sembunyikanHeaderRingkas && cakupanBacaanList.length > 0) {
+            const cakupanJoined = cakupanBacaanList.map(escapeHtml).join("<br>");
             outputHTML += `
                 <div class="bg-gray-50 border border-gray-100 px-5 py-4 rounded-xl flex flex-col gap-1">
                     <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">📖 Cakupan Murojaah</span>
@@ -1921,9 +2014,9 @@
         
         if (detailKoreksiHTML) {
             outputHTML += `
-                <div class="space-y-4">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">⚠️ Daftar Koreksi &amp; Keraguan Detail:</h4>
-                    <div class="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm space-y-4">
+                <div class="space-y-3">
+                    ${!sembunyikanHeaderRingkas ? `<h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">⚠️ Daftar Koreksi &amp; Keraguan Detail:</h4>` : ''}
+                    <div class="bg-white border border-gray-100 p-4 sm:p-5 rounded-2xl shadow-sm space-y-4">
                         ${detailKoreksiHTML}
                     </div>
                 </div>
@@ -1932,14 +2025,14 @@
             const isLancar = teksMentah.toLowerCase().includes("lancar") || !teksMentah.includes("---");
             if (isLancar) {
                 outputHTML += `
-                    <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-6 rounded-2xl text-center font-semibold">
+                    <div class="bg-emerald-50 border border-emerald-100 text-emerald-800 p-4 sm:p-5 rounded-2xl text-center font-semibold text-xs sm:text-sm">
                         ✨ Lancar Sempurna (Tidak ditemukan kesalahan atau keraguan).
                     </div>
                 `;
             } else {
                 outputHTML += `
-                    <div class="bg-gray-50 border border-gray-200 text-gray-700 p-6 rounded-2xl text-left font-mono whitespace-pre-wrap select-all">
-                        ${teksMentah}
+                    <div class="bg-gray-50 border border-gray-200 text-gray-700 p-4 sm:p-5 rounded-2xl text-left font-mono whitespace-pre-wrap select-all text-xs sm:text-sm">
+                        ${escapeHtml(teksMentah)}
                     </div>
                 `;
             }
@@ -1951,7 +2044,9 @@
     window.bukaDetailKoreksi = function(teksEncoded, tanggal) {
         mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
+        activeModalDayKey = null;
         const teksLengkap = decodeURIComponent(teksEncoded);
+        modalTitle.textContent = "Detail Hasil Koreksi AI";
         modalDate.textContent = tanggal;
         modalBody.innerHTML = parseKoreksiKeHTML(teksLengkap);
         
@@ -1959,7 +2054,130 @@
         document.body.style.overflow = "hidden";
     };
 
+    window.bukaLaporanHarian = function(dayKey) {
+        mintaWakeLockPermanen();
+        aktifkanAudioKeepAlivePermanen();
+
+        const grup = grupHariTerfilter.find(g => g.dayKey === dayKey)
+            || kelompokkanBerdasarkanHari(semuaDataRiwayat).find(g => g.dayKey === dayKey);
+
+        if (!grup || !grup.items || grup.items.length === 0) {
+            alert("Data laporan untuk tanggal ini tidak ditemukan.");
+            return;
+        }
+
+        activeModalDayKey = dayKey;
+        const sesiUrut = [...grup.items].sort((a, b) => {
+            const ta = a.waktu ? Date.parse(a.waktu) : 0;
+            const tb = b.waktu ? Date.parse(b.waktu) : 0;
+            if (!isNaN(ta) && !isNaN(tb) && ta !== tb) return ta - tb;
+            return (a.sheetIndex || 0) - (b.sheetIndex || 0);
+        });
+
+        const totalSesi = sesiUrut.length;
+        const totalSalah = sesiUrut.reduce((acc, it) => acc + hitungJumlahKoreksi(it.koreksi), 0);
+        const sesiTerakhir = sesiUrut[sesiUrut.length - 1];
+        const infoTerakhir = ekstrakRingkasanSesi(sesiTerakhir ? sesiTerakhir.koreksi : '');
+
+        const daftarCakupanUnik = [];
+        sesiUrut.forEach((it, idx) => {
+            const r = ekstrakRingkasanSesi(it.koreksi);
+            if (r.cakupan && r.cakupan !== "Detail Bacaan") {
+                daftarCakupanUnik.push(`Sesi ${idx + 1}: ${r.cakupan}`);
+            }
+        });
+
+        modalTitle.textContent = `📅 Laporan Murojaah Harian (1 Layar)`;
+        modalDate.textContent = `${grup.label} • ${totalSesi} Sesi • ${totalSalah === 0 ? '✨ Lancar (0 Koreksi)' : `${totalSalah} Total Koreksi`}`;
+
+        let badgeTotalHTML = "";
+        if (totalSalah === 0) {
+            badgeTotalHTML = `<span class="inline-flex items-center gap-1 font-bold text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">✨ Lancar (0 Koreksi)</span>`;
+        } else if (totalSalah < 5) {
+            badgeTotalHTML = `<span class="inline-flex items-center gap-1 font-bold text-xs text-amber-800 bg-amber-50 border border-amber-300 px-3 py-1 rounded-full">⚠️ ${totalSalah} Total Koreksi</span>`;
+        } else {
+            badgeTotalHTML = `<span class="inline-flex items-center gap-1 font-bold text-xs text-rose-700 bg-rose-50 border border-rose-300 px-3 py-1 rounded-full">🚨 ${totalSalah} Total Koreksi</span>`;
+        }
+
+        let html = `
+            <!-- RINGKASAN HARI INI DALAM 1 KOTAK -->
+            <div class="bg-gradient-to-br from-emerald-50 via-white to-amber-50/50 border border-emerald-200 p-5 sm:p-6 rounded-2xl shadow-sm space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+                    <div>
+                        <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-widest block">📅 Ringkasan Hari Ini</span>
+                        <h3 class="text-base sm:text-lg font-bold text-gray-800">${escapeHtml(grup.label)}</h3>
+                    </div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200 px-3 py-1 rounded-full">🎙️ ${totalSesi} Sesi</span>
+                        ${badgeTotalHTML}
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/80 border border-amber-200 p-4 rounded-xl text-center space-y-2">
+                    <span class="text-[10px] font-bold text-amber-800 uppercase tracking-widest block">🏁 Ayat Terakhir Hari Ini</span>
+                    <p class="text-sm sm:text-base font-bold text-amber-950">${escapeHtml(infoTerakhir.ayatTerakhir)}</p>
+                    ${infoTerakhir.lafazTerakhir ? `<p class="arabic-text text-2xl sm:text-3xl text-amber-900 leading-loose select-all">${escapeHtml(infoTerakhir.lafazTerakhir)}</p>` : ''}
+                </div>
+
+                ${daftarCakupanUnik.length > 0 ? `
+                <div class="bg-white/80 border border-gray-200 px-4 py-3 rounded-xl space-y-1">
+                    <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">📖 Semua Cakupan Bacaan Hari Ini</span>
+                    <ul class="text-xs sm:text-sm font-semibold text-emerald-900 space-y-1">
+                        ${daftarCakupanUnik.map(c => `<li>• ${escapeHtml(c)}</li>`).join('')}
+                    </ul>
+                </div>` : ''}
+            </div>
+
+            <!-- DAFTAR SEMUA KOREKSI AI DARI SELURUH SESI PADA HARI INI -->
+            <div class="space-y-4">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider">📚 Semua Hasil Koreksi AI (${totalSesi} Sesi Pada Hari Ini):</h4>
+        `;
+
+        sesiUrut.forEach((sesi, idx) => {
+            const jamStr = sesi.waktu
+                ? new Date(sesi.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                : '-';
+            const ringkasanSesi = ekstrakRingkasanSesi(sesi.koreksi);
+            const jmlSalahSesi = hitungJumlahKoreksi(sesi.koreksi);
+            const badgeSesi = jmlSalahSesi === 0
+                ? `<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✨ Lancar</span>`
+                : `<span class="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">⚠️ ${jmlSalahSesi} Koreksi</span>`;
+
+            html += `
+                <div class="border border-gray-200 rounded-2xl bg-gray-50/40 overflow-hidden shadow-sm">
+                    <div class="bg-white border-b border-gray-100 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                        <div class="space-y-0.5 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                                    Sesi ${idx + 1} • ${escapeHtml(sesi.menit || 'Murojaah')}
+                                </span>
+                                <span class="text-xs text-gray-400 font-mono">🕒 ${jamStr}</span>
+                                ${badgeSesi}
+                            </div>
+                            <p class="text-xs text-gray-600 font-medium truncate">
+                                📖 ${escapeHtml(ringkasanSesi.cakupan)} • 🏁 ${escapeHtml(ringkasanSesi.ayatTerakhir)}
+                            </p>
+                        </div>
+                        <button onclick="hapusBaris(${sesi.sheetIndex})" class="text-[11px] text-red-500 hover:text-red-700 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition font-semibold border border-red-100">
+                            🗑️ Hapus Sesi
+                        </button>
+                    </div>
+                    <div class="p-3 sm:p-4">
+                        ${parseKoreksiKeHTML(sesi.koreksi || '', { sembunyikanHeaderRingkas: true })}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+
+        modalBody.innerHTML = html;
+        fullscreenModal.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+    };
+
     closeModalBtn.addEventListener('click', () => {
+        activeModalDayKey = null;
         fullscreenModal.classList.add('hidden');
         document.body.style.overflow = "";
         mintaWakeLockPermanen();
@@ -2577,8 +2795,31 @@
     window.addEventListener('offline', updateOnlineStatus);
 
     // ========================================================================
-    // PEMUATAN DATA BESAR DARI GOOGLE SHEETS & FILTERING / PAGINASI
+    // PEMUATAN DATA BESAR DARI GOOGLE SHEETS & PENGELOMPOKAN PER HARI (1 LAYAR)
     // ========================================================================
+    function kelompokkanBerdasarkanHari(daftarItem) {
+        const map = new Map();
+        (daftarItem || []).forEach(item => {
+            const key = ambilKunciHari(item.waktu);
+            if (!map.has(key)) {
+                map.set(key, {
+                    dayKey: key,
+                    label: formatLabelHari(key),
+                    items: []
+                });
+            }
+            map.get(key).items.push(item);
+        });
+
+        const groups = Array.from(map.values());
+        groups.sort((a, b) => {
+            if (a.dayKey === 'unknown') return 1;
+            if (b.dayKey === 'unknown') return -1;
+            return b.dayKey.localeCompare(a.dayKey); // Terbaru di atas
+        });
+        return groups;
+    }
+
     async function muatLaporan(isManual = false) {
         try {
             if (isManual && (containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan..."))) {
@@ -2608,15 +2849,24 @@
             
             lastDataString = currentDataString;
 
-            totalDataBadge.textContent = `${semuaDataRiwayat.length} Data`;
+            const totalHari = kelompokkanBerdasarkanHari(semuaDataRiwayat).length;
+            totalDataBadge.textContent = `${semuaDataRiwayat.length} Sesi (${totalHari} Hari)`;
             terapkanFilterDanRender();
+
+            // Jika modal harian sedang terbuka & ada data baru masuk, segarkan otomatis isinya!
+            if (activeModalDayKey && !fullscreenModal.classList.contains('hidden')) {
+                const masihAda = grupHariTerfilter.some(g => g.dayKey === activeModalDayKey);
+                if (masihAda) {
+                    bukaLaporanHarian(activeModalDayKey);
+                }
+            }
 
             if (activeUploads.size === 0 && !statusBox.innerHTML.includes("Gagal") && !statusBox.innerHTML.includes("Kesalahan")) {
                 hideUploadProgress();
             }
         } catch (err) {
             if (containerLaporan.innerHTML.includes("Sedang menyegarkan data...") || containerLaporan.innerHTML.trim() === "") {
-                containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets: ${err.message}</p>`;
+                containerLaporan.innerHTML = `<p class="text-center py-4 text-red-500">Gagal memuat data dari Google Sheets: ${escapeHtml(err.message)}</p>`;
             }
         }
     }
@@ -2629,101 +2879,170 @@
         } else {
             dataTerfilter = semuaDataRiwayat.filter(item => {
                 const waktuStr = (item.waktu || '').toLowerCase();
+                const dayKey = ambilKunciHari(item.waktu);
+                const labelHariStr = formatLabelHari(dayKey).toLowerCase();
                 const koreksiStr = (item.koreksi || '').toLowerCase();
                 const menitStr = (item.menit || '').toLowerCase();
-                return waktuStr.includes(query) || koreksiStr.includes(query) || menitStr.includes(query);
+                return waktuStr.includes(query) || labelHariStr.includes(query) || koreksiStr.includes(query) || menitStr.includes(query);
             });
+        }
+
+        grupHariTerfilter = kelompokkanBerdasarkanHari(dataTerfilter);
+
+        // Tombol pintas "Buka Koreksi Hari Ini (1 Layar)" jika ada laporan hari ini
+        const todayKey = ambilKunciHariIni();
+        const adaHariIni = semuaDataRiwayat.some(it => ambilKunciHari(it.waktu) === todayKey);
+        if (adaHariIni) {
+            openTodayBtn.classList.remove('hidden');
+            openTodayBtn.onclick = () => {
+                if (searchInput.value.trim()) {
+                    searchInput.value = "";
+                    terapkanFilterDanRender();
+                }
+                bukaLaporanHarian(todayKey);
+            };
+        } else {
+            openTodayBtn.classList.add('hidden');
         }
 
         renderDaftarKartu();
     }
 
     function renderDaftarKartu() {
-        if (dataTerfilter.length === 0) {
+        if (grupHariTerfilter.length === 0) {
             containerLaporan.innerHTML = `<p class="text-center py-8 text-gray-400">Tidak ada riwayat laporan yang cocok.</p>`;
             paginationControls.classList.add('hidden');
             return;
         }
 
         containerLaporan.innerHTML = "";
-        const dataUntukTampil = dataTerfilter.slice(0, jumlahDitampilkan);
+        const hariUntukTampil = grupHariTerfilter.slice(0, jumlahDitampilkan);
+        const todayKey = ambilKunciHariIni();
 
-        dataUntukTampil.forEach((item) => {
-            const tanggal = item.waktu ? new Date(item.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}) : 'Waktu tidak tercatat';
-            
-            let ayatTerakhirSesi = "Murojaah Selesai";
-            const matchAyat = (item.koreksi || '').match(/🏁\s*AYAT\s*TERAKHIR[^\n:]*:\s*(.*)/i);
-            if (matchAyat && matchAyat[1]) {
-                ayatTerakhirSesi = matchAyat[1].trim();
-            }
+        hariUntukTampil.forEach((grup) => {
+            const sesiUrut = [...grup.items].sort((a, b) => {
+                const ta = a.waktu ? Date.parse(a.waktu) : 0;
+                const tb = b.waktu ? Date.parse(b.waktu) : 0;
+                if (!isNaN(ta) && !isNaN(tb) && ta !== tb) return ta - tb;
+                return (a.sheetIndex || 0) - (b.sheetIndex || 0);
+            });
 
-            let cakupanSesi = "Detail Bacaan";
-            const matchCakupan = (item.koreksi || '').match(/📖\s*CAKUPAN\s*BACAAN[^\n:]*:\s*(.*)/i);
-            if (matchCakupan && matchCakupan[1]) {
-                cakupanSesi = matchCakupan[1].trim();
-            }
+            const totalSesi = sesiUrut.length;
+            const totalSalah = sesiUrut.reduce((acc, it) => acc + hitungJumlahKoreksi(it.koreksi), 0);
+            const sesiTerakhir = sesiUrut[sesiUrut.length - 1];
+            const ringkasanTerakhir = ekstrakRingkasanSesi(sesiTerakhir ? sesiTerakhir.koreksi : '');
 
-            const jumlahSalah = hitungJumlahKoreksi(item.koreksi);
+            const daftarCakupan = [];
+            sesiUrut.forEach(it => {
+                const r = ekstrakRingkasanSesi(it.koreksi);
+                if (r.cakupan && r.cakupan !== "Detail Bacaan" && !daftarCakupan.includes(r.cakupan)) {
+                    daftarCakupan.push(r.cakupan);
+                }
+            });
+            const cakupanGabungan = daftarCakupan.join(" • ") || "Detail Bacaan";
+
             let badgeKoreksiHTML = "";
-
-            if (jumlahSalah === 0) {
+            if (totalSalah === 0) {
                 badgeKoreksiHTML = `
-                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shadow-2xs">
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
                         ✨ Lancar (0 Koreksi)
                     </span>
                 `;
-            } else if (jumlahSalah < 5) {
+            } else if (totalSalah < 5) {
                 badgeKoreksiHTML = `
-                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full shadow-2xs">
-                        ⚠️ ${jumlahSalah} Koreksi
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full">
+                        ⚠️ ${totalSalah} Total Koreksi
                     </span>
                 `;
             } else {
                 badgeKoreksiHTML = `
-                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-rose-700 bg-rose-50 border border-rose-300 px-2 py-0.5 rounded-full shadow-2xs">
-                        🚨 ${jumlahSalah} Koreksi
+                    <span class="inline-flex items-center gap-1 font-bold text-[10px] text-rose-700 bg-rose-50 border border-rose-300 px-2.5 py-0.5 rounded-full">
+                        🚨 ${totalSalah} Total Koreksi
                     </span>
                 `;
             }
 
-            const kartuLaporan = document.createElement('div');
-            kartuLaporan.className = "p-4 rounded-2xl border border-gray-100 bg-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:border-emerald-200 hover:shadow";
-            
-            kartuLaporan.innerHTML = `
-                <div class="space-y-1 overflow-hidden">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-bold text-[10px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                            ${item.menit || 'Sesi Murojaah Lengkap'}
-                        </span>
-                        ${badgeKoreksiHTML}
-                        <span class="text-[11px] text-gray-400">${tanggal}</span>
+            const isToday = grup.dayKey === todayKey;
+            const kartuHari = document.createElement('div');
+            kartuHari.className = `p-4 rounded-2xl border ${isToday ? 'border-emerald-300 bg-emerald-50/20' : 'border-gray-100 bg-white'} shadow-sm space-y-3 transition hover:border-emerald-300 hover:shadow`;
+
+            kartuHari.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1.5 overflow-hidden">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-xs ${isToday ? 'text-emerald-900 bg-emerald-100 border border-emerald-200' : 'text-gray-800 bg-gray-100'} px-3 py-0.5 rounded-full">
+                                📅 ${escapeHtml(grup.label)}
+                            </span>
+                            <span class="font-bold text-[10px] text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+                                🎙️ ${totalSesi} Sesi Rekaman
+                            </span>
+                            ${badgeKoreksiHTML}
+                        </div>
+                        <h3 class="text-sm font-bold text-gray-800 truncate">🏁 Terakhir: ${escapeHtml(ringkasanTerakhir.ayatTerakhir)}</h3>
+                        <p class="text-xs text-gray-500 truncate">📖 Cakupan: ${escapeHtml(cakupanGabungan)}</p>
                     </div>
-                    <h3 class="text-sm font-bold text-gray-800 truncate">🏁 Terakhir: ${ayatTerakhirSesi}</h3>
-                    <p class="text-xs text-gray-500 truncate">📖 Cakupan: ${cakupanSesi}</p>
+                    
+                    <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                        <button class="open-day-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
+                            🔍 Buka Semua Koreksi (1 Layar)
+                        </button>
+                        <button class="toggle-sessions-btn bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-3 rounded-xl transition text-xs">
+                            📋 Rincian (${totalSesi})
+                        </button>
+                    </div>
                 </div>
-                
-                <div class="flex items-center gap-2 shrink-0">
-                    <button class="open-detail-btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center gap-1.5 shadow-sm">
-                        🔍 Buka Layar Penuh
-                    </button>
-                    <button onclick="hapusBaris(${item.sheetIndex})" class="text-red-500 hover:text-red-700 hover:bg-red-50 p-2.5 rounded-xl transition text-xs font-semibold">
-                        🗑️ Hapus
-                    </button>
-                </div>
+
+                <div class="session-sublist hidden pt-3 border-t border-gray-100 space-y-2"></div>
             `;
 
-            kartuLaporan.querySelector('.open-detail-btn').addEventListener('click', () => {
-                bukaDetailKoreksi(encodeURIComponent(item.koreksi || ''), tanggal);
+            kartuHari.querySelector('.open-day-btn').addEventListener('click', () => {
+                bukaLaporanHarian(grup.dayKey);
             });
 
-            containerLaporan.appendChild(kartuLaporan);
+            const sublistEl = kartuHari.querySelector('.session-sublist');
+            const toggleBtn = kartuHari.querySelector('.toggle-sessions-btn');
+            toggleBtn.addEventListener('click', () => {
+                sublistEl.classList.toggle('hidden');
+            });
+
+            sesiUrut.forEach((sesi, idx) => {
+                const jamStr = sesi.waktu
+                    ? new Date(sesi.waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                    : '-';
+                const rSesi = ekstrakRingkasanSesi(sesi.koreksi);
+                const jmlSesi = hitungJumlahKoreksi(sesi.koreksi);
+
+                const rowEl = document.createElement('div');
+                rowEl.className = "flex flex-wrap items-center justify-between gap-2 bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl text-xs";
+                rowEl.innerHTML = `
+                    <div class="min-w-0 flex-1">
+                        <span class="font-bold text-emerald-800">Sesi ${idx + 1} (${jamStr})</span>
+                        <span class="text-gray-400 mx-1">•</span>
+                        <span class="text-gray-600">${escapeHtml(sesi.menit || 'Murojaah')}</span>
+                        <span class="text-gray-400 mx-1">•</span>
+                        <span class="font-semibold ${jmlSesi === 0 ? 'text-emerald-600' : 'text-rose-600'}">${jmlSesi === 0 ? 'Lancar' : `${jmlSesi} koreksi`}</span>
+                        <p class="text-[11px] text-gray-500 truncate">${escapeHtml(rSesi.cakupan)} — ${escapeHtml(rSesi.ayatTerakhir)}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button class="open-single-btn bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg font-semibold transition">Buka Sesi Ini</button>
+                        <button onclick="hapusBaris(${sesi.sheetIndex})" class="text-red-500 hover:bg-red-50 px-2.5 py-1 rounded-lg font-semibold transition border border-red-100">🗑️</button>
+                    </div>
+                `;
+                rowEl.querySelector('.open-single-btn').addEventListener('click', () => {
+                    const tglSesi = sesi.waktu ? new Date(sesi.waktu).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit'}) : 'Waktu tidak tercatat';
+                    bukaDetailKoreksi(encodeURIComponent(sesi.koreksi || ''), tglSesi);
+                });
+                sublistEl.appendChild(rowEl);
+            });
+
+            containerLaporan.appendChild(kartuHari);
         });
 
-        if (dataTerfilter.length > itemPerHalaman) {
+        if (grupHariTerfilter.length > itemPerHalaman) {
             paginationControls.classList.remove('hidden');
-            paginationInfo.textContent = `Menampilkan ${Math.min(jumlahDitampilkan, dataTerfilter.length)} dari ${dataTerfilter.length} data`;
+            paginationInfo.textContent = `Menampilkan ${Math.min(jumlahDitampilkan, grupHariTerfilter.length)} dari ${grupHariTerfilter.length} hari`;
             
-            if (jumlahDitampilkan >= dataTerfilter.length) {
+            if (jumlahDitampilkan >= grupHariTerfilter.length) {
                 loadMoreBtn.classList.add('hidden');
             } else {
                 loadMoreBtn.classList.remove('hidden');
@@ -2744,7 +3063,7 @@
     });
 
     loadAllBtn.addEventListener('click', () => {
-        jumlahDitampilkan = dataTerfilter.length;
+        jumlahDitampilkan = grupHariTerfilter.length;
         renderDaftarKartu();
     });
 
