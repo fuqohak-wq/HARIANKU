@@ -28,7 +28,7 @@
             -webkit-user-select: none;
             pointer-events: auto;
         }
-        #pocketPauseBtn, #unlockPocketBtn {
+        #pocketPauseBtn, #pocketFinishBtn, #unlockPocketBtn {
             touch-action: manipulation;
         }
         /* Hidden keep-alive canvas video */
@@ -121,7 +121,7 @@
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
         </div>
 
-        <!-- FITUR UTAMA 2: PEREKAM LANGSUNG (MP3 INSTAN + BACKGROUND SAFE) -->
+        <!-- FITUR UTAMA 2: PEREKAM LANGSUNG (MP3 INSTAN + AUTO-SAVE JEDA + BACKGROUND SAFE) -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
             <div class="flex flex-wrap justify-between items-center border-b pb-3 gap-2">
                 <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
@@ -135,12 +135,12 @@
                 </div>
             </div>
 
-            <!-- KOTAK DRAFT REKAMAN TERSIMPAN (UNTUK DILANJUTKAN) -->
+            <!-- KOTAK DRAFT REKAMAN TERSIMPAN (OTOMATIS SAAT KLIK JEDA / TAHAN REFRESH) -->
             <div id="draftRecorderBox" class="hidden border border-amber-200 bg-amber-50/80 p-4 rounded-xl space-y-3 transition duration-300">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <p class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                            💾 Rekaman Tersimpan Sementara (Siap Dilanjutkan)
+                            💾 Rekaman Dijeda & Tersimpan Permanen (Aman Jika Di-Refresh)
                         </p>
                         <p id="draftRecorderInfo" class="text-xs text-amber-700 mt-0.5">
                             Total durasi tersimpan: 00:00:00 (1 bagian)
@@ -152,7 +152,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     <button id="resumeDraftBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
-                        🎙️ Lanjutkan Rekaman Ini
+                        ▶️ Lanjutkan Rekaman Ini
                     </button>
                     <button id="sendDraftBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
                         🚀 Selesai & Kirim ke AI
@@ -169,7 +169,7 @@
                     🔴 Mulai Rekam Murojaah
                 </button>
                 <button id="pauseBtn" class="hidden bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full">
-                    ⏸️ Jeda Rekaman
+                    ⏸️ Jeda & Simpan
                 </button>
                 <button id="testMicBtn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full">
                     🔊 Tes Suara Mic
@@ -252,33 +252,6 @@
 
     </main>
 
-    <!-- MODAL PILIHAN SAAT KLIK SELESAI REKAMAN -->
-    <div id="finishChoiceModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-100 p-6 space-y-5">
-            <div class="text-center space-y-1.5">
-                <span class="text-4xl inline-block">🎙️</span>
-                <h3 class="text-lg font-bold text-gray-800">Akhiri Sesi Rekaman?</h3>
-                <p class="text-xs text-gray-500">Durasi terekam saat ini: <span id="finishModalDuration" class="font-mono font-bold text-emerald-700">00:00:00</span></p>
-            </div>
-
-            <div class="space-y-3">
-                <button id="choiceSaveDraftBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition flex flex-col items-center justify-center text-sm">
-                    <span>💾 Simpan Dulu (Untuk Dilanjutkan Nanti)</span>
-                    <span class="text-[11px] font-normal opacity-90 mt-0.5">Aman disimpan di HP. Rekaman sebelumnya tidak hilang & bisa disambung lagi.</span>
-                </button>
-
-                <button id="choiceSendNowBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition flex flex-col items-center justify-center text-sm">
-                    <span>🚀 Selesai & Kirim ke AI Sekarang</span>
-                    <span class="text-[11px] font-normal opacity-90 mt-0.5">Mengakhiri rekaman dan langsung mengirim ke server AI untuk dikoreksi.</span>
-                </button>
-
-                <button id="choiceContinueNowBtn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition text-sm">
-                    🔄 Batal Selesai (Terus Lanjutkan Rekam Sekarang)
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL VIEWER LAYAR PENUH -->
     <div id="fullscreenModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto h-screen w-screen">
         <!-- Header Sticky -->
@@ -301,27 +274,30 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY (TRUE PIN PROTECTED POCKET LOCK + FULLSCREEN + MINI PAUSE BUTTON) -->
+    <!-- POCKET MODE OVERLAY (TRUE PIN PROTECTED POCKET LOCK + FULLSCREEN + JEDA & SELESAI KETUK 2X) -->
     <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-6 sm:p-8 select-none">
         <div class="w-full flex justify-between items-center pt-2 gap-2">
-            <div class="flex items-center gap-2 opacity-70">
+            <div class="flex items-center gap-2 opacity-80">
                 <span class="text-[10px] sm:text-xs tracking-widest font-mono">🔒 POCKET MODE</span>
                 <span id="pocketRecStatus" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">⚪ STANDBY</span>
             </div>
             <span id="pocketTimer" class="text-xs sm:text-sm font-mono text-emerald-400/80">00:00:00</span>
         </div>
 
-        <div class="text-center space-y-3 my-auto px-4">
+        <div class="text-center space-y-3 my-auto px-4 w-full max-w-xs">
             <div class="inline-block animate-pulse text-5xl">🛡️</div>
-            <p class="text-sm font-medium text-gray-400">Layar Terkunci Sempurna (Anti Kain Saku)</p>
-            <p class="text-[11px] text-gray-600">Mode layar penuh menyembunyikan tombol navigasi HP. Sentuhan biasa diabaikan.</p>
+            <p class="text-sm font-medium text-gray-300">Layar Terkunci Sempurna (Anti Kain Saku)</p>
+            <p class="text-[11px] text-gray-500">Mode layar penuh menyembunyikan tombol navigasi HP. Sentuhan biasa diabaikan.</p>
 
-            <!-- TOMBOL KECIL JEDA SEMENTARA (ANTI SALAH PENCET SAKU: PERLU KETUK 2x CEPAT) -->
-            <div class="pt-5 flex flex-col items-center gap-2">
-                <button id="pocketPauseBtn" class="hidden bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition">
-                    ⏸️ Jeda Sementara (Ketuk 2x)
+            <!-- TOMBOL KONTROL SAKU (ANTI SALAH PENCET SAKU: PERLU KETUK 2x CEPAT) -->
+            <div class="pt-5 flex flex-col items-center gap-3 w-full">
+                <button id="pocketPauseBtn" class="hidden w-full bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition">
+                    ⏸️ Jeda & Simpan (Ketuk 2x)
                 </button>
-                <span id="pocketPauseHint" class="hidden text-[10px] text-gray-500 font-mono"></span>
+                <button id="pocketFinishBtn" class="hidden w-full bg-rose-950/90 hover:bg-rose-900 border border-rose-700/70 text-rose-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition">
+                    🚀 Selesai & Kirim AI (Ketuk 2x)
+                </button>
+                <span id="pocketActionHint" class="hidden text-[10px] text-gray-500 font-mono leading-relaxed"></span>
             </div>
         </div>
 
@@ -373,19 +349,13 @@
     const resendBtn = document.getElementById('resendBtn');
     const downloadLastBtn = document.getElementById('downloadLastBtn');
 
-    // Draft & Pilihan Selesai Elements
+    // Draft Elements
     const draftRecorderBox = document.getElementById('draftRecorderBox');
     const draftRecorderInfo = document.getElementById('draftRecorderInfo');
     const resumeDraftBtn = document.getElementById('resumeDraftBtn');
     const sendDraftBtn = document.getElementById('sendDraftBtn');
     const downloadDraftBtn = document.getElementById('downloadDraftBtn');
     const discardDraftBtn = document.getElementById('discardDraftBtn');
-
-    const finishChoiceModal = document.getElementById('finishChoiceModal');
-    const finishModalDuration = document.getElementById('finishModalDuration');
-    const choiceSaveDraftBtn = document.getElementById('choiceSaveDraftBtn');
-    const choiceSendNowBtn = document.getElementById('choiceSendNowBtn');
-    const choiceContinueNowBtn = document.getElementById('choiceContinueNowBtn');
 
     // Modal Viewer Elements
     const fullscreenModal = document.getElementById('fullscreenModal');
@@ -400,7 +370,8 @@
     const pocketTimer = document.getElementById('pocketTimer');
     const pocketRecStatus = document.getElementById('pocketRecStatus');
     const pocketPauseBtn = document.getElementById('pocketPauseBtn');
-    const pocketPauseHint = document.getElementById('pocketPauseHint');
+    const pocketFinishBtn = document.getElementById('pocketFinishBtn');
+    const pocketActionHint = document.getElementById('pocketActionHint');
     const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
     const wakeLockStatusBadge = document.getElementById('wakeLockStatusBadge');
     const keepAliveMedia = document.getElementById('keepAliveMedia');
@@ -415,7 +386,7 @@
     let analyser = null;
     let streamGlobal = null;
     let isRecording = false;
-    let isPaused = false;
+    let isFinalizingSegment = false;
     let isTestingMic = false;
     let lastRecordedBlob = null; 
     let wakeLock = null;
@@ -423,17 +394,20 @@
     let lastDataString = "";
     let lastFailedBlob = null;
 
-    // State Draft / Lanjut Rekaman
+    // State Draft / Jeda Permanen
     let draftSegments = []; // Array of { blob: Blob, durationMs: number }
     let draftBaseDurationMs = 0;
     let pendingStopAction = 'send_now'; // 'save_draft' | 'send_now'
-    let wasPausedBeforeModal = false;
+    let pendingSegmentDurationMs = 0;
 
     // State Pocket Lock & Fullscreen
     let isPocketLocked = false;
     let wasFullscreenBeforeLock = false;
     let pocketPauseArmed = false;
     let pocketPauseArmTimer = null;
+    let pocketFinishArmed = false;
+    let pocketFinishArmTimer = null;
+    let pocketUploadStatus = null; // null | 'uploading' | 'sent' | 'error'
 
     // Manajemen Dataset Riwayat Besar & Paginasi
     let semuaDataRiwayat = [];
@@ -512,6 +486,14 @@
             if (isPocketLocked) {
                 masukLayarPenuh();
             }
+        }
+    });
+
+    // Peringatan lembut jika user mencoba me-refresh SAAT mic masih aktif merekam (belum klik Jeda)
+    window.addEventListener('beforeunload', (e) => {
+        if (isRecording) {
+            e.preventDefault();
+            e.returnValue = '';
         }
     });
 
@@ -739,75 +721,160 @@
     });
 
     // ========================================================================
-    // POCKET LOCK DENGAN PIN 123 + FULLSCREEN + TOMBOL JEDA ANTI SALAH PENCET
+    // POCKET LOCK DENGAN PIN 123 + FULLSCREEN + TOMBOL JEDA & SELESAI (KETUK 2X)
     // ========================================================================
-    function resetPocketPauseArm() {
+    function resetPocketArms() {
         pocketPauseArmed = false;
         if (pocketPauseArmTimer) {
             clearTimeout(pocketPauseArmTimer);
             pocketPauseArmTimer = null;
         }
+        pocketFinishArmed = false;
+        if (pocketFinishArmTimer) {
+            clearTimeout(pocketFinishArmTimer);
+            pocketFinishArmTimer = null;
+        }
     }
 
     function perbaruiStatusPocketLock() {
-        resetPocketPauseArm();
-        if (!isRecording) {
-            pocketRecStatus.textContent = "⚪ STANDBY";
-            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400";
+        resetPocketArms();
+
+        if (isFinalizingSegment) {
+            pocketRecStatus.textContent = "💾 MENYIMPAN...";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-200 border border-amber-500/40";
             pocketPauseBtn.classList.add('hidden');
-            pocketPauseHint.classList.add('hidden');
+            pocketFinishBtn.classList.add('hidden');
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Sedang mengamankan audio ke memori HP...";
             return;
         }
 
-        pocketPauseBtn.classList.remove('hidden');
-        pocketPauseHint.classList.remove('hidden');
-        pocketPauseHint.textContent = "Aman saku: ketuk 2x cepat untuk jeda/lanjut";
-
-        if (isPaused) {
-            pocketRecStatus.textContent = "⏸️ DIJEDA";
-            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40";
-            pocketPauseBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
-            pocketPauseBtn.className = "bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition";
-        } else {
+        if (isRecording) {
             pocketRecStatus.textContent = "🔴 MEREKAM";
             pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-300 border border-rose-500/40 animate-pulse";
-            pocketPauseBtn.textContent = "⏸️ Jeda Sementara (Ketuk 2x)";
-            pocketPauseBtn.className = "bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-2 rounded-full shadow transition";
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "⏸️ Jeda & Simpan (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-gray-900/90 hover:bg-gray-800 border border-amber-600/60 text-amber-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
+            pocketFinishBtn.className = "w-full bg-rose-950/90 hover:bg-rose-900 border border-rose-700/70 text-rose-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat pada tombol untuk Jeda atau Selesai Kirim AI";
+        } else if (draftSegments.length > 0) {
+            pocketRecStatus.textContent = "⏸️ DIJEDA & TERSIMPAN";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40";
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
+            pocketFinishBtn.className = "w-full bg-blue-950/90 hover:bg-blue-900 border border-blue-600/70 text-blue-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Draft aman tersimpan. Ketuk 2x untuk Lanjutkan atau Kirim AI";
+        } else {
+            // Standby (belum ada rekaman aktif/draft)
+            if (pocketUploadStatus === 'uploading') {
+                pocketRecStatus.textContent = "📤 MENGIRIM KE AI...";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/80 text-blue-200 border border-blue-500/40 animate-pulse";
+            } else if (pocketUploadStatus === 'sent') {
+                pocketRecStatus.textContent = "✅ TERKIRIM KE AI";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/80 text-emerald-200 border border-emerald-500/40";
+            } else if (pocketUploadStatus === 'error') {
+                pocketRecStatus.textContent = "⚠️ GAGAL KIRIM (AMAN DI HP)";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-200 border border-rose-500/40";
+            } else {
+                pocketRecStatus.textContent = "⚪ STANDBY";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400";
+            }
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "🔴 Mulai Rekam (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.add('hidden');
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat untuk mulai merekam";
         }
     }
 
+    // Tombol Pocket 1: Mulai / Jeda & Simpan / Lanjutkan (Ketuk 2x)
     pocketPauseBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!isRecording || !mediaRecorder) return;
+        if (isFinalizingSegment) return;
+
+        // Batalkan arming tombol Finish jika sebelumnya sempat tersentuh
+        if (pocketFinishArmed) {
+            perbaruiStatusPocketLock();
+        }
 
         if (!pocketPauseArmed) {
-            // Ketukan ke-1: siapkan konfirmasi (kain saku tidak akan melakukan 2 ketukan cepat)
             pocketPauseArmed = true;
             if (navigator.vibrate) navigator.vibrate(25);
-            if (isPaused) {
-                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk LANJUT";
-                pocketPauseBtn.className = "bg-emerald-600 border border-emerald-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg transition";
+
+            if (isRecording) {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk JEDA & SIMPAN";
+                pocketPauseBtn.className = "w-full bg-amber-600 border border-amber-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+            } else if (draftSegments.length > 0) {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk LANJUT REKAM";
+                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
             } else {
-                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk JEDA";
-                pocketPauseBtn.className = "bg-amber-600 border border-amber-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg transition";
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk MULAI REKAM";
+                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
             }
+
             pocketPauseArmTimer = setTimeout(() => {
                 perbaruiStatusPocketLock();
-            }, 1500);
+            }, 1600);
         } else {
-            // Ketukan ke-2 dalam 1.5 detik: jalankan Pause / Resume!
-            resetPocketPauseArm();
-            pauseBtn.click();
-            if (navigator.vibrate) {
-                navigator.vibrate(isPaused ? [50, 40, 50] : 80);
+            resetPocketArms();
+            if (navigator.vibrate) navigator.vibrate([50, 40, 50]);
+
+            if (isRecording) {
+                // Jeda & simpan permanen ke IndexedDB
+                jedaDanSimpanRekaman();
+            } else {
+                // Mulai baru atau lanjutkan draft
+                pocketUploadStatus = null;
+                mulaiSesiRekamBaruAtauLanjut();
             }
+        }
+    });
+
+    // Tombol Pocket 2: Selesai & Kirim ke AI (Ketuk 2x)
+    pocketFinishBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isFinalizingSegment || (!isRecording && draftSegments.length === 0)) return;
+
+        // Batalkan arming tombol Pause jika sebelumnya sempat tersentuh
+        if (pocketPauseArmed) {
             perbaruiStatusPocketLock();
+        }
+
+        if (!pocketFinishArmed) {
+            pocketFinishArmed = true;
+            if (navigator.vibrate) navigator.vibrate(30);
+            pocketFinishBtn.textContent = "👆 Ketuk 1x Lagi utk SELESAI & KIRIM AI";
+            pocketFinishBtn.className = "w-full bg-rose-600 border border-rose-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+
+            pocketFinishArmTimer = setTimeout(() => {
+                perbaruiStatusPocketLock();
+            }, 1600);
+        } else {
+            resetPocketArms();
+            if (navigator.vibrate) navigator.vibrate([70, 50, 90]);
+            selesaiDanKirimKeAI();
         }
     });
 
     // Ketuk area hitam pocket lock untuk masuk fullscreen lagi jika navigasi HP sempat muncul
     pocketLockScreen.addEventListener('click', (e) => {
-        if (e.target === pocketLockScreen || (!e.target.closest('#pocketPauseBtn') && !e.target.closest('#unlockPocketBtn'))) {
+        if (e.target === pocketLockScreen || (!e.target.closest('#pocketPauseBtn') && !e.target.closest('#pocketFinishBtn') && !e.target.closest('#unlockPocketBtn'))) {
             if (!sedangFullscreen()) {
                 masukLayarPenuh();
             }
@@ -830,7 +897,7 @@
         const pinInput = prompt("🔐 Masukkan PIN Buka Kunci (Ketik: 123):");
         if (pinInput === "123") {
             isPocketLocked = false;
-            resetPocketPauseArm();
+            resetPocketArms();
             pocketLockScreen.classList.add('hidden');
             document.body.style.overflow = "";
             if (!wasFullscreenBeforeLock) {
@@ -843,7 +910,7 @@
     });
 
     // ========================================================================
-    // INDEXEDDB UNTUK PENYELAMATAN AUDIO & DRAFT LANJUT REKAMAN
+    // INDEXEDDB UNTUK PENYELAMATAN AUDIO & DRAFT JEDA PERMANEN
     // ========================================================================
     const dbName = "MurojaahOfflineDB";
     const storeName = "AudioStore";
@@ -891,9 +958,14 @@
     async function simpanDraftKeHP(segments) {
         try {
             const db = await bukaDatabase();
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.put(segments, "rekaman_draft");
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+                const req = store.put(segments, "rekaman_draft");
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = (e) => reject(e.target.error);
+                req.onerror = (e) => reject(e.target.error);
+            });
         } catch (err) {
             console.error("Gagal simpan draft ke DB lokal:", err);
         }
@@ -917,42 +989,71 @@
     async function hapusDraftDariHP() {
         try {
             const db = await bukaDatabase();
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.delete("rekaman_draft");
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+                store.delete("rekaman_draft");
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
         } catch (err) {
             console.error("Gagal hapus draft dari DB lokal:", err);
         }
     }
 
+    // Sinkronkan tampilan utama & pocket mode berdasarkan state (Recording / Dijeda-Tersimpan / Standby)
     function perbaruiTampilanDraft() {
-        if (draftSegments.length > 0) {
-            const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
-            const durasiStr = formatDurasiMs(totalMs);
+        const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+        const durasiStr = formatDurasiMs(totalMs);
+
+        if (isRecording) {
+            draftRecorderBox.classList.add('hidden');
+            recordBtn.disabled = false;
+            recordBtn.textContent = "⏹️ Selesai & Kirim ke AI";
+            recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
+
+            pauseBtn.disabled = false;
+            pauseBtn.textContent = "⏸️ Jeda & Simpan";
+            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
+            pauseBtn.classList.remove('hidden');
+        } else if (draftSegments.length > 0) {
             draftRecorderInfo.textContent = `Total durasi tersimpan: ${durasiStr} (${draftSegments.length} bagian rekaman)`;
             draftRecorderBox.classList.remove('hidden');
 
-            if (!isRecording) {
-                timerLabel.textContent = durasiStr;
-                pocketTimer.textContent = durasiStr;
-                recordBtn.textContent = `🎙️ Lanjutkan Rekaman (${durasiStr})`;
-                recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
-            }
+            timerLabel.textContent = durasiStr;
+            pocketTimer.textContent = durasiStr;
+
+            // Saat dijeda / setelah refresh, tombol Selesai & Lanjutkan langsung tersedia konsisten
+            recordBtn.disabled = false;
+            recordBtn.textContent = "🚀 Selesai & Kirim ke AI";
+            recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
+
+            pauseBtn.disabled = false;
+            pauseBtn.textContent = "▶️ Lanjutkan Rekam";
+            pauseBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
+            pauseBtn.classList.remove('hidden');
         } else {
             draftRecorderBox.classList.add('hidden');
-            if (!isRecording) {
-                timerLabel.textContent = "00:00:00";
-                pocketTimer.textContent = "00:00:00";
-                recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
-                recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-            }
+            timerLabel.textContent = "00:00:00";
+            pocketTimer.textContent = "00:00:00";
+
+            recordBtn.disabled = false;
+            recordBtn.textContent = "🔴 Mulai Rekam Murojaah";
+            recordBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+
+            pauseBtn.classList.add('hidden');
         }
+
+        perbaruiStatusPocketLock();
     }
 
     async function cekRekamanTerselamatkan() {
         const draftSaved = await ambilDraftDariHP();
         if (Array.isArray(draftSaved) && draftSaved.length > 0) {
             draftSegments = draftSaved;
+            totalElapsedTime = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+            perbaruiTampilanDraft();
+        } else {
             perbaruiTampilanDraft();
         }
 
@@ -962,6 +1063,9 @@
             const audioUrl = URL.createObjectURL(blobSelamat);
             audioPlayer.src = audioUrl;
             audioPlaybackBox.classList.remove('hidden');
+            if (draftSegments.length > 0) {
+                audioPlaybackNote.textContent = "💾 Rekaman dijeda & tersimpan permanen di memori HP (aman jika di-refresh).";
+            }
         }
     }
 
@@ -1161,15 +1265,10 @@
             function draw() {
                 if (!isRecording && !isTestingMic) {
                     volumeBar.style.width = "0%";
-                    volumeLabel.textContent = "Mic Mati";
+                    volumeLabel.textContent = draftSegments.length > 0 ? "⏸️ Dijeda & Tersimpan" : "Mic Mati";
                     return;
                 }
                 requestAnimationFrame(draw);
-                if (isPaused) {
-                    volumeBar.style.width = "0%";
-                    volumeLabel.textContent = "⏸️ Rekaman Dijeda";
-                    return;
-                }
                 analyser.getByteFrequencyData(dataArray);
                 let total = 0;
                 for (let i = 0; i < bufferLength; i++) total += dataArray[i];
@@ -1191,7 +1290,11 @@
         }
     }
 
+    // ========================================================================
+    // LOGIKA PEREKAM LANGSUNG: JEDA SIMPAN PERMANEN & SELESAI KIRIM KE AI
+    // ========================================================================
     async function mulaiSesiRekamBaruAtauLanjut() {
+        if (isRecording || isFinalizingSegment) return;
         mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
 
@@ -1203,6 +1306,7 @@
             
             streamGlobal = stream;
             audioChunks = [];
+            pocketUploadStatus = null;
             
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/mp4')) {
@@ -1213,42 +1317,56 @@
             
             mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) audioChunks.push(e.data);
+                if (e.data && e.data.size > 0) audioChunks.push(e.data);
             };
             
             mediaRecorder.onstop = async () => {
                 mintaWakeLockPermanen();
-                perbaruiStatusPocketLock();
                 if (streamGlobal) {
                     streamGlobal.getTracks().forEach(track => track.stop());
+                    streamGlobal = null;
                 }
 
                 const rawBlob = new Blob(audioChunks, { type: mimeType });
                 const segmentBlob = new Blob([rawBlob], { type: mimeType });
-                const segmentDurationMs = Math.max(0, totalElapsedTime - draftBaseDurationMs);
+                const segmentDurationMs = Math.max(500, pendingSegmentDurationMs);
 
                 if (pendingStopAction === 'save_draft') {
-                    draftSegments.push({
-                        blob: segmentBlob,
-                        durationMs: segmentDurationMs
-                    });
+                    // JEDA -> SIMPAN PERMANEN KE INDEXEDDB AGAR TIDAK HILANG SAAT REFRESH
+                    if (segmentBlob.size > 0) {
+                        draftSegments.push({
+                            blob: segmentBlob,
+                            durationMs: segmentDurationMs
+                        });
+                    }
                     await simpanDraftKeHP(draftSegments);
 
-                    tampilkanStatus("⏳ Menyusun pratinjau rekaman tersimpan...", "bg-amber-50 border-amber-200 text-amber-700");
-                    const mergedPreviewBlob = await gabungAudioSegments(draftSegments);
-                    if (mergedPreviewBlob) {
-                        lastRecordedBlob = mergedPreviewBlob;
-                        await simpanAudioKeHP(mergedPreviewBlob);
-                        const audioUrl = URL.createObjectURL(mergedPreviewBlob);
-                        audioPlayer.src = audioUrl;
-                        audioPlaybackBox.classList.remove('hidden');
-                        audioPlaybackNote.textContent = "💾 Tersimpan sebagai draft. Anda dapat melanjutkan rekaman kapan saja tanpa kehilangan bagian ini.";
-                    }
-
+                    isFinalizingSegment = false;
                     perbaruiTampilanDraft();
-                    tampilkanStatus(`💾 <strong>Rekaman Tersimpan Sementara (${formatDurasiMs(totalElapsedTime)})!</strong> Bagian yang sudah direkam aman. Klik <strong>Lanjutkan Rekaman</strong> kapan saja untuk menyambungnya.`, "bg-amber-50 border-amber-200 text-amber-800");
+
+                    const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+                    tampilkanStatus(`💾 <strong>Rekaman Dijeda & Tersimpan (${formatDurasiMs(totalMs)})!</strong> Aman meskipun halaman di-refresh. Tekan <strong>Lanjutkan Rekam</strong> kapan saja atau <strong>Selesai & Kirim ke AI</strong>.`, "bg-amber-50 border-amber-200 text-amber-800");
+
+                    // Buat pratinjau audio di background setelah data sudah aman tersimpan di IndexedDB
+                    try {
+                        const mergedPreviewBlob = await gabungAudioSegments(draftSegments);
+                        if (mergedPreviewBlob) {
+                            lastRecordedBlob = mergedPreviewBlob;
+                            await simpanAudioKeHP(mergedPreviewBlob);
+                            const audioUrl = URL.createObjectURL(mergedPreviewBlob);
+                            audioPlayer.src = audioUrl;
+                            audioPlaybackBox.classList.remove('hidden');
+                            audioPlaybackNote.textContent = "💾 Rekaman dijeda & tersimpan permanen di memori HP (aman jika di-refresh).";
+                        }
+                    } catch (previewErr) {
+                        console.warn("Pratinjau draft gagal dibuat:", previewErr);
+                    }
                 } else {
-                    const semuaSegmen = [...draftSegments, { blob: segmentBlob, durationMs: segmentDurationMs }];
+                    // SELESAI -> GABUNGKAN & LANGSUNG KIRIM KE AI
+                    const semuaSegmen = segmentBlob.size > 0
+                        ? [...draftSegments, { blob: segmentBlob, durationMs: segmentDurationMs }]
+                        : [...draftSegments];
+
                     tampilkanStatus("⏳ Menyiapkan & menggabungkan file rekaman...", "bg-blue-50 border-blue-200 text-blue-700");
 
                     let finalAudioBlob = await gabungAudioSegments(semuaSegmen);
@@ -1258,7 +1376,9 @@
 
                     draftSegments = [];
                     draftBaseDurationMs = 0;
+                    totalElapsedTime = 0;
                     await hapusDraftDariHP();
+                    isFinalizingSegment = false;
                     perbaruiTampilanDraft();
 
                     lastRecordedBlob = finalAudioBlob; 
@@ -1271,8 +1391,10 @@
                     
                     if (navigator.onLine) {
                         tampilkanStatus("Rekaman disimpan & Mengirim ke server AI...", "bg-blue-50 border-blue-200 text-blue-700");
-                        kirimBlobAudio(finalAudioBlob);
+                        await kirimBlobAudio(finalAudioBlob);
                     } else {
+                        pocketUploadStatus = 'error';
+                        perbaruiStatusPocketLock();
                         tampilkanStatus("Offline: Rekaman aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
                     }
                 }
@@ -1283,16 +1405,8 @@
 
             mediaRecorder.start(1000); 
             isRecording = true;
-            isPaused = false;
             pasangPenjagaTombolBack();
-            perbaruiStatusPocketLock();
-            
-            recordBtn.textContent = "⏹️ Selesai Rekaman";
-            recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-            
-            pauseBtn.textContent = "⏸️ Jeda Rekaman";
-            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-            pauseBtn.classList.remove('hidden');
+            perbaruiTampilanDraft();
 
             startTime = Date.now();
             updateTimer();
@@ -1304,110 +1418,134 @@
         }
     }
 
-    recordBtn.addEventListener('click', async () => {
+    function jedaDanSimpanRekaman() {
+        if (!isRecording || !mediaRecorder || isFinalizingSegment) return;
         mintaWakeLockPermanen();
-        aktifkanAudioKeepAlivePermanen();
 
-        if (!isRecording) {
-            await mulaiSesiRekamBaruAtauLanjut();
-        } else {
-            // Saat klik Selesai: jeda sementara agar user bisa memilih Simpan Dulu / Kirim / Lanjut Rekam
-            wasPausedBeforeModal = isPaused;
-            if (!isPaused && mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.pause();
-                isPaused = true;
-                totalElapsedTime += Date.now() - startTime;
-                perbaruiStatusPocketLock();
-            }
-            finishModalDuration.textContent = formatDurasiMs(totalElapsedTime);
-            finishChoiceModal.classList.remove('hidden');
-        }
-    });
-
-    // Pilihan 1 di Modal Selesai: Simpan Dulu (Untuk Dilanjutkan Nanti)
-    choiceSaveDraftBtn.addEventListener('click', () => {
-        finishChoiceModal.classList.add('hidden');
+        isFinalizingSegment = true;
         pendingStopAction = 'save_draft';
+        pendingSegmentDurationMs = Math.max(0, Date.now() - startTime);
+        totalElapsedTime = draftBaseDurationMs + pendingSegmentDurationMs;
+
         isRecording = false;
-        isPaused = false;
         clearInterval(timerInterval);
-        pauseBtn.classList.add('hidden');
+
+        pauseBtn.disabled = true;
+        pauseBtn.textContent = "💾 Menyimpan...";
+        recordBtn.disabled = true;
         perbaruiStatusPocketLock();
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+
+        if (mediaRecorder.state !== 'inactive') {
             mediaRecorder.stop();
         }
-    });
+    }
 
-    // Pilihan 2 di Modal Selesai: Selesai & Kirim ke AI Sekarang
-    choiceSendNowBtn.addEventListener('click', () => {
-        finishChoiceModal.classList.add('hidden');
-        pendingStopAction = 'send_now';
-        isRecording = false;
-        isPaused = false;
-        clearInterval(timerInterval);
-        pauseBtn.classList.add('hidden');
-        perbaruiStatusPocketLock();
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-    });
+    async function selesaiDanKirimKeAI() {
+        if (isFinalizingSegment) return;
 
-    // Pilihan 3 di Modal Selesai: Batal Selesai & Terus Lanjutkan Merekam
-    choiceContinueNowBtn.addEventListener('click', () => {
-        finishChoiceModal.classList.add('hidden');
-        if (!mediaRecorder || !isRecording) return;
-        mintaWakeLockPermanen();
-        if (!wasPausedBeforeModal) {
-            if (mediaRecorder.state === 'paused') {
-                mediaRecorder.resume();
+        if (isRecording && mediaRecorder) {
+            // Sedang merekam -> stop langsung dan kirim ke AI
+            mintaWakeLockPermanen();
+            isFinalizingSegment = true;
+            pendingStopAction = 'send_now';
+            pendingSegmentDurationMs = Math.max(0, Date.now() - startTime);
+            totalElapsedTime = draftBaseDurationMs + pendingSegmentDurationMs;
+
+            isRecording = false;
+            clearInterval(timerInterval);
+
+            recordBtn.disabled = true;
+            recordBtn.textContent = "⏳ Memproses...";
+            pauseBtn.disabled = true;
+            perbaruiStatusPocketLock();
+
+            if (mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
             }
-            isPaused = false;
-            startTime = Date.now();
-            pauseBtn.textContent = "⏸️ Jeda Rekaman";
-            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-        } else {
-            isPaused = true;
-            pauseBtn.textContent = "▶️ Lanjutkan";
-            pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
+        } else if (draftSegments.length > 0) {
+            // Sedang dalam keadaan dijeda / draft tersimpan -> langsung gabung dan kirim ke AI
+            await kirimSemuaDraftKeAI();
         }
-        perbaruiStatusPocketLock();
-    });
+    }
 
-    // Aksi Tombol di Kotak Draft Tersimpan
-    resumeDraftBtn.addEventListener('click', async () => {
-        if (isRecording) return;
-        await mulaiSesiRekamBaruAtauLanjut();
-    });
-
-    sendDraftBtn.addEventListener('click', async () => {
-        if (draftSegments.length === 0) return;
+    async function kirimSemuaDraftKeAI() {
+        if (draftSegments.length === 0 || isFinalizingSegment) return;
+        isFinalizingSegment = true;
         sendDraftBtn.disabled = true;
         sendDraftBtn.textContent = "⏳ Menggabungkan...";
+        recordBtn.disabled = true;
+        recordBtn.textContent = "⏳ Memproses...";
+        pauseBtn.disabled = true;
+        perbaruiStatusPocketLock();
+
         try {
             const mergedBlob = await gabungAudioSegments(draftSegments);
             if (!mergedBlob) throw new Error("Gagal menggabungkan draft audio");
 
             draftSegments = [];
             draftBaseDurationMs = 0;
+            totalElapsedTime = 0;
             await hapusDraftDariHP();
+            isFinalizingSegment = false;
             perbaruiTampilanDraft();
 
             lastRecordedBlob = mergedBlob;
             await simpanAudioKeHP(mergedBlob);
             audioPlayer.src = URL.createObjectURL(mergedBlob);
             audioPlaybackBox.classList.remove('hidden');
+            audioPlaybackNote.textContent = "💡 Rekaman tersimpan secara lokal dan siap dikirim/diputar ulang.";
 
             if (navigator.onLine) {
                 await kirimBlobAudio(mergedBlob);
             } else {
+                pocketUploadStatus = 'error';
+                perbaruiStatusPocketLock();
                 tampilkanStatus("Offline: Gabungan rekaman aman disimpan di HP. Kirim saat online kembali.", "bg-amber-50 border-amber-200 text-amber-700");
             }
         } catch (err) {
+            isFinalizingSegment = false;
+            perbaruiTampilanDraft();
             alert("Gagal memproses draft: " + err.message);
         } finally {
             sendDraftBtn.disabled = false;
             sendDraftBtn.textContent = "🚀 Selesai & Kirim ke AI";
         }
+    }
+
+    // Event Tombol Utama: Mulai / Selesai & Kirim ke AI
+    recordBtn.addEventListener('click', async () => {
+        mintaWakeLockPermanen();
+        aktifkanAudioKeepAlivePermanen();
+        if (isFinalizingSegment) return;
+
+        if (!isRecording && draftSegments.length === 0) {
+            await mulaiSesiRekamBaruAtauLanjut();
+        } else {
+            await selesaiDanKirimKeAI();
+        }
+    });
+
+    // Event Tombol Jeda & Simpan / Lanjutkan Rekam
+    pauseBtn.addEventListener('click', async () => {
+        mintaWakeLockPermanen();
+        aktifkanAudioKeepAlivePermanen();
+        if (isFinalizingSegment) return;
+
+        if (isRecording) {
+            jedaDanSimpanRekaman();
+        } else if (draftSegments.length > 0) {
+            await mulaiSesiRekamBaruAtauLanjut();
+        }
+    });
+
+    // Aksi Tombol di Kotak Draft Tersimpan
+    resumeDraftBtn.addEventListener('click', async () => {
+        if (isRecording || isFinalizingSegment) return;
+        await mulaiSesiRekamBaruAtauLanjut();
+    });
+
+    sendDraftBtn.addEventListener('click', async () => {
+        await kirimSemuaDraftKeAI();
     });
 
     downloadDraftBtn.addEventListener('click', async () => {
@@ -1428,12 +1566,13 @@
     });
 
     discardDraftBtn.addEventListener('click', async () => {
-        if (confirm("🗑️ Yakin ingin menghapus rekaman draft yang tersimpan? Aksi ini tidak bisa dibatalkan.")) {
+        if (confirm("🗑️ Yakin ingin menghapus rekaman yang dijeda ini? Aksi ini tidak bisa dibatalkan.")) {
             draftSegments = [];
             draftBaseDurationMs = 0;
+            totalElapsedTime = 0;
             await hapusDraftDariHP();
             perbaruiTampilanDraft();
-            tampilkanStatus("🗑️ Draft rekaman telah dihapus. Siap merekam sesi baru.", "bg-gray-50 border-gray-200 text-gray-700");
+            tampilkanStatus("🗑️ Rekaman draft telah dihapus. Siap merekam sesi baru.", "bg-gray-50 border-gray-200 text-gray-700");
         }
     });
 
@@ -1443,25 +1582,6 @@
             return;
         }
         downloadBlobKeHP(lastRecordedBlob, "Murojaah");
-    });
-
-    pauseBtn.addEventListener('click', () => {
-        if (!mediaRecorder || !isRecording) return;
-        mintaWakeLockPermanen();
-        if (mediaRecorder.state === 'recording') {
-            mediaRecorder.pause();
-            isPaused = true;
-            totalElapsedTime += Date.now() - startTime; 
-            pauseBtn.textContent = "▶️ Lanjutkan";
-            pauseBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-        } else if (mediaRecorder.state === 'paused') {
-            mediaRecorder.resume();
-            isPaused = false;
-            startTime = Date.now(); 
-            pauseBtn.textContent = "⏸️ Jeda Rekaman";
-            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full";
-        }
-        perbaruiStatusPocketLock();
     });
 
     resendBtn.addEventListener('click', async () => {
@@ -1499,12 +1619,15 @@
             isTestingMic = false;
             testMicBtn.textContent = "🔊 Tes Suara Mic";
             testMicBtn.className = "bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full";
-            if (streamGlobal) streamGlobal.getTracks().forEach(track => track.stop());
+            if (streamGlobal) {
+                streamGlobal.getTracks().forEach(track => track.stop());
+                streamGlobal = null;
+            }
         }
     });
 
     function updateTimer() {
-        if (isPaused) return; 
+        if (!isRecording) return;
         const elapsedTime = totalElapsedTime + (Date.now() - startTime);
         const formattedTime = formatDurasiMs(elapsedTime);
         timerLabel.textContent = formattedTime;
@@ -1517,6 +1640,9 @@
     async function kirimBlobAudio(blob) {
         await mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
+
+        pocketUploadStatus = 'uploading';
+        if (isPocketLocked) perbaruiStatusPocketLock();
 
         const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5MB per chunk
         const totalSize = blob.size;
@@ -1540,6 +1666,9 @@
                 updateUploadProgress(percentComplete, `⏳ Mengunggah bagian ${chunkIndex + 1} dari ${totalChunks}...`);
             }
             
+            pocketUploadStatus = 'sent';
+            if (isPocketLocked) perbaruiStatusPocketLock();
+
             updateUploadProgress(100, "🤖 AI sedang memproses analisis murojaah...");
             tampilkanStatus(`🎉 <strong>Berkas MP3 Terkirim Lengkap!</strong> Google Gemini AI sedang menyimak hafalan Anda. Laporan koreksi otomatis akan muncul di tabel bawah sebentar lagi.`, "bg-green-50 border-green-200 text-green-700");
             
@@ -1548,6 +1677,8 @@
             setTimeout(() => { muatLaporan(true); }, 30000);
         } catch (err) {
             console.error("Gagal mengirim chunk audio:", err);
+            pocketUploadStatus = 'error';
+            if (isPocketLocked) perbaruiStatusPocketLock();
             showRetryUploadOption(blob);
             tampilkanStatus(`❌ <strong>Gagal Mengirim:</strong> ${err.message}. File aman di memori lokal, Anda dapat menekan tombol ulangi di atas kapan saja.`, "bg-rose-50 border-rose-200 text-rose-700");
         }
