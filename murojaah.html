@@ -6,6 +6,7 @@
     <title>Koreksi Murojaah AI - Anti Gagal System</title>
     <!-- Import Tailwind CSS dan Google Fonts (Amiri & Plus Jakarta Sans) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.all.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -50,7 +51,7 @@
 
     <header class="bg-emerald-600 text-white shadow-md py-6 px-4 mb-8 text-center relative">
         <h1 class="text-2xl md:text-3xl font-bold">🕌 Asisten Murojaah AI</h1>
-        <p class="text-sm mt-2 opacity-90">Sistem Murojaah: Kirim file rekaman audio hafalan Anda untuk dianalisis oleh AI secara otomatis.</p>
+        <p class="text-sm mt-2 opacity-90">Sistem Murojaah Anti-Hilang: Setiap rekaman disimpan aman hingga laporan koreksi AI benar-benar muncul.</p>
         <div class="mt-3 flex flex-wrap justify-center items-center gap-2">
             <span id="wakeLockStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-700/80 text-emerald-100 border border-emerald-400/30">
                 <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
@@ -102,20 +103,12 @@
             <!-- INDIKATOR PROGRESS BAR PENGIRIMAN -->
             <div id="progressContainer" class="hidden space-y-3 mt-4">
                 <div class="flex justify-between text-xs font-bold text-emerald-700">
-                    <span id="uploadProgressText">⏳ Mengirim berkas MP3 ke server...</span>
+                    <span id="uploadProgressText">⏳ Mengirim berkas audio ke server...</span>
                     <span id="progressPercent">0%</span>
                 </div>
                 <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border">
                     <div id="uploadProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
                 </div>
-            </div>
-
-            <!-- KOTAK KHUSUS UPLOAD GAGAL & TOMBOL ULANGI -->
-            <div id="retryUploadBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800 space-y-3">
-                <div id="retryStatusText" class="text-xs font-semibold">⚠️ Ada file rekaman lama yang gagal terkirim sebelumnya di tengah jalan.</div>
-                <button id="retryUploadBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow transition flex items-center justify-center gap-2">
-                    🔄 Ulangi Upload Rekaman Lama Ini Saja (Aman, Tanpa Mengganggu Rekaman Baru)
-                </button>
             </div>
 
             <div id="statusBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border"></div>
@@ -186,28 +179,29 @@
                     <span id="volumeLabel" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase tracking-wider">Mic Mati</span>
                 </div>
             </div>
+        </div>
 
-            <div id="audioPlaybackBox" class="hidden border border-emerald-100 bg-emerald-50/50 p-4 rounded-xl space-y-4 transition duration-300">
-                <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                        🎧 Putar Hasil Rekaman Terakhir:
-                    </label>
-                    <audio id="audioPlayer" controls class="w-full h-10 accent-emerald-600"></audio>
-                </div>
-                
-                <div class="pt-2 border-t border-emerald-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
-                    <p id="audioPlaybackNote" class="text-xs text-emerald-800">
-                        💡 Rekaman tersimpan secara lokal di HP Anda.
+        <!-- ANTREAN & BRANKAS REKAMAN (REKAMAN 1, 2, 3 DST - TIDAK AKAN HILANG SEBELUM LAPORAN AI MUNCUL) -->
+        <div id="queueSection" class="bg-white p-6 rounded-2xl shadow-sm border border-blue-200 mb-8 space-y-4">
+            <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-bold text-blue-900 flex items-center gap-2">
+                        📦 Brankas Rekaman & Pantauan Respon AI
+                        <span id="queueCountBadge" class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0 Rekaman</span>
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        Semua rekaman (#1, #2, #3...) disimpan permanen di sini &amp; bisa dikirim ulang kapan saja. Otomatis terhapus hanya jika hasil koreksi AI sudah benar-benar masuk ke laporan bawah.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <button id="downloadLastBtn" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-emerald-800 border border-emerald-200 font-bold py-2 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-sm">
-                            ⬇️ Simpan ke HP
-                        </button>
-                        <button id="resendBtn" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
-                            🔄 Kirim Ulang Rekaman Ini
-                        </button>
-                    </div>
                 </div>
+                <div class="flex items-center gap-2">
+                    <button id="sendAllQueueBtn" class="hidden text-xs bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-1.5">
+                        🚀 Kirim Semua Antrean
+                    </button>
+                </div>
+            </div>
+
+            <div id="queueListContainer" class="space-y-3 text-sm text-gray-500">
+                <p class="text-center py-4 text-xs text-gray-400">Belum ada rekaman yang menunggu respon AI.</p>
             </div>
         </div>
 
@@ -288,9 +282,10 @@
             <div class="inline-block animate-pulse text-5xl">🛡️</div>
             <p class="text-sm font-medium text-gray-300">Layar Terkunci Sempurna (Anti Kain Saku)</p>
             <p class="text-[11px] text-gray-500">Mode layar penuh menyembunyikan tombol navigasi HP. Sentuhan biasa diabaikan.</p>
+            <p id="pocketQueueInfo" class="hidden text-[11px] text-blue-300 font-semibold"></p>
 
             <!-- TOMBOL KONTROL SAKU (ANTI SALAH PENCET SAKU: PERLU KETUK 2x CEPAT) -->
-            <div class="pt-5 flex flex-col items-center gap-3 w-full">
+            <div class="pt-4 flex flex-col items-center gap-3 w-full">
                 <button id="pocketPauseBtn" class="hidden w-full bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-amber-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition">
                     ⏸️ Jeda & Simpan (Ketuk 2x)
                 </button>
@@ -311,6 +306,7 @@
 <script>
     const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
     const GSCRIPT_GET_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
+    const AI_TIMEOUT_MS = 180000; // 3 menit batas tunggu wajar sebelum ditandai AI belum merespon
 
     // DOM Elements
     const fileInput = document.getElementById('audioFile');
@@ -331,8 +327,6 @@
     const progressPercent = document.getElementById('progressPercent');
     const uploadProgressBar = document.getElementById('uploadProgressBar');
     const uploadProgressText = document.getElementById('uploadProgressText');
-    const retryUploadBox = document.getElementById('retryUploadBox');
-    const retryUploadBtn = document.getElementById('retryUploadBtn');
     
     const recordBtn = document.getElementById('recordBtn');
     const pauseBtn = document.getElementById('pauseBtn');
@@ -342,12 +336,11 @@
     const volumeLabel = document.getElementById('volumeLabel');
     const networkStatus = document.getElementById('networkStatus');
     const surahHintInput = document.getElementById('surahHint');
-    
-    const audioPlaybackBox = document.getElementById('audioPlaybackBox');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const audioPlaybackNote = document.getElementById('audioPlaybackNote');
-    const resendBtn = document.getElementById('resendBtn');
-    const downloadLastBtn = document.getElementById('downloadLastBtn');
+
+    // Queue Elements
+    const queueCountBadge = document.getElementById('queueCountBadge');
+    const queueListContainer = document.getElementById('queueListContainer');
+    const sendAllQueueBtn = document.getElementById('sendAllQueueBtn');
 
     // Draft Elements
     const draftRecorderBox = document.getElementById('draftRecorderBox');
@@ -369,16 +362,17 @@
     const unlockPocketBtn = document.getElementById('unlockPocketBtn');
     const pocketTimer = document.getElementById('pocketTimer');
     const pocketRecStatus = document.getElementById('pocketRecStatus');
+    const pocketQueueInfo = document.getElementById('pocketQueueInfo');
     const pocketPauseBtn = document.getElementById('pocketPauseBtn');
     const pocketFinishBtn = document.getElementById('pocketFinishBtn');
     const pocketActionHint = document.getElementById('pocketActionHint');
     const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
-    const wakeLockStatusBadge = document.getElementById('wakeLockStatusBadge');
     const keepAliveMedia = document.getElementById('keepAliveMedia');
 
     // State Variables
     let mediaRecorder = null;
     let audioChunks = [];
+    let currentRecorderMime = 'audio/webm';
     let startTime = null;
     let totalElapsedTime = 0; 
     let timerInterval = null;
@@ -388,17 +382,22 @@
     let isRecording = false;
     let isFinalizingSegment = false;
     let isTestingMic = false;
-    let lastRecordedBlob = null; 
     let wakeLock = null;
     let silentAudioNode = null;
     let lastDataString = "";
-    let lastFailedBlob = null;
 
     // State Draft / Jeda Permanen
     let draftSegments = []; // Array of { blob: Blob, durationMs: number }
     let draftBaseDurationMs = 0;
     let pendingStopAction = 'send_now'; // 'save_draft' | 'send_now'
     let pendingSegmentDurationMs = 0;
+
+    // State Antrean Permanen (Rekaman 1, 2, 3 dst)
+    let recordingQueue = [];
+    let activeUploads = new Set(); // Set of queue item IDs currently uploading
+    let queueObjectUrls = new Map(); // id -> objectURL
+    let isBulkSending = false;
+    let sheetsLoadedAtLeastOnce = false;
 
     // State Pocket Lock & Fullscreen
     let isPocketLocked = false;
@@ -407,7 +406,6 @@
     let pocketPauseArmTimer = null;
     let pocketFinishArmed = false;
     let pocketFinishArmTimer = null;
-    let pocketUploadStatus = null; // null | 'uploading' | 'sent' | 'error'
 
     // Manajemen Dataset Riwayat Besar & Paginasi
     let semuaDataRiwayat = [];
@@ -473,7 +471,6 @@
     document.addEventListener('fullscreenchange', perbaruiTombolFullscreen);
     document.addEventListener('webkitfullscreenchange', perbaruiTombolFullscreen);
 
-    // Kunci tombol Back browser/HP saat sedang rekaman atau mode kunci layar saku aktif
     function pasangPenjagaTombolBack() {
         try {
             history.pushState({ murojaahGuard: true }, "");
@@ -489,16 +486,15 @@
         }
     });
 
-    // Peringatan lembut jika user mencoba me-refresh SAAT mic masih aktif merekam (belum klik Jeda)
     window.addEventListener('beforeunload', (e) => {
-        if (isRecording) {
+        if (isRecording || activeUploads.size > 0) {
             e.preventDefault();
             e.returnValue = '';
         }
     });
 
     // ========================================================================
-    // HELPER FORMAT WAKTU & DOWNLOAD AUDIO
+    // HELPER FORMAT WAKTU, UKURAN FILE, EKSTENSI & ENCODING AUDIO MP3/WAV
     // ========================================================================
     function formatDurasiMs(ms) {
         const safeMs = Math.max(0, ms || 0);
@@ -508,9 +504,38 @@
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    function downloadBlobKeHP(blob, prefix = "Murojaah") {
+    function formatUkuranFile(bytes) {
+        if (!bytes || bytes <= 0) return "0 KB";
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function ambilEkstensiDariBlobAtauNama(blob, originalName = "") {
+        if (originalName && originalName.includes('.')) {
+            const ext = originalName.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (ext) return ext;
+        }
+        const t = (blob && blob.type ? blob.type : '').toLowerCase();
+        if (t.includes('mp3') || t.includes('mpeg')) return 'mp3';
+        if (t.includes('wav')) return 'wav';
+        if (t.includes('mp4') || t.includes('m4a') || t.includes('aac')) return 'm4a';
+        if (t.includes('ogg')) return 'ogg';
+        if (t.includes('webm')) return 'webm';
+        return 'mp3';
+    }
+
+    function downloadBlobKeHP(blob, prefix = "Murojaah", originalName = "") {
         if (!blob) return;
-        const ext = blob.type && blob.type.includes('wav') ? 'wav' : 'mp3';
+        const ext = ambilEkstensiDariBlobAtauNama(blob, originalName);
         const now = new Date();
         const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
         const url = URL.createObjectURL(blob);
@@ -523,12 +548,78 @@
         setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
 
-    // Gabungkan beberapa segmen rekaman menjadi satu file WAV 16kHz Mono agar mulus saat diputar & dikirim
-    async function gabungAudioSegments(segments) {
-        if (!segments || segments.length === 0) return null;
-        if (segments.length === 1) {
-            return segments[0].blob;
+    // Encode Float32 PCM (16kHz Mono) ke MP3 ASLI menggunakan lamejs agar ringan & 100% terbaca AI/server
+    async function encodePcmToMp3Blob(float32Samples, sampleRate = 16000, kbps = 48) {
+        if (!window.lamejs || !window.lamejs.Mp3Encoder) {
+            return null;
         }
+        const mp3encoder = new window.lamejs.Mp3Encoder(1, sampleRate, kbps);
+        const int16Samples = new Int16Array(float32Samples.length);
+        for (let i = 0; i < float32Samples.length; i++) {
+            let s = Math.max(-1, Math.min(1, float32Samples[i]));
+            int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+
+        const mp3Data = [];
+        const blockSize = 1152;
+        for (let i = 0; i < int16Samples.length; i += blockSize) {
+            const chunk = int16Samples.subarray(i, i + blockSize);
+            const mp3buf = mp3encoder.encodeBuffer(chunk);
+            if (mp3buf && mp3buf.length > 0) {
+                mp3Data.push(new Uint8Array(mp3buf.buffer.slice(mp3buf.byteOffset, mp3buf.byteOffset + mp3buf.byteLength)));
+            }
+            if ((i / blockSize) % 120 === 0) {
+                await new Promise(r => setTimeout(r, 0));
+            }
+        }
+        const endBuf = mp3encoder.flush();
+        if (endBuf && endBuf.length > 0) {
+            mp3Data.push(new Uint8Array(endBuf.buffer.slice(endBuf.byteOffset, endBuf.byteOffset + endBuf.byteLength)));
+        }
+        const blob = new Blob(mp3Data, { type: 'audio/mp3' });
+        return blob.size > 0 ? blob : null;
+    }
+
+    // Fallback encoder ke WAV ASLI 16kHz Mono jika lamejs belum tersedia (misal offline total)
+    function encodePcmToWavBlob(float32Samples, sampleRate = 16000) {
+        const totalSamples = float32Samples.length;
+        const wavBuffer = new ArrayBuffer(44 + totalSamples * 2);
+        const view = new DataView(wavBuffer);
+
+        const writeString = (offset, str) => {
+            for (let j = 0; j < str.length; j++) {
+                view.setUint8(offset + j, str.charCodeAt(j));
+            }
+        };
+
+        writeString(0, 'RIFF');
+        view.setUint32(4, 36 + totalSamples * 2, true);
+        writeString(8, 'WAVE');
+        writeString(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(36, 'data');
+        view.setUint32(40, totalSamples * 2, true);
+
+        let byteOffset = 44;
+        for (let s = 0; s < totalSamples; s++) {
+            let sample = Math.max(-1, Math.min(1, float32Samples[s]));
+            sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            view.setInt16(byteOffset, sample, true);
+            byteOffset += 2;
+        }
+        return new Blob([wavBuffer], { type: 'audio/wav' });
+    }
+
+    // Gabungkan & konversi semua segmen rekaman menjadi 1 file MP3 asli yang valid & terverifikasi
+    async function gabungDanKonversiKeAudioValid(segments, preferMp3 = true) {
+        const validSegments = (segments || []).filter(s => s && s.blob && s.blob.size > 50);
+        if (validSegments.length === 0) return { blob: null, durationMs: 0 };
 
         const TARGET_SAMPLE_RATE = 16000;
         let tempCtx = null;
@@ -538,66 +629,70 @@
             const resampledChunks = [];
             let totalSamples = 0;
 
-            for (let i = 0; i < segments.length; i++) {
-                const arrayBuffer = await segments[i].blob.arrayBuffer();
-                const decoded = await tempCtx.decodeAudioData(arrayBuffer);
-                const targetLength = Math.ceil(decoded.duration * TARGET_SAMPLE_RATE);
-                if (targetLength <= 0) continue;
+            for (let i = 0; i < validSegments.length; i++) {
+                try {
+                    const arrayBuffer = await validSegments[i].blob.arrayBuffer();
+                    const decoded = await tempCtx.decodeAudioData(arrayBuffer);
+                    const targetLength = Math.ceil(decoded.duration * TARGET_SAMPLE_RATE);
+                    if (targetLength <= 0) continue;
 
-                const offlineCtx = new OfflineAudioContext(1, targetLength, TARGET_SAMPLE_RATE);
-                const src = offlineCtx.createBufferSource();
-                src.buffer = decoded;
-                src.connect(offlineCtx.destination);
-                src.start(0);
+                    const offlineCtx = new OfflineAudioContext(1, targetLength, TARGET_SAMPLE_RATE);
+                    const src = offlineCtx.createBufferSource();
+                    src.buffer = decoded;
+                    src.connect(offlineCtx.destination);
+                    src.start(0);
 
-                const renderedBuffer = await offlineCtx.startRendering();
-                const channelData = renderedBuffer.getChannelData(0);
-                resampledChunks.push(channelData);
-                totalSamples += channelData.length;
-            }
-
-            if (totalSamples === 0) {
-                return segments[0].blob;
-            }
-
-            // Encode PCM 16-bit WAV
-            const wavBuffer = new ArrayBuffer(44 + totalSamples * 2);
-            const view = new DataView(wavBuffer);
-
-            const writeString = (offset, str) => {
-                for (let j = 0; j < str.length; j++) {
-                    view.setUint8(offset + j, str.charCodeAt(j));
+                    const renderedBuffer = await offlineCtx.startRendering();
+                    const channelData = renderedBuffer.getChannelData(0);
+                    resampledChunks.push(channelData);
+                    totalSamples += channelData.length;
+                } catch (segErr) {
+                    console.warn(`Segmen #${i+1} gagal didecode:`, segErr);
                 }
-            };
+            }
 
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + totalSamples * 2, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM
-            view.setUint16(22, 1, true); // Mono
-            view.setUint32(24, TARGET_SAMPLE_RATE, true);
-            view.setUint32(28, TARGET_SAMPLE_RATE * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, totalSamples * 2, true);
+            if (totalSamples < TARGET_SAMPLE_RATE * 0.25) {
+                // Jika kurang dari 0.25 detik tetapi ada 1 segmen mentah besar, kembalikan apa adanya dengan MIME aslinya
+                if (validSegments.length === 1 && validSegments[0].blob.size > 1000) {
+                    return {
+                        blob: validSegments[0].blob,
+                        durationMs: validSegments[0].durationMs || 1000
+                    };
+                }
+                return { blob: null, durationMs: 0 };
+            }
 
-            let byteOffset = 44;
+            const combinedPcm = new Float32Array(totalSamples);
+            let offset = 0;
             for (const chunk of resampledChunks) {
-                for (let s = 0; s < chunk.length; s++) {
-                    let sample = Math.max(-1, Math.min(1, chunk[s]));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(byteOffset, sample, true);
-                    byteOffset += 2;
+                combinedPcm.set(chunk, offset);
+                offset += chunk.length;
+            }
+
+            const actualDurationMs = Math.round((totalSamples / TARGET_SAMPLE_RATE) * 1000);
+
+            if (preferMp3) {
+                try {
+                    const mp3Blob = await encodePcmToMp3Blob(combinedPcm, TARGET_SAMPLE_RATE, 48);
+                    if (mp3Blob && mp3Blob.size > 200) {
+                        return { blob: mp3Blob, durationMs: actualDurationMs };
+                    }
+                } catch (mp3Err) {
+                    console.warn("Konversi MP3 gagal, memakai WAV asli:", mp3Err);
                 }
             }
 
-            return new Blob([wavBuffer], { type: 'audio/wav' });
+            const wavBlob = encodePcmToWavBlob(combinedPcm, TARGET_SAMPLE_RATE);
+            return { blob: wavBlob, durationMs: actualDurationMs };
         } catch (err) {
-            console.warn("Gagal menggabungkan via AudioContext, memakai fallback blob concat:", err);
-            return new Blob(segments.map(s => s.blob), { type: segments[0].blob.type || 'audio/mp3' });
+            console.warn("AudioContext decode gagal:", err);
+            if (validSegments.length === 1) {
+                return {
+                    blob: validSegments[0].blob,
+                    durationMs: validSegments[0].durationMs || 1000
+                };
+            }
+            return { blob: null, durationMs: 0 };
         } finally {
             if (tempCtx && tempCtx.state !== 'closed') {
                 try { await tempCtx.close(); } catch (e) {}
@@ -612,7 +707,6 @@
         if (!teksMentah) return 0;
         const lower = teksMentah.toLowerCase();
 
-        // 1. Hitung berdasarkan separator baku '---' (salah --- benar)
         const lines = teksMentah.split('\n');
         let count = 0;
         for (let line of lines) {
@@ -625,7 +719,6 @@
             }
         }
 
-        // 2. Jika tidak ada format '---', cek apakah ada butir peluru koreksi ayat
         if (count === 0 && !lower.includes('lancar') && !lower.includes('tidak ditemukan')) {
             const bulletMatches = teksMentah.match(/^[●\-*]\s*(?:ayat|qs|surah|\d+)/gim);
             if (bulletMatches) {
@@ -699,7 +792,6 @@
         }
     }
 
-    // Pastikan layar selalu diminta menyala kapan pun pengguna berinteraksi
     ['touchstart', 'mousedown', 'keydown', 'scroll'].forEach(evt => {
         window.addEventListener(evt, () => {
             mintaWakeLockPermanen();
@@ -717,211 +809,32 @@
             if (keepAliveMedia && keepAliveMedia.paused) {
                 keepAliveMedia.play().catch(() => {});
             }
+            muatLaporan(false);
         }
     });
 
     // ========================================================================
-    // POCKET LOCK DENGAN PIN 123 + FULLSCREEN + TOMBOL JEDA & SELESAI (KETUK 2X)
-    // ========================================================================
-    function resetPocketArms() {
-        pocketPauseArmed = false;
-        if (pocketPauseArmTimer) {
-            clearTimeout(pocketPauseArmTimer);
-            pocketPauseArmTimer = null;
-        }
-        pocketFinishArmed = false;
-        if (pocketFinishArmTimer) {
-            clearTimeout(pocketFinishArmTimer);
-            pocketFinishArmTimer = null;
-        }
-    }
-
-    function perbaruiStatusPocketLock() {
-        resetPocketArms();
-
-        if (isFinalizingSegment) {
-            pocketRecStatus.textContent = "💾 MENYIMPAN...";
-            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-200 border border-amber-500/40";
-            pocketPauseBtn.classList.add('hidden');
-            pocketFinishBtn.classList.add('hidden');
-            pocketActionHint.classList.remove('hidden');
-            pocketActionHint.textContent = "Sedang mengamankan audio ke memori HP...";
-            return;
-        }
-
-        if (isRecording) {
-            pocketRecStatus.textContent = "🔴 MEREKAM";
-            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-300 border border-rose-500/40 animate-pulse";
-
-            pocketPauseBtn.classList.remove('hidden');
-            pocketPauseBtn.textContent = "⏸️ Jeda & Simpan (Ketuk 2x)";
-            pocketPauseBtn.className = "w-full bg-gray-900/90 hover:bg-gray-800 border border-amber-600/60 text-amber-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
-
-            pocketFinishBtn.classList.remove('hidden');
-            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
-            pocketFinishBtn.className = "w-full bg-rose-950/90 hover:bg-rose-900 border border-rose-700/70 text-rose-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
-
-            pocketActionHint.classList.remove('hidden');
-            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat pada tombol untuk Jeda atau Selesai Kirim AI";
-        } else if (draftSegments.length > 0) {
-            pocketRecStatus.textContent = "⏸️ DIJEDA & TERSIMPAN";
-            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40";
-
-            pocketPauseBtn.classList.remove('hidden');
-            pocketPauseBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
-            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
-
-            pocketFinishBtn.classList.remove('hidden');
-            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
-            pocketFinishBtn.className = "w-full bg-blue-950/90 hover:bg-blue-900 border border-blue-600/70 text-blue-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
-
-            pocketActionHint.classList.remove('hidden');
-            pocketActionHint.textContent = "Draft aman tersimpan. Ketuk 2x untuk Lanjutkan atau Kirim AI";
-        } else {
-            // Standby (belum ada rekaman aktif/draft)
-            if (pocketUploadStatus === 'uploading') {
-                pocketRecStatus.textContent = "📤 MENGIRIM KE AI...";
-                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/80 text-blue-200 border border-blue-500/40 animate-pulse";
-            } else if (pocketUploadStatus === 'sent') {
-                pocketRecStatus.textContent = "✅ TERKIRIM KE AI";
-                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-900/80 text-emerald-200 border border-emerald-500/40";
-            } else if (pocketUploadStatus === 'error') {
-                pocketRecStatus.textContent = "⚠️ GAGAL KIRIM (AMAN DI HP)";
-                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-200 border border-rose-500/40";
-            } else {
-                pocketRecStatus.textContent = "⚪ STANDBY";
-                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400";
-            }
-
-            pocketPauseBtn.classList.remove('hidden');
-            pocketPauseBtn.textContent = "🔴 Mulai Rekam (Ketuk 2x)";
-            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
-
-            pocketFinishBtn.classList.add('hidden');
-            pocketActionHint.classList.remove('hidden');
-            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat untuk mulai merekam";
-        }
-    }
-
-    // Tombol Pocket 1: Mulai / Jeda & Simpan / Lanjutkan (Ketuk 2x)
-    pocketPauseBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isFinalizingSegment) return;
-
-        // Batalkan arming tombol Finish jika sebelumnya sempat tersentuh
-        if (pocketFinishArmed) {
-            perbaruiStatusPocketLock();
-        }
-
-        if (!pocketPauseArmed) {
-            pocketPauseArmed = true;
-            if (navigator.vibrate) navigator.vibrate(25);
-
-            if (isRecording) {
-                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk JEDA & SIMPAN";
-                pocketPauseBtn.className = "w-full bg-amber-600 border border-amber-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
-            } else if (draftSegments.length > 0) {
-                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk LANJUT REKAM";
-                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
-            } else {
-                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk MULAI REKAM";
-                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
-            }
-
-            pocketPauseArmTimer = setTimeout(() => {
-                perbaruiStatusPocketLock();
-            }, 1600);
-        } else {
-            resetPocketArms();
-            if (navigator.vibrate) navigator.vibrate([50, 40, 50]);
-
-            if (isRecording) {
-                // Jeda & simpan permanen ke IndexedDB
-                jedaDanSimpanRekaman();
-            } else {
-                // Mulai baru atau lanjutkan draft
-                pocketUploadStatus = null;
-                mulaiSesiRekamBaruAtauLanjut();
-            }
-        }
-    });
-
-    // Tombol Pocket 2: Selesai & Kirim ke AI (Ketuk 2x)
-    pocketFinishBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isFinalizingSegment || (!isRecording && draftSegments.length === 0)) return;
-
-        // Batalkan arming tombol Pause jika sebelumnya sempat tersentuh
-        if (pocketPauseArmed) {
-            perbaruiStatusPocketLock();
-        }
-
-        if (!pocketFinishArmed) {
-            pocketFinishArmed = true;
-            if (navigator.vibrate) navigator.vibrate(30);
-            pocketFinishBtn.textContent = "👆 Ketuk 1x Lagi utk SELESAI & KIRIM AI";
-            pocketFinishBtn.className = "w-full bg-rose-600 border border-rose-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
-
-            pocketFinishArmTimer = setTimeout(() => {
-                perbaruiStatusPocketLock();
-            }, 1600);
-        } else {
-            resetPocketArms();
-            if (navigator.vibrate) navigator.vibrate([70, 50, 90]);
-            selesaiDanKirimKeAI();
-        }
-    });
-
-    // Ketuk area hitam pocket lock untuk masuk fullscreen lagi jika navigasi HP sempat muncul
-    pocketLockScreen.addEventListener('click', (e) => {
-        if (e.target === pocketLockScreen || (!e.target.closest('#pocketPauseBtn') && !e.target.closest('#pocketFinishBtn') && !e.target.closest('#unlockPocketBtn'))) {
-            if (!sedangFullscreen()) {
-                masukLayarPenuh();
-            }
-        }
-    });
-
-    lockScreenBtn.addEventListener('click', async () => {
-        mintaWakeLockPermanen();
-        wasFullscreenBeforeLock = sedangFullscreen();
-        isPocketLocked = true;
-        pasangPenjagaTombolBack();
-        perbaruiStatusPocketLock();
-        pocketLockScreen.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-        await masukLayarPenuh();
-    });
-
-    unlockPocketBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const pinInput = prompt("🔐 Masukkan PIN Buka Kunci (Ketik: 123):");
-        if (pinInput === "123") {
-            isPocketLocked = false;
-            resetPocketArms();
-            pocketLockScreen.classList.add('hidden');
-            document.body.style.overflow = "";
-            if (!wasFullscreenBeforeLock) {
-                await keluarLayarPenuh();
-            }
-            mintaWakeLockPermanen();
-        } else if (pinInput !== null) {
-            alert("❌ PIN Salah! Layar tetap terkunci demi keamanan saku.");
-        }
-    });
-
-    // ========================================================================
-    // INDEXEDDB UNTUK PENYELAMATAN AUDIO & DRAFT JEDA PERMANEN
+    // INDEXEDDB v2: DRAFT JEDA + BRANKAS ANTREAN REKAMAN 1, 2, 3 DST
     // ========================================================================
     const dbName = "MurojaahOfflineDB";
+    const DB_VERSION = 2;
     const storeName = "AudioStore";
+    const queueStoreName = "QueueStore";
+    const metaStoreName = "MetaStore";
 
     function bukaDatabase() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(dbName, 1);
+            const request = indexedDB.open(dbName, DB_VERSION);
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(storeName)) {
                     db.createObjectStore(storeName);
+                }
+                if (!db.objectStoreNames.contains(queueStoreName)) {
+                    db.createObjectStore(queueStoreName, { keyPath: "id" });
+                }
+                if (!db.objectStoreNames.contains(metaStoreName)) {
+                    db.createObjectStore(metaStoreName);
                 }
             };
             request.onsuccess = (e) => resolve(e.target.result);
@@ -929,30 +842,64 @@
         });
     }
 
-    async function simpanAudioKeHP(blob) {
-        try {
-            const db = await bukaDatabase();
-            const tx = db.transaction(storeName, "readwrite");
-            const store = tx.objectStore(storeName);
-            store.put(blob, "rekaman_terakhir");
-        } catch (err) {
-            console.error("Gagal simpan ke DB lokal:", err);
-        }
-    }
-
-    async function ambilAudioDariHP() {
+    async function ambilNomorRekamanBerikutnya() {
         try {
             const db = await bukaDatabase();
             return new Promise((resolve) => {
-                const tx = db.transaction(storeName, "readonly");
-                const store = tx.objectStore(storeName);
-                const request = store.get("rekaman_terakhir");
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => resolve(null);
+                const tx = db.transaction(metaStoreName, "readwrite");
+                const store = tx.objectStore(metaStoreName);
+                const req = store.get("next_rec_number");
+                req.onsuccess = () => {
+                    const current = typeof req.result === 'number' && req.result >= 1 ? req.result : 1;
+                    store.put(current + 1, "next_rec_number");
+                    resolve(current);
+                };
+                req.onerror = () => resolve(recordingQueue.length + 1);
             });
         } catch (err) {
-            return null;
+            return recordingQueue.length + 1;
         }
+    }
+
+    async function simpanItemAntrean(item) {
+        const db = await bukaDatabase();
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction(queueStoreName, "readwrite");
+            const store = tx.objectStore(queueStoreName);
+            store.put(item);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    }
+
+    async function ambilSemuaAntrean() {
+        try {
+            const db = await bukaDatabase();
+            return new Promise((resolve) => {
+                const tx = db.transaction(queueStoreName, "readonly");
+                const store = tx.objectStore(queueStoreName);
+                const req = store.getAll();
+                req.onsuccess = () => {
+                    const list = Array.isArray(req.result) ? req.result : [];
+                    list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                    resolve(list);
+                };
+                req.onerror = () => resolve([]);
+            });
+        } catch (err) {
+            return [];
+        }
+    }
+
+    async function hapusItemAntreanDariDB(id) {
+        const db = await bukaDatabase();
+        return new Promise((resolve) => {
+            const tx = db.transaction(queueStoreName, "readwrite");
+            const store = tx.objectStore(queueStoreName);
+            store.delete(id);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+        });
     }
 
     async function simpanDraftKeHP(segments) {
@@ -1001,7 +948,499 @@
         }
     }
 
-    // Sinkronkan tampilan utama & pocket mode berdasarkan state (Recording / Dijeda-Tersimpan / Standby)
+    // ========================================================================
+    // DETEKSI LAPORAN BARU & AUTO-HAPUS ANTREAN HANYA JIKA AI SUDAH MERESPON
+    // ========================================================================
+    function buatTandaTanganBaris(row) {
+        const waktu = String(row && row.waktu ? row.waktu : '').trim();
+        const menit = String(row && row.menit ? row.menit : '').trim();
+        const koreksiSnippet = String(row && row.koreksi ? row.koreksi : '').trim().slice(0, 120);
+        return `${waktu}||${menit}||${koreksiSnippet}`;
+    }
+
+    function ambilDaftarTandaTanganSaatIni() {
+        return semuaDataRiwayat.map(buatTandaTanganBaris);
+    }
+
+    async function periksaApakahLaporanAISudahMasuk() {
+        if (!sheetsLoadedAtLeastOnce || recordingQueue.length === 0) return;
+
+        // Ambil item yang sedang menunggu respon AI (urutkan paling lama dikirim dulu / FIFO)
+        const waitingItems = recordingQueue
+            .filter(it => (it.status === 'menunggu_ai' || it.status === 'ai_timeout') && !activeUploads.has(it.id))
+            .sort((a, b) => (a.sentAt || 0) - (b.sentAt || 0));
+
+        if (waitingItems.length === 0) return;
+
+        const currentSigs = ambilDaftarTandaTanganSaatIni();
+        const matchedRowSigsThisCycle = new Set();
+        const resolvedNames = [];
+        let adaPerubahanQueue = false;
+
+        for (const item of waitingItems) {
+            const knownSet = new Set(Array.isArray(item.knownRowSigs) ? item.knownRowSigs : []);
+
+            // Cari baris baru yang belum ada saat item ini mulai dikirim
+            const newMatchingRow = semuaDataRiwayat.find(row => {
+                const sig = buatTandaTanganBaris(row);
+                if (knownSet.has(sig) || matchedRowSigsThisCycle.has(sig)) return false;
+
+                // Pastikan waktu laporan memang dari sesi kirim ini (toleransi selisih jam HP/server 5 menit)
+                if (row.waktu && item.sentAt) {
+                    const parsedRowTime = Date.parse(row.waktu);
+                    if (!isNaN(parsedRowTime) && parsedRowTime < (item.sentAt - 300000)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            if (newMatchingRow) {
+                const matchedSig = buatTandaTanganBaris(newMatchingRow);
+                matchedRowSigsThisCycle.add(matchedSig);
+                resolvedNames.push(item.label || `Rekaman #${item.nomor}`);
+
+                // Hapus permanen karena hasil AI sudah benar-benar muncul!
+                await hapusItemAntreanDariDB(item.id);
+                if (queueObjectUrls.has(item.id)) {
+                    URL.revokeObjectURL(queueObjectUrls.get(item.id));
+                    queueObjectUrls.delete(item.id);
+                }
+                recordingQueue = recordingQueue.filter(q => q.id !== item.id);
+                adaPerubahanQueue = true;
+
+                // Tandai signature baris ini ke item lain yang masih menunggu agar tidak double-claim
+                for (const otherItem of recordingQueue) {
+                    if (otherItem.status === 'menunggu_ai' || otherItem.status === 'ai_timeout') {
+                        if (!Array.isArray(otherItem.knownRowSigs)) otherItem.knownRowSigs = [];
+                        if (!otherItem.knownRowSigs.includes(matchedSig)) {
+                            otherItem.knownRowSigs.push(matchedSig);
+                            await simpanItemAntrean(otherItem);
+                        }
+                    }
+                }
+            } else {
+                // Cek apakah sudah melewati batas waktu tunggu AI (3 menit)
+                if (item.status === 'menunggu_ai' && item.sentAt && (Date.now() - item.sentAt) > AI_TIMEOUT_MS) {
+                    item.status = 'ai_timeout';
+                    item.lastError = 'AI belum merespon setelah lebih dari 3 menit. Silakan tekan Kirim Ulang.';
+                    await simpanItemAntrean(item);
+                    adaPerubahanQueue = true;
+                }
+            }
+        }
+
+        if (resolvedNames.length > 0) {
+            tampilkanStatus(`✅ <strong>Hasil Koreksi AI Diterima!</strong> Laporan untuk <strong>${resolvedNames.join(', ')}</strong> sudah muncul di tabel bawah. Rekaman lokal tersebut otomatis dibersihkan.`, "bg-emerald-50 border-emerald-200 text-emerald-800");
+        }
+
+        if (adaPerubahanQueue) {
+            renderAntreanRekaman();
+            perbaruiStatusPocketLock();
+        }
+    }
+
+    // ========================================================================
+    // RENDER & KONTROL BRANKAS ANTREAN REKAMAN (1, 2, 3 DST)
+    // ========================================================================
+    function renderAntreanRekaman() {
+        queueCountBadge.textContent = `${recordingQueue.length} Rekaman`;
+
+        const perluKirimCount = recordingQueue.filter(it =>
+            (it.status === 'menunggu_kirim' || it.status === 'gagal_kirim' || it.status === 'ai_timeout') && !activeUploads.has(it.id)
+        ).length;
+
+        if (perluKirimCount > 0 && !isBulkSending) {
+            sendAllQueueBtn.classList.remove('hidden');
+            sendAllQueueBtn.textContent = `🚀 Kirim Semua (${perluKirimCount})`;
+        } else {
+            sendAllQueueBtn.classList.add('hidden');
+        }
+
+        if (recordingQueue.length === 0) {
+            queueListContainer.innerHTML = `<p class="text-center py-4 text-xs text-gray-400">Semua rekaman telah selesai dikoreksi AI (tidak ada antrean tertunda).</p>`;
+            perbaruiStatusPocketLock();
+            return;
+        }
+
+        queueListContainer.innerHTML = "";
+
+        recordingQueue.forEach(item => {
+            if (!queueObjectUrls.has(item.id) && item.blob) {
+                queueObjectUrls.set(item.id, URL.createObjectURL(item.blob));
+            }
+            const audioUrl = queueObjectUrls.get(item.id) || "";
+            const isUploading = activeUploads.has(item.id);
+
+            const tgl = new Date(item.createdAt || Date.now()).toLocaleString('id-ID', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+            const durasiStr = item.durationMs ? formatDurasiMs(item.durationMs) : 'File Upload';
+            const sizeStr = formatUkuranFile(item.blob ? item.blob.size : 0);
+
+            let badgeHTML = "";
+            let cardStyle = "border-gray-200 bg-gray-50/50";
+            let detailStatus = "";
+
+            if (isUploading || item.status === 'mengirim') {
+                badgeHTML = `<span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 animate-pulse">📤 Mengirim (${item.progress || 0}%)</span>`;
+                cardStyle = "border-blue-200 bg-blue-50/40";
+                detailStatus = item.progressText || "Mengunggah bagian audio ke server AI...";
+            } else if (item.status === 'menunggu_ai') {
+                const elapsedSec = item.sentAt ? Math.max(0, Math.floor((Date.now() - item.sentAt) / 1000)) : 0;
+                const minsWait = Math.floor(elapsedSec / 60);
+                const secsWait = elapsedSec % 60;
+                const waitLabel = minsWait > 0 ? `${minsWait}m ${secsWait}d` : `${secsWait}d`;
+                badgeHTML = `<span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">⏳ Menunggu Respon AI (${waitLabel})</span>`;
+                cardStyle = "border-indigo-200 bg-indigo-50/40";
+                detailStatus = "File sudah di server AI. Memantau Google Sheets setiap 5 detik sampai laporan muncul...";
+            } else if (item.status === 'ai_timeout') {
+                badgeHTML = `<span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">⚠️ AI Belum Merespon</span>`;
+                cardStyle = "border-amber-300 bg-amber-50/60";
+                detailStatus = item.lastError || "Sudah lebih dari 3 menit laporan belum muncul. Silakan Kirim Ulang.";
+            } else if (item.status === 'gagal_kirim') {
+                badgeHTML = `<span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">❌ Gagal Terkirim</span>`;
+                cardStyle = "border-rose-200 bg-rose-50/50";
+                detailStatus = item.lastError || "Koneksi terputus / server sibuk. Rekaman aman, silakan kirim ulang.";
+            } else {
+                badgeHTML = `<span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gray-200 text-gray-800">💾 Tersimpan Siap Kirim</span>`;
+                detailStatus = "Tersimpan aman di memori HP. Tekan Kirim ke AI.";
+            }
+
+            const card = document.createElement('div');
+            card.className = `p-4 rounded-2xl border ${cardStyle} space-y-3 transition`;
+
+            const sendBtnLabel = (item.status === 'menunggu_ai' || item.status === 'ai_timeout' || item.status === 'gagal_kirim')
+                ? "🔄 Kirim Ulang ke AI"
+                : "🚀 Kirim ke AI";
+
+            card.innerHTML = `
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-sm text-gray-800">${escapeHtml(item.label || `Rekaman #${item.nomor}`)}</span>
+                            ${badgeHTML}
+                        </div>
+                        <p class="text-[11px] text-gray-500">
+                            🕒 ${tgl} • ⏱️ ${durasiStr} • 📦 ${sizeStr}${item.surahHint ? ` • 🎯 ${escapeHtml(item.surahHint)}` : ''}
+                        </p>
+                        <p class="text-xs font-medium text-gray-600">${escapeHtml(detailStatus)}</p>
+                    </div>
+                </div>
+
+                ${isUploading ? `
+                <div class="space-y-1">
+                    <div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-full transition-all duration-100" style="width: ${item.progress || 0}%"></div>
+                    </div>
+                </div>` : ''}
+
+                ${audioUrl ? `<audio controls src="${audioUrl}" class="w-full h-9 accent-emerald-600"></audio>` : ''}
+
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button class="q-send-btn flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm transition" ${isUploading ? 'disabled' : ''}>
+                        ${isUploading ? '⏳ Mengirim...' : sendBtnLabel}
+                    </button>
+                    <button class="q-download-btn bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold px-3 py-2 rounded-xl transition">
+                        ⬇️ Simpan ke HP
+                    </button>
+                    <button class="q-delete-btn bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-3 py-2 rounded-xl transition" ${isUploading ? 'disabled' : ''}>
+                        🗑️ Hapus
+                    </button>
+                </div>
+            `;
+
+            card.querySelector('.q-send-btn').addEventListener('click', () => {
+                kirimItemAntrean(item.id);
+            });
+            card.querySelector('.q-download-btn').addEventListener('click', () => {
+                downloadBlobKeHP(item.blob, `Murojaah_${item.nomor}`, item.filename);
+            });
+            card.querySelector('.q-delete-btn').addEventListener('click', async () => {
+                if (confirm(`Yakin ingin menghapus ${item.label || `Rekaman #${item.nomor}`} dari brankas lokal?`)) {
+                    await hapusItemAntreanDariDB(item.id);
+                    if (queueObjectUrls.has(item.id)) {
+                        URL.revokeObjectURL(queueObjectUrls.get(item.id));
+                        queueObjectUrls.delete(item.id);
+                    }
+                    recordingQueue = recordingQueue.filter(q => q.id !== item.id);
+                    renderAntreanRekaman();
+                    perbaruiStatusPocketLock();
+                }
+            });
+
+            queueListContainer.appendChild(card);
+        });
+
+        perbaruiStatusPocketLock();
+    }
+
+    async function tambahkanKeAntreanPermanen(blob, { durationMs = 0, originalName = "", labelPrefix = "🎙️ Rekaman", autoSend = true } = {}) {
+        if (!blob || blob.size < 200) {
+            tampilkanStatus("⚠️ Rekaman kosong atau terlalu pendek sehingga tidak dapat diproses AI.", "bg-amber-50 border-amber-200 text-amber-800");
+            return null;
+        }
+
+        const nomor = await ambilNomorRekamanBerikutnya();
+        const ext = ambilEkstensiDariBlobAtauNama(blob, originalName);
+        const uniqueId = `rec_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        const surahHint = surahHintInput.value.trim();
+
+        const item = {
+            id: uniqueId,
+            nomor: nomor,
+            label: originalName ? `📁 ${labelPrefix} #${nomor}: ${originalName}` : `${labelPrefix} #${nomor}`,
+            createdAt: Date.now(),
+            durationMs: durationMs,
+            blob: blob,
+            filename: `${uniqueId}.${ext}`,
+            mimeType: blob.type || (ext === 'mp3' ? 'audio/mp3' : ext === 'wav' ? 'audio/wav' : 'audio/mp4'),
+            surahHint: surahHint,
+            status: 'menunggu_kirim',
+            sentAt: null,
+            progress: 0,
+            progressText: '',
+            lastError: '',
+            retryCount: 0,
+            knownRowSigs: ambilDaftarTandaTanganSaatIni()
+        };
+
+        await simpanItemAntrean(item);
+        recordingQueue.push(item);
+        renderAntreanRekaman();
+
+        if (autoSend) {
+            if (navigator.onLine) {
+                kirimItemAntrean(item.id);
+            } else {
+                item.status = 'gagal_kirim';
+                item.lastError = 'Sedang Offline. Rekaman aman di Brankas, tekan Kirim saat online.';
+                await simpanItemAntrean(item);
+                renderAntreanRekaman();
+                tampilkanStatus(`💾 <strong>Offline:</strong> ${escapeHtml(item.label)} aman tersimpan di Brankas Rekaman dan tidak akan tertimpa rekaman baru.`, "bg-amber-50 border-amber-200 text-amber-800");
+            }
+        }
+
+        return item;
+    }
+
+    sendAllQueueBtn.addEventListener('click', async () => {
+        if (isBulkSending) return;
+        const targets = recordingQueue.filter(it =>
+            (it.status === 'menunggu_kirim' || it.status === 'gagal_kirim' || it.status === 'ai_timeout') && !activeUploads.has(it.id)
+        );
+        if (targets.length === 0) return;
+
+        isBulkSending = true;
+        renderAntreanRekaman();
+        try {
+            for (const target of targets) {
+                if (!recordingQueue.some(q => q.id === target.id)) continue;
+                await kirimItemAntrean(target.id);
+            }
+        } finally {
+            isBulkSending = false;
+            renderAntreanRekaman();
+        }
+    });
+
+    // ========================================================================
+    // POCKET LOCK DENGAN PIN 123 + FULLSCREEN + TOMBOL JEDA & SELESAI (KETUK 2X)
+    // ========================================================================
+    function resetPocketArms() {
+        pocketPauseArmed = false;
+        if (pocketPauseArmTimer) {
+            clearTimeout(pocketPauseArmTimer);
+            pocketPauseArmTimer = null;
+        }
+        pocketFinishArmed = false;
+        if (pocketFinishArmTimer) {
+            clearTimeout(pocketFinishArmTimer);
+            pocketFinishArmTimer = null;
+        }
+    }
+
+    function perbaruiStatusPocketLock() {
+        resetPocketArms();
+
+        if (recordingQueue.length > 0) {
+            const uploadingCount = recordingQueue.filter(q => activeUploads.has(q.id)).length;
+            const waitingCount = recordingQueue.filter(q => q.status === 'menunggu_ai').length;
+            const failedCount = recordingQueue.filter(q => q.status === 'gagal_kirim' || q.status === 'ai_timeout').length;
+            const parts = [];
+            if (uploadingCount > 0) parts.push(`📤 ${uploadingCount} mengirim`);
+            if (waitingCount > 0) parts.push(`⏳ ${waitingCount} tunggu AI`);
+            if (failedCount > 0) parts.push(`⚠️ ${failedCount} perlu kirim ulang`);
+            pocketQueueInfo.textContent = `📦 Brankas (${recordingQueue.length}): ${parts.join(' • ') || 'tersimpan aman'}`;
+            pocketQueueInfo.classList.remove('hidden');
+        } else {
+            pocketQueueInfo.classList.add('hidden');
+        }
+
+        if (isFinalizingSegment) {
+            pocketRecStatus.textContent = "💾 MEMPROSES MP3...";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-200 border border-amber-500/40";
+            pocketPauseBtn.classList.add('hidden');
+            pocketFinishBtn.classList.add('hidden');
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Sedang mengamankan & mengonversi audio ke memori HP...";
+            return;
+        }
+
+        if (isRecording) {
+            pocketRecStatus.textContent = "🔴 MEREKAM";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-900/80 text-rose-300 border border-rose-500/40 animate-pulse";
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "⏸️ Jeda & Simpan (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-gray-900/90 hover:bg-gray-800 border border-amber-600/60 text-amber-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
+            pocketFinishBtn.className = "w-full bg-rose-950/90 hover:bg-rose-900 border border-rose-700/70 text-rose-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat pada tombol untuk Jeda atau Selesai Kirim AI";
+        } else if (draftSegments.length > 0) {
+            pocketRecStatus.textContent = "⏸️ DIJEDA & TERSIMPAN";
+            pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40";
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim AI (Ketuk 2x)";
+            pocketFinishBtn.className = "w-full bg-blue-950/90 hover:bg-blue-900 border border-blue-600/70 text-blue-200 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Draft aman tersimpan. Ketuk 2x untuk Lanjutkan atau Kirim AI";
+        } else {
+            if (activeUploads.size > 0) {
+                pocketRecStatus.textContent = "📤 MENGIRIM KE AI...";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/80 text-blue-200 border border-blue-500/40 animate-pulse";
+            } else if (recordingQueue.some(q => q.status === 'menunggu_ai')) {
+                pocketRecStatus.textContent = "⏳ PANTAU HASIL AI";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-900/80 text-indigo-200 border border-indigo-500/40";
+            } else if (recordingQueue.some(q => q.status === 'gagal_kirim' || q.status === 'ai_timeout')) {
+                pocketRecStatus.textContent = "⚠️ PERLU KIRIM ULANG";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-200 border border-amber-500/40";
+            } else {
+                pocketRecStatus.textContent = "⚪ STANDBY";
+                pocketRecStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-800 text-gray-400";
+            }
+
+            pocketPauseBtn.classList.remove('hidden');
+            pocketPauseBtn.textContent = "🔴 Mulai Rekam Baru (Ketuk 2x)";
+            pocketPauseBtn.className = "w-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-xs font-semibold px-4 py-3 rounded-full shadow transition";
+
+            pocketFinishBtn.classList.add('hidden');
+            pocketActionHint.classList.remove('hidden');
+            pocketActionHint.textContent = "Aman saku: ketuk 2x cepat untuk mulai merekam (rekaman lama tidak tertimpa)";
+        }
+    }
+
+    pocketPauseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isFinalizingSegment) return;
+
+        if (pocketFinishArmed) {
+            perbaruiStatusPocketLock();
+        }
+
+        if (!pocketPauseArmed) {
+            pocketPauseArmed = true;
+            if (navigator.vibrate) navigator.vibrate(25);
+
+            if (isRecording) {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk JEDA & SIMPAN";
+                pocketPauseBtn.className = "w-full bg-amber-600 border border-amber-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+            } else if (draftSegments.length > 0) {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk LANJUT REKAM";
+                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+            } else {
+                pocketPauseBtn.textContent = "👆 Ketuk 1x Lagi utk MULAI REKAM";
+                pocketPauseBtn.className = "w-full bg-emerald-600 border border-emerald-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+            }
+
+            pocketPauseArmTimer = setTimeout(() => {
+                perbaruiStatusPocketLock();
+            }, 1600);
+        } else {
+            resetPocketArms();
+            if (navigator.vibrate) navigator.vibrate([50, 40, 50]);
+
+            if (isRecording) {
+                jedaDanSimpanRekaman();
+            } else {
+                mulaiSesiRekamBaruAtauLanjut();
+            }
+        }
+    });
+
+    pocketFinishBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isFinalizingSegment || (!isRecording && draftSegments.length === 0)) return;
+
+        if (pocketPauseArmed) {
+            perbaruiStatusPocketLock();
+        }
+
+        if (!pocketFinishArmed) {
+            pocketFinishArmed = true;
+            if (navigator.vibrate) navigator.vibrate(30);
+            pocketFinishBtn.textContent = "👆 Ketuk 1x Lagi utk SELESAI & KIRIM AI";
+            pocketFinishBtn.className = "w-full bg-rose-600 border border-rose-300 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg transition";
+
+            pocketFinishArmTimer = setTimeout(() => {
+                perbaruiStatusPocketLock();
+            }, 1600);
+        } else {
+            resetPocketArms();
+            if (navigator.vibrate) navigator.vibrate([70, 50, 90]);
+            selesaiDanKirimKeAI();
+        }
+    });
+
+    pocketLockScreen.addEventListener('click', (e) => {
+        if (e.target === pocketLockScreen || (!e.target.closest('#pocketPauseBtn') && !e.target.closest('#pocketFinishBtn') && !e.target.closest('#unlockPocketBtn'))) {
+            if (!sedangFullscreen()) {
+                masukLayarPenuh();
+            }
+        }
+    });
+
+    lockScreenBtn.addEventListener('click', async () => {
+        mintaWakeLockPermanen();
+        wasFullscreenBeforeLock = sedangFullscreen();
+        isPocketLocked = true;
+        pasangPenjagaTombolBack();
+        perbaruiStatusPocketLock();
+        pocketLockScreen.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+        await masukLayarPenuh();
+    });
+
+    unlockPocketBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const pinInput = prompt("🔐 Masukkan PIN Buka Kunci (Ketik: 123):");
+        if (pinInput === "123") {
+            isPocketLocked = false;
+            resetPocketArms();
+            pocketLockScreen.classList.add('hidden');
+            document.body.style.overflow = "";
+            if (!wasFullscreenBeforeLock) {
+                await keluarLayarPenuh();
+            }
+            mintaWakeLockPermanen();
+        } else if (pinInput !== null) {
+            alert("❌ PIN Salah! Layar tetap terkunci demi keamanan saku.");
+        }
+    });
+
+    // ========================================================================
+    // SINKRONISASI TAMPILAN DRAFT & PEMULIHAN DATA SAAT STARTUP
+    // ========================================================================
     function perbaruiTampilanDraft() {
         const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
         const durasiStr = formatDurasiMs(totalMs);
@@ -1023,7 +1462,6 @@
             timerLabel.textContent = durasiStr;
             pocketTimer.textContent = durasiStr;
 
-            // Saat dijeda / setelah refresh, tombol Selesai & Lanjutkan langsung tersedia konsisten
             recordBtn.disabled = false;
             recordBtn.textContent = "🚀 Selesai & Kirim ke AI";
             recordBtn.className = "bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-sm sm:text-base w-full";
@@ -1052,53 +1490,39 @@
         if (Array.isArray(draftSaved) && draftSaved.length > 0) {
             draftSegments = draftSaved;
             totalElapsedTime = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
-            perbaruiTampilanDraft();
-        } else {
-            perbaruiTampilanDraft();
         }
+        perbaruiTampilanDraft();
 
-        const blobSelamat = await ambilAudioDariHP();
-        if (blobSelamat) {
-            lastRecordedBlob = blobSelamat;
-            const audioUrl = URL.createObjectURL(blobSelamat);
-            audioPlayer.src = audioUrl;
-            audioPlaybackBox.classList.remove('hidden');
-            if (draftSegments.length > 0) {
-                audioPlaybackNote.textContent = "💾 Rekaman dijeda & tersimpan permanen di memori HP (aman jika di-refresh).";
+        // Muat semua antrean rekaman yang belum terkonfirmasi laporan AI
+        const savedQueue = await ambilSemuaAntrean();
+        recordingQueue = savedQueue.map(item => {
+            // Jika halaman sempat ter-refresh saat status masih 'mengirim', ubah ke 'gagal_kirim' agar user tahu harus dikirim ulang
+            if (item.status === 'mengirim') {
+                item.status = 'gagal_kirim';
+                item.lastError = 'Pengiriman sempat terhenti (halaman di-refresh). Klik Kirim Ulang.';
+                simpanItemAntrean(item);
             }
-        }
+            return item;
+        });
+
+        renderAntreanRekaman();
     }
 
-    // UPDATE PROGRESS BAR INTERFACE
-    function updateUploadProgress(percent, text = "⏳ Mengirim berkas MP3 ke server...") {
+    // UPDATE GLOBAL PROGRESS BAR INTERFACE
+    function updateUploadProgress(percent, text = "⏳ Mengirim berkas audio ke server...") {
         progressContainer.classList.remove('hidden');
         uploadProgressText.textContent = text;
         progressPercent.textContent = `${percent}%`;
         uploadProgressBar.style.width = `${percent}%`;
-        retryUploadBox.classList.add('hidden');
-    }
-
-    function showRetryUploadOption(blob) {
-        lastFailedBlob = blob;
-        progressContainer.classList.add('hidden');
-        retryUploadBox.classList.remove('hidden');
     }
 
     function hideUploadProgress() {
         progressContainer.classList.add('hidden');
-        retryUploadBox.classList.add('hidden');
     }
 
-    retryUploadBtn.addEventListener('click', () => {
-        if (lastFailedBlob) {
-            retryUploadBox.classList.add('hidden');
-            kirimBlobAudio(lastFailedBlob);
-        } else {
-            alert("Tidak ada antrean file gagal yang tersimpan.");
-        }
-    });
-
+    // ========================================================================
     // PARSER LOG KOREKSI KE ELEMEN HTML
+    // ========================================================================
     function parseKoreksiKeHTML(teksMentah) {
         if (!teksMentah) return "<p class='text-gray-400'>Data koreksi kosong.</p>";
         const lines = teksMentah.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -1291,7 +1715,7 @@
     }
 
     // ========================================================================
-    // LOGIKA PEREKAM LANGSUNG: JEDA SIMPAN PERMANEN & SELESAI KIRIM KE AI
+    // LOGIKA PEREKAM LANGSUNG: JEDA SIMPAN PERMANEN & SELESAI MASUK BRANKAS -> AI
     // ========================================================================
     async function mulaiSesiRekamBaruAtauLanjut() {
         if (isRecording || isFinalizingSegment) return;
@@ -1306,16 +1730,30 @@
             
             streamGlobal = stream;
             audioChunks = [];
-            pocketUploadStatus = null;
             
-            let mimeType = 'audio/webm';
-            if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                mimeType = 'audio/mp4';
-            } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
-                mimeType = 'audio/mpeg';
+            // Prioritaskan format WebM Opus (Chrome/Android) lalu MP4 (iOS Safari) agar decodeAudioData 100% akurat
+            let options = {};
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                currentRecorderMime = 'audio/webm;codecs=opus';
+                options = { mimeType: currentRecorderMime };
+            } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                currentRecorderMime = 'audio/webm';
+                options = { mimeType: currentRecorderMime };
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                currentRecorderMime = 'audio/mp4';
+                options = { mimeType: currentRecorderMime };
+            } else {
+                currentRecorderMime = '';
             }
             
-            mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+            mediaRecorder = Object.keys(options).length > 0
+                ? new MediaRecorder(stream, options)
+                : new MediaRecorder(stream);
+
+            if (!currentRecorderMime && mediaRecorder.mimeType) {
+                currentRecorderMime = mediaRecorder.mimeType;
+            }
+
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data && e.data.size > 0) audioChunks.push(e.data);
             };
@@ -1327,52 +1765,32 @@
                     streamGlobal = null;
                 }
 
-                const rawBlob = new Blob(audioChunks, { type: mimeType });
-                const segmentBlob = new Blob([rawBlob], { type: mimeType });
+                const effectiveMime = currentRecorderMime || (audioChunks[0] && audioChunks[0].type) || 'audio/webm';
+                const segmentBlob = new Blob(audioChunks, { type: effectiveMime });
                 const segmentDurationMs = Math.max(500, pendingSegmentDurationMs);
 
                 if (pendingStopAction === 'save_draft') {
-                    // JEDA -> SIMPAN PERMANEN KE INDEXEDDB AGAR TIDAK HILANG SAAT REFRESH
-                    if (segmentBlob.size > 0) {
+                    if (segmentBlob.size > 100) {
                         draftSegments.push({
                             blob: segmentBlob,
                             durationMs: segmentDurationMs
                         });
+                        await simpanDraftKeHP(draftSegments);
                     }
-                    await simpanDraftKeHP(draftSegments);
 
                     isFinalizingSegment = false;
                     perbaruiTampilanDraft();
 
                     const totalMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
                     tampilkanStatus(`💾 <strong>Rekaman Dijeda & Tersimpan (${formatDurasiMs(totalMs)})!</strong> Aman meskipun halaman di-refresh. Tekan <strong>Lanjutkan Rekam</strong> kapan saja atau <strong>Selesai & Kirim ke AI</strong>.`, "bg-amber-50 border-amber-200 text-amber-800");
-
-                    // Buat pratinjau audio di background setelah data sudah aman tersimpan di IndexedDB
-                    try {
-                        const mergedPreviewBlob = await gabungAudioSegments(draftSegments);
-                        if (mergedPreviewBlob) {
-                            lastRecordedBlob = mergedPreviewBlob;
-                            await simpanAudioKeHP(mergedPreviewBlob);
-                            const audioUrl = URL.createObjectURL(mergedPreviewBlob);
-                            audioPlayer.src = audioUrl;
-                            audioPlaybackBox.classList.remove('hidden');
-                            audioPlaybackNote.textContent = "💾 Rekaman dijeda & tersimpan permanen di memori HP (aman jika di-refresh).";
-                        }
-                    } catch (previewErr) {
-                        console.warn("Pratinjau draft gagal dibuat:", previewErr);
-                    }
                 } else {
-                    // SELESAI -> GABUNGKAN & LANGSUNG KIRIM KE AI
-                    const semuaSegmen = segmentBlob.size > 0
+                    const semuaSegmen = segmentBlob.size > 100
                         ? [...draftSegments, { blob: segmentBlob, durationMs: segmentDurationMs }]
                         : [...draftSegments];
 
-                    tampilkanStatus("⏳ Menyiapkan & menggabungkan file rekaman...", "bg-blue-50 border-blue-200 text-blue-700");
+                    tampilkanStatus("⏳ Mengonversi rekaman menjadi MP3 asli & mengamankan ke Brankas...", "bg-blue-50 border-blue-200 text-blue-700");
 
-                    let finalAudioBlob = await gabungAudioSegments(semuaSegmen);
-                    if (!finalAudioBlob) {
-                        finalAudioBlob = new Blob([rawBlob], { type: 'audio/mp3' });
-                    }
+                    const { blob: finalAudioBlob, durationMs: realDurationMs } = await gabungDanKonversiKeAudioValid(semuaSegmen, true);
 
                     draftSegments = [];
                     draftBaseDurationMs = 0;
@@ -1381,22 +1799,17 @@
                     isFinalizingSegment = false;
                     perbaruiTampilanDraft();
 
-                    lastRecordedBlob = finalAudioBlob; 
-                    await simpanAudioKeHP(finalAudioBlob);
-                    
-                    const audioUrl = URL.createObjectURL(finalAudioBlob);
-                    audioPlayer.src = audioUrl;
-                    audioPlaybackBox.classList.remove('hidden');
-                    audioPlaybackNote.textContent = "💡 Rekaman tersimpan secara lokal dan siap dikirim/diputar ulang.";
-                    
-                    if (navigator.onLine) {
-                        tampilkanStatus("Rekaman disimpan & Mengirim ke server AI...", "bg-blue-50 border-blue-200 text-blue-700");
-                        await kirimBlobAudio(finalAudioBlob);
-                    } else {
-                        pocketUploadStatus = 'error';
-                        perbaruiStatusPocketLock();
-                        tampilkanStatus("Offline: Rekaman aman disimpan secara lokal di memori HP Anda.", "bg-amber-50 border-amber-200 text-amber-700");
+                    if (!finalAudioBlob || finalAudioBlob.size < 200) {
+                        tampilkanStatus("⚠️ Rekaman kosong atau suara tidak tertangkap mikrofon. Silakan coba rekam ulang.", "bg-amber-50 border-amber-200 text-amber-800");
+                        return;
                     }
+
+                    // Simpan permanen ke Brankas Antrean (Rekaman #1, #2, #3...) lalu kirim
+                    await tambahkanKeAntreanPermanen(finalAudioBlob, {
+                        durationMs: realDurationMs || pendingSegmentDurationMs,
+                        labelPrefix: "🎙️ Rekaman",
+                        autoSend: true
+                    });
                 }
             };
             
@@ -1418,6 +1831,16 @@
         }
     }
 
+    function stopRecorderSafely() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        try {
+            if (typeof mediaRecorder.requestData === 'function') {
+                mediaRecorder.requestData();
+            }
+        } catch (e) {}
+        mediaRecorder.stop();
+    }
+
     function jedaDanSimpanRekaman() {
         if (!isRecording || !mediaRecorder || isFinalizingSegment) return;
         mintaWakeLockPermanen();
@@ -1435,16 +1858,13 @@
         recordBtn.disabled = true;
         perbaruiStatusPocketLock();
 
-        if (mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
+        stopRecorderSafely();
     }
 
     async function selesaiDanKirimKeAI() {
         if (isFinalizingSegment) return;
 
         if (isRecording && mediaRecorder) {
-            // Sedang merekam -> stop langsung dan kirim ke AI
             mintaWakeLockPermanen();
             isFinalizingSegment = true;
             pendingStopAction = 'send_now';
@@ -1455,15 +1875,12 @@
             clearInterval(timerInterval);
 
             recordBtn.disabled = true;
-            recordBtn.textContent = "⏳ Memproses...";
+            recordBtn.textContent = "⏳ Mengonversi MP3...";
             pauseBtn.disabled = true;
             perbaruiStatusPocketLock();
 
-            if (mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-            }
+            stopRecorderSafely();
         } else if (draftSegments.length > 0) {
-            // Sedang dalam keadaan dijeda / draft tersimpan -> langsung gabung dan kirim ke AI
             await kirimSemuaDraftKeAI();
         }
     }
@@ -1472,15 +1889,15 @@
         if (draftSegments.length === 0 || isFinalizingSegment) return;
         isFinalizingSegment = true;
         sendDraftBtn.disabled = true;
-        sendDraftBtn.textContent = "⏳ Menggabungkan...";
+        sendDraftBtn.textContent = "⏳ Mengonversi MP3...";
         recordBtn.disabled = true;
         recordBtn.textContent = "⏳ Memproses...";
         pauseBtn.disabled = true;
         perbaruiStatusPocketLock();
 
         try {
-            const mergedBlob = await gabungAudioSegments(draftSegments);
-            if (!mergedBlob) throw new Error("Gagal menggabungkan draft audio");
+            const totalDraftMs = draftSegments.reduce((acc, s) => acc + (s.durationMs || 0), 0);
+            const { blob: mergedBlob, durationMs: realDurationMs } = await gabungDanKonversiKeAudioValid(draftSegments, true);
 
             draftSegments = [];
             draftBaseDurationMs = 0;
@@ -1489,19 +1906,16 @@
             isFinalizingSegment = false;
             perbaruiTampilanDraft();
 
-            lastRecordedBlob = mergedBlob;
-            await simpanAudioKeHP(mergedBlob);
-            audioPlayer.src = URL.createObjectURL(mergedBlob);
-            audioPlaybackBox.classList.remove('hidden');
-            audioPlaybackNote.textContent = "💡 Rekaman tersimpan secara lokal dan siap dikirim/diputar ulang.";
-
-            if (navigator.onLine) {
-                await kirimBlobAudio(mergedBlob);
-            } else {
-                pocketUploadStatus = 'error';
-                perbaruiStatusPocketLock();
-                tampilkanStatus("Offline: Gabungan rekaman aman disimpan di HP. Kirim saat online kembali.", "bg-amber-50 border-amber-200 text-amber-700");
+            if (!mergedBlob || mergedBlob.size < 200) {
+                tampilkanStatus("⚠️ Rekaman draft kosong atau gagal dikonversi.", "bg-amber-50 border-amber-200 text-amber-800");
+                return;
             }
+
+            await tambahkanKeAntreanPermanen(mergedBlob, {
+                durationMs: realDurationMs || totalDraftMs,
+                labelPrefix: "🎙️ Rekaman",
+                autoSend: true
+            });
         } catch (err) {
             isFinalizingSegment = false;
             perbaruiTampilanDraft();
@@ -1512,7 +1926,6 @@
         }
     }
 
-    // Event Tombol Utama: Mulai / Selesai & Kirim ke AI
     recordBtn.addEventListener('click', async () => {
         mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
@@ -1525,7 +1938,6 @@
         }
     });
 
-    // Event Tombol Jeda & Simpan / Lanjutkan Rekam
     pauseBtn.addEventListener('click', async () => {
         mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
@@ -1538,7 +1950,6 @@
         }
     });
 
-    // Aksi Tombol di Kotak Draft Tersimpan
     resumeDraftBtn.addEventListener('click', async () => {
         if (isRecording || isFinalizingSegment) return;
         await mulaiSesiRekamBaruAtauLanjut();
@@ -1553,7 +1964,7 @@
         downloadDraftBtn.disabled = true;
         downloadDraftBtn.textContent = "⏳ Menyiapkan...";
         try {
-            const mergedBlob = await gabungAudioSegments(draftSegments);
+            const { blob: mergedBlob } = await gabungDanKonversiKeAudioValid(draftSegments, true);
             if (mergedBlob) {
                 downloadBlobKeHP(mergedBlob, "Draft_Murojaah");
             }
@@ -1573,31 +1984,6 @@
             await hapusDraftDariHP();
             perbaruiTampilanDraft();
             tampilkanStatus("🗑️ Rekaman draft telah dihapus. Siap merekam sesi baru.", "bg-gray-50 border-gray-200 text-gray-700");
-        }
-    });
-
-    downloadLastBtn.addEventListener('click', () => {
-        if (!lastRecordedBlob) {
-            alert("Belum ada rekaman untuk disimpan.");
-            return;
-        }
-        downloadBlobKeHP(lastRecordedBlob, "Murojaah");
-    });
-
-    resendBtn.addEventListener('click', async () => {
-        if (!lastRecordedBlob) {
-            alert("Belum ada berkas rekaman untuk dikirim.");
-            return;
-        }
-        resendBtn.disabled = true;
-        resendBtn.innerHTML = "⏳ Mengirim Ulang...";
-        try {
-            await kirimBlobAudio(lastRecordedBlob);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            resendBtn.disabled = false;
-            resendBtn.innerHTML = "🔄 Kirim Ulang Rekaman Ini";
         }
     });
 
@@ -1635,61 +2021,135 @@
     }
 
     // ========================================================================
-    // PENGIRIMAN CHUNK REKAMAN LENGKAP & ANTI GAGAL
+    // PENGIRIMAN CHUNK ANTI GAGAL (AUTO-RETRY 3X PER CHUNK & VALIDASI SERVER)
     // ========================================================================
-    async function kirimBlobAudio(blob) {
+    async function kirimItemAntrean(itemId) {
+        const item = recordingQueue.find(q => q.id === itemId);
+        if (!item || activeUploads.has(itemId)) return;
+
+        if (!navigator.onLine) {
+            item.status = 'gagal_kirim';
+            item.lastError = 'Tidak ada koneksi internet (Offline). Tekan Kirim Ulang saat online.';
+            await simpanItemAntrean(item);
+            renderAntreanRekaman();
+            return;
+        }
+
+        if (!item.blob || item.blob.size < 200) {
+            item.status = 'gagal_kirim';
+            item.lastError = 'File audio kosong atau rusak.';
+            await simpanItemAntrean(item);
+            renderAntreanRekaman();
+            return;
+        }
+
         await mintaWakeLockPermanen();
         aktifkanAudioKeepAlivePermanen();
 
-        pocketUploadStatus = 'uploading';
-        if (isPocketLocked) perbaruiStatusPocketLock();
+        activeUploads.add(itemId);
+        item.status = 'mengirim';
+        item.progress = 0;
+        item.progressText = '📦 Menyiapkan pengiriman file...';
+        item.lastError = '';
+        item.retryCount = (item.retryCount || 0) + 1;
+
+        // Pastikan nama file unik di setiap percobaan kirim ulang agar tidak bentrok dengan sisa chunk lama di server
+        const ext = ambilEkstensiDariBlobAtauNama(item.blob, item.filename);
+        const uploadFilename = `${item.id}_try${item.retryCount}_${Date.now()}.${ext}`;
+        const chunkMimeType = item.mimeType || item.blob.type || 'audio/mp3';
+
+        // Perbarui baseline laporan terbaru sebelum mengirim
+        if (sheetsLoadedAtLeastOnce) {
+            item.knownRowSigs = ambilDaftarTandaTanganSaatIni();
+        }
+
+        await simpanItemAntrean(item);
+        renderAntreanRekaman();
 
         const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5MB per chunk
-        const totalSize = blob.size;
-        const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
-        
-        const randomId = Math.random().toString(36).substring(2, 15) + "_" + Date.now();
-        const filename = `${randomId}.mp3`;
-        const surahHint = surahHintInput.value.trim();
-        
-        updateUploadProgress(0, "📦 Mempersiapkan berkas MP3...");
-        
+        const totalSize = item.blob.size;
+        const totalChunks = Math.max(1, Math.ceil(totalSize / CHUNK_SIZE));
+        const surahHint = (item.surahHint || surahHintInput.value || '').trim();
+
+        updateUploadProgress(0, `📦 Mengirim ${item.label || `Rekaman #${item.nomor}`}...`);
+
         try {
+            let lastServerResponse = null;
+
             for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
                 const start = chunkIndex * CHUNK_SIZE;
                 const end = Math.min(start + CHUNK_SIZE, totalSize);
-                const chunkBlob = blob.slice(start, end);
-                
-                await kirimSatuChunk(chunkBlob, filename, chunkIndex, totalChunks, surahHint);
-                
-                const percentComplete = Math.round(((chunkIndex + 1) / totalChunks) * 100);
-                updateUploadProgress(percentComplete, `⏳ Mengunggah bagian ${chunkIndex + 1} dari ${totalChunks}...`);
-            }
-            
-            pocketUploadStatus = 'sent';
-            if (isPocketLocked) perbaruiStatusPocketLock();
+                const chunkBlob = item.blob.slice(start, end);
 
-            updateUploadProgress(100, "🤖 AI sedang memproses analisis murojaah...");
-            tampilkanStatus(`🎉 <strong>Berkas MP3 Terkirim Lengkap!</strong> Google Gemini AI sedang menyimak hafalan Anda. Laporan koreksi otomatis akan muncul di tabel bawah sebentar lagi.`, "bg-green-50 border-green-200 text-green-700");
-            
-            setTimeout(() => { muatLaporan(true); }, 5000);
-            setTimeout(() => { muatLaporan(true); }, 15000);
-            setTimeout(() => { muatLaporan(true); }, 30000);
+                lastServerResponse = await kirimSatuChunkDenganRetry(
+                    chunkBlob,
+                    uploadFilename,
+                    chunkMimeType,
+                    chunkIndex,
+                    totalChunks,
+                    surahHint,
+                    3
+                );
+
+                const percentComplete = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+                item.progress = percentComplete;
+                item.progressText = `⏳ Mengunggah bagian ${chunkIndex + 1} dari ${totalChunks}...`;
+                updateUploadProgress(percentComplete, `⏳ Mengirim ${item.label}: ${chunkIndex + 1}/${totalChunks}...`);
+                renderAntreanRekaman();
+            }
+
+            // Validasi respon server terakhir
+            if (lastServerResponse && (lastServerResponse.error || lastServerResponse.status === 'error' || lastServerResponse.success === false || lastServerResponse.ok === false)) {
+                throw new Error(lastServerResponse.error || lastServerResponse.message || "Server AI menolak/gagal memproses file.");
+            }
+
+            item.status = 'menunggu_ai';
+            item.sentAt = Date.now();
+            item.progress = 100;
+            item.progressText = '⏳ File diterima server. Menunggu laporan koreksi AI muncul...';
+            item.lastError = '';
+            await simpanItemAntrean(item);
+
+            updateUploadProgress(100, `🤖 ${item.label} terkirim! Menunggu hasil AI muncul di laporan...`);
+            tampilkanStatus(`📤 <strong>${escapeHtml(item.label)} Berhasil Diunggah!</strong> File tetap disimpan aman di Brankas sampai laporan koreksi AI benar-benar muncul di tabel bawah.`, "bg-indigo-50 border-indigo-200 text-indigo-800");
+
+            setTimeout(() => { muatLaporan(true); }, 4000);
+            setTimeout(() => { muatLaporan(true); }, 12000);
+            setTimeout(() => { muatLaporan(true); }, 25000);
         } catch (err) {
-            console.error("Gagal mengirim chunk audio:", err);
-            pocketUploadStatus = 'error';
-            if (isPocketLocked) perbaruiStatusPocketLock();
-            showRetryUploadOption(blob);
-            tampilkanStatus(`❌ <strong>Gagal Mengirim:</strong> ${err.message}. File aman di memori lokal, Anda dapat menekan tombol ulangi di atas kapan saja.`, "bg-rose-50 border-rose-200 text-rose-700");
+            console.error("Gagal mengirim item antrean:", err);
+            item.status = 'gagal_kirim';
+            item.lastError = err.message || "Gagal menghubungi server AI.";
+            await simpanItemAntrean(item);
+            hideUploadProgress();
+            tampilkanStatus(`❌ <strong>Gagal Mengirim ${escapeHtml(item.label)}:</strong> ${escapeHtml(item.lastError)}. File tetap aman di Brankas Rekaman & bisa dikirim ulang kapan saja.`, "bg-rose-50 border-rose-200 text-rose-700");
+        } finally {
+            activeUploads.delete(itemId);
+            renderAntreanRekaman();
         }
     }
 
-    function kirimSatuChunk(chunkBlob, filename, chunkIndex, totalChunks, surahHint) {
+    async function kirimSatuChunkDenganRetry(chunkBlob, filename, mimeType, chunkIndex, totalChunks, surahHint, maxRetries = 3) {
+        let lastErr = null;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await kirimSatuChunk(chunkBlob, filename, mimeType, chunkIndex, totalChunks, surahHint);
+            } catch (err) {
+                lastErr = err;
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, attempt * 1200));
+                }
+            }
+        }
+        throw lastErr;
+    }
+
+    function kirimSatuChunk(chunkBlob, filename, mimeType, chunkIndex, totalChunks, surahHint) {
         return new Response(chunkBlob).arrayBuffer().then(buffer => {
             return new Promise((resolve, reject) => {
                 const formData = new FormData();
-                const mp3ChunkBlob = new Blob([buffer], { type: 'audio/mp3' });
-                formData.append('file', mp3ChunkBlob, `part_${chunkIndex}`);
+                const typedChunkBlob = new Blob([buffer], { type: mimeType || 'audio/mp3' });
+                formData.append('file', typedChunkBlob, `part_${chunkIndex}`);
                 formData.append('filename', filename);
                 formData.append('chunk_index', chunkIndex);
                 formData.append('total_chunks', totalChunks);
@@ -1698,6 +2158,7 @@
                 }
                 
                 const xhr = new XMLHttpRequest();
+                xhr.timeout = 120000; // 2 menit timeout per chunk 1.5MB
                 xhr.open('POST', BACKEND_URL, true);
                 
                 xhr.onload = () => {
@@ -1714,7 +2175,7 @@
                 };
                 
                 xhr.onerror = () => {
-                    reject(new Error("Koneksi internet terputus saat proses unggah bagian file"));
+                    reject(new Error("Koneksi internet terputus saat proses unggah"));
                 };
                 
                 xhr.ontimeout = () => {
@@ -1749,7 +2210,7 @@
     // ========================================================================
     async function muatLaporan(isManual = false) {
         try {
-            if (isManual || containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan...")) {
+            if (isManual && (containerLaporan.innerHTML.trim() === "" || containerLaporan.innerHTML.includes("Sedang memuat riwayat laporan..."))) {
                 containerLaporan.innerHTML = `<p class="text-center py-4 text-gray-400">Sedang menyegarkan data dari server...</p>`;
             }
             
@@ -1759,22 +2220,27 @@
             const res = await fetch(urlFetch);
             const data = await res.json();
             
+            sheetsLoadedAtLeastOnce = true;
             const currentDataString = JSON.stringify(data);
-            if (currentDataString === lastDataString && !isManual) {
-                return;
-            }
-            
-            lastDataString = currentDataString;
-            
+
             semuaDataRiwayat = (Array.isArray(data) ? data : []).map((item, originalIndex) => ({
                 ...item,
                 sheetIndex: originalIndex
             }));
 
+            // Cek apakah laporan AI untuk antrean yang menunggu sudah muncul!
+            await periksaApakahLaporanAISudahMasuk();
+
+            if (currentDataString === lastDataString && !isManual) {
+                return;
+            }
+            
+            lastDataString = currentDataString;
+
             totalDataBadge.textContent = `${semuaDataRiwayat.length} Data`;
             terapkanFilterDanRender();
 
-            if (!statusBox.innerHTML.includes("Gagal") && !statusBox.innerHTML.includes("Kesalahan")) {
+            if (activeUploads.size === 0 && !statusBox.innerHTML.includes("Gagal") && !statusBox.innerHTML.includes("Kesalahan")) {
                 hideUploadProgress();
             }
         } catch (err) {
@@ -1826,7 +2292,6 @@
                 cakupanSesi = matchCakupan[1].trim();
             }
 
-            // HITUNG JUMLAH KOREKSI UNTUK BADGE
             const jumlahSalah = hitungJumlahKoreksi(item.koreksi);
             let badgeKoreksiHTML = "";
 
@@ -1913,7 +2378,7 @@
     });
 
     // ========================================================================
-    // PENGHAPUSAN DATA
+    // PENGHAPUSAN DATA GOOGLE SHEETS
     // ========================================================================
     async function hapusBaris(originalSheetIndex) {
         const pass = prompt("🔐 Masukkan Password Penghapusan (Ketik: 123):");
@@ -1953,7 +2418,7 @@
         }
     }
 
-    // EVENT UPLOAD FILE
+    // EVENT UPLOAD FILE EKSTERNAL (MASUK KE BRANKAS ANTREAN JUGA)
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
             uploadPrompt.classList.add('hidden');
@@ -1969,8 +2434,11 @@
         submitBtn.disabled = true;
         
         try {
-            await simpanAudioKeHP(file); 
-            await kirimBlobAudio(file);
+            await tambahkanKeAntreanPermanen(file, {
+                originalName: file.name,
+                labelPrefix: "Upload",
+                autoSend: true
+            });
             uploadForm.reset();
             uploadPrompt.classList.remove('hidden');
             fileSelectedName.classList.add('hidden');
@@ -1982,19 +2450,40 @@
     });
 
     // INISIALISASI RUN-TIME SAAT APLIKASI PERTAMA KALI DIBUKA
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
         updateOnlineStatus();
         inisialisasiFallbackMediaKeepAlive();
         mintaWakeLockPermanen();
         perbaruiTombolFullscreen();
-        muatLaporan(true); 
-        cekRekamanTerselamatkan(); 
+
+        await cekRekamanTerselamatkan();
+        await muatLaporan(true); 
         
-        // Auto refresh berkala secara halus di latar belakang
+        // Pantauan pintar: setiap 5 detik jika ada rekaman menunggu respon AI, atau 15 detik saat santai
         setInterval(() => {
-            if (!isRecording) muatLaporan(false);
-        }, 15000); 
+            if (isRecording) return;
+            const adaMenungguAI = recordingQueue.some(q => q.status === 'menunggu_ai' || q.status === 'ai_timeout');
+            if (adaMenungguAI) {
+                muatLaporan(false);
+            }
+        }, 5000);
+
+        setInterval(() => {
+            if (isRecording) return;
+            const adaMenungguAI = recordingQueue.some(q => q.status === 'menunggu_ai' || q.status === 'ai_timeout');
+            if (!adaMenungguAI) {
+                muatLaporan(false);
+            }
+        }, 15000);
+
+        // Update tampilan timer tunggu respon AI di kartu antrean setiap 2 detik
+        setInterval(() => {
+            if (recordingQueue.some(q => q.status === 'menunggu_ai')) {
+                renderAntreanRekaman();
+            }
+        }, 2000);
     });
 </script>
 </body>
+</html>
 </html>
