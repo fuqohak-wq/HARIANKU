@@ -20,7 +20,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
 
-    <!-- Keep Awake Helper (Layar Anti Mati) -->
     <canvas id="keepAwakeCanvas" width="16" height="16" class="hidden"></canvas>
     <video id="keepAliveVideo" playsinline muted loop autoplay class="hidden"></video>
 
@@ -39,7 +38,7 @@
 
     <main class="max-w-xl mx-auto px-4 py-5 space-y-5">
 
-        <!-- KARTU AYAT TERAKHIR YANG DIBACA (BERSIH & SESUAI SHEET) -->
+        <!-- KARTU AYAT TERAKHIR -->
         <div id="lastAyatBox" class="bg-white border-2 border-emerald-500/30 rounded-2xl p-4 shadow-sm relative overflow-hidden">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
@@ -60,20 +59,23 @@
             </p>
         </div>
 
-        <!-- NOTIFIKASI DRAFT REKAMAN TERSIMPAN -->
-        <div id="draftNoticeBox" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 transition-all">
+        <!-- NOTIFIKASI DRAFT REKAMAN TERSIMPAN DI STORAGE FISIK HP -->
+        <div id="draftNoticeBox" class="hidden bg-emerald-50 border border-emerald-300 rounded-2xl p-4 transition-all">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold text-amber-800 flex items-center gap-1">💾 Draf Tersimpan di HP</span>
-                    <p id="draftDurationText" class="text-xs text-amber-700 mt-0.5">Durasi: 00:00:00</p>
+                    <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                        <span class="text-emerald-600">💾</span> Draf Tersimpan di Storage HP
+                    </span>
+                    <p id="draftDurationText" class="text-xs text-emerald-700 mt-0.5">Durasi: 00:00:00 (0 KB)</p>
+                    <p class="text-[10px] text-emerald-600 mt-0.5">Aman ditinggal/tutup browser, bisa dilanjutkan kapan saja.</p>
                 </div>
-                <button id="discardDraftBtn" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1">
+                <button id="discardDraftBtn" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1">
                     Hapus Draf
                 </button>
             </div>
         </div>
 
-        <!-- PUSAT KONTROL PEREKAM UTAMA -->
+        <!-- PUSAT KONTROL UTAMA -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-4">
             <div class="space-y-1">
                 <span id="timerDisplay" class="text-4xl sm:text-5xl font-mono font-bold text-slate-700 tracking-wider">00:00:00</span>
@@ -104,7 +106,7 @@
             </button>
         </div>
 
-        <!-- PROGRESS BOX PENGIRIMAN DENGAN PERSENTASE -->
+        <!-- PROGRESS BOX PENGIRIMAN -->
         <div id="uploadProgressContainer" class="hidden bg-white border border-blue-200 rounded-2xl p-4 shadow-sm space-y-2">
             <div class="flex items-center justify-between text-xs font-bold text-blue-900">
                 <span id="uploadStatusText">Sedang mengonversi MP3...</span>
@@ -113,7 +115,7 @@
             <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
                 <div id="uploadProgressBar" class="bg-blue-600 h-full w-0 transition-all duration-200"></div>
             </div>
-            <p id="uploadDetailSubtext" class="text-[10px] text-slate-500 italic">Mempersiapkan potongan 30 menitan agar AI presisi...</p>
+            <p id="uploadDetailSubtext" class="text-[10px] text-slate-500 italic">Mempersiapkan potongan 30 menitan...</p>
         </div>
 
         <!-- STATUS ALERT NOTIFIKASI -->
@@ -125,9 +127,14 @@
                 <h2 class="text-sm font-bold text-slate-700 flex items-center gap-1.5">
                     📅 Rekap Riwayat Koreksi Harian
                 </h2>
-                <button onclick="muatDataSheets()" class="text-xs text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition">
-                    🔄 Segarkan
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="hapusSemuaRiwayat()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 hover:bg-rose-100 px-2.5 py-1.5 rounded-xl transition flex items-center gap-1">
+                        🗑️ Hapus Semua
+                    </button>
+                    <button onclick="muatDataSheets()" class="text-xs text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition">
+                        🔄 Segarkan
+                    </button>
+                </div>
             </div>
 
             <div id="daftarHariContainer" class="space-y-2.5">
@@ -154,7 +161,7 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY DENGAN FULLSCREEN LOCK ANTI BADAN -->
+    <!-- POCKET MODE OVERLAY -->
     <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-6 select-none">
         <div class="w-full flex justify-between items-center border-b border-slate-900 pb-3">
             <span class="text-[10px] font-mono tracking-widest text-emerald-400 flex items-center gap-1">
@@ -193,10 +200,11 @@
     // State Rekaman
     let mediaRecorder = null;
     let audioChunks = [];
-    let audioSegments = [];
+    let audioSegments = []; // Array of Blobs
     let isRecording = false;
     let isPaused = false;
     let timerInterval = null;
+    let autoFlushInterval = null;
     let sessionBaseDurationMs = 0;
     let currentSegmentStartTime = 0;
     let currentElapsedMs = 0;
@@ -205,11 +213,11 @@
     let analyser = null;
     let wakeLock = null;
 
-    // Database Offline IndexedDB
-    const DB_NAME = "MurojaahLongAudioDB";
-    const STORE_NAME = "DraftStore";
+    // Database IndexedDB
+    const DB_NAME = "MurojaahPhysicalDiskDB_v3";
+    const STORE_NAME = "PhysicalAudioStore";
 
-    // DOM Elements
+    // DOM References
     const timerDisplay = document.getElementById('timerDisplay');
     const recStateSubtitle = document.getElementById('recStateSubtitle');
     const micMeter = document.getElementById('micMeter');
@@ -223,19 +231,16 @@
     const statusAlert = document.getElementById('statusAlert');
     const daftarHariContainer = document.getElementById('daftarHariContainer');
 
-    // Progress Elements
     const uploadProgressContainer = document.getElementById('uploadProgressContainer');
     const uploadStatusText = document.getElementById('uploadStatusText');
     const uploadPercentText = document.getElementById('uploadPercentText');
     const uploadProgressBar = document.getElementById('uploadProgressBar');
     const uploadDetailSubtext = document.getElementById('uploadDetailSubtext');
 
-    // DOM Widget Ayat Terakhir
     const lastAyatTitle = document.getElementById('lastAyatTitle');
     const lastAyatArab = document.getElementById('lastAyatArab');
     const lastAyatTime = document.getElementById('lastAyatTime');
 
-    // DOM Pocket
     const lockScreenBtn = document.getElementById('lockScreenBtn');
     const pocketLockScreen = document.getElementById('pocketLockScreen');
     const unlockPocketBtn = document.getElementById('unlockPocketBtn');
@@ -249,7 +254,6 @@
     let finishBtnArmed = false;
     let finishBtnTimeout = null;
 
-    // Modal Detail
     const fullscreenDetailModal = document.getElementById('fullscreenDetailModal');
     const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
     const modalDayTitle = document.getElementById('modalDayTitle');
@@ -257,13 +261,14 @@
     const modalDayBody = document.getElementById('modalDayBody');
 
     let riwayatGroupedByDate = {};
+    let totalBarisSheetSebelumnya = 0;
 
     // ========================================================================
-    // INDEXEDDB: AUTO-SAVE KEBAL REFRESH
+    // STORAGE FISIK INDEXEDDB (KONVERSI BINER ARRAYBUFFER ANTI-HILANG)
     // ========================================================================
     function openDB() {
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, 2);
+            const req = indexedDB.open(DB_NAME, 1);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -275,28 +280,66 @@
         });
     }
 
-    async function simpanDraftKeDB() {
+    // Mengubah Blob menjadi ArrayBuffer biner murni yang dipaksa tersimpan di harddisk HP
+    async function blobToArrayBuffer(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(blob);
+        });
+    }
+
+    async function simpanDraftFisikKeDB() {
+        if (audioSegments.length === 0) return;
         try {
+            // Konversi seluruh segmen Blob menjadi Buffer Biner
+            const buffers = [];
+            for (let seg of audioSegments) {
+                const buf = await blobToArrayBuffer(seg);
+                buffers.push({ buffer: buf, type: seg.type || 'audio/mp3' });
+            }
+
             const db = await openDB();
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).put({
-                segments: audioSegments,
-                totalMs: currentElapsedMs,
-                hint: surahHintInput.value,
-                updatedAt: Date.now()
-            }, "active_session");
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                const store = tx.objectStore(STORE_NAME);
+                const data = {
+                    buffers: buffers,
+                    totalMs: currentElapsedMs,
+                    hint: surahHintInput.value || '',
+                    timestamp: Date.now()
+                };
+                const req = store.put(data, "permanent_active_draft");
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => reject(req.error);
+            });
         } catch (e) {
-            console.error("Gagal auto-save DB:", e);
+            console.error("Gagal simpan fisik DB:", e);
         }
     }
 
-    async function ambilDraftDariDB() {
+    async function ambilDraftFisikDariDB() {
         try {
             const db = await openDB();
             return new Promise((resolve) => {
                 const tx = db.transaction(STORE_NAME, "readonly");
-                const req = tx.objectStore(STORE_NAME).get("active_session");
-                req.onsuccess = () => resolve(req.result || null);
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.get("permanent_active_draft");
+                req.onsuccess = () => {
+                    const res = req.result;
+                    if (!res || !res.buffers || res.buffers.length === 0) {
+                        resolve(null);
+                        return;
+                    }
+                    // Rekonstruksi kembali dari biner fisik ke Blob
+                    const blobs = res.buffers.map(item => new Blob([item.buffer], { type: item.type || 'audio/mp3' }));
+                    resolve({
+                        blobs: blobs,
+                        totalMs: res.totalMs || 0,
+                        hint: res.hint || ''
+                    });
+                };
                 req.onerror = () => resolve(null);
             });
         } catch (e) {
@@ -308,7 +351,7 @@
         try {
             const db = await openDB();
             const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).delete("active_session");
+            tx.objectStore(STORE_NAME).delete("permanent_active_draft");
         } catch (e) {}
     }
 
@@ -344,8 +387,15 @@
         return `${hrs.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
     }
 
+    function hitungTotalUkuranSegments() {
+        let total = 0;
+        for (let b of audioSegments) total += b.size;
+        if (total < 1024 * 1024) return (total / 1024).toFixed(1) + " KB";
+        return (total / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
     // ========================================================================
-    // PEREKAMAN
+    // PEREKAM SUARA DENGAN JAMINAN PERSISTENSI
     // ========================================================================
     async function startRecording() {
         await requestWakeLock();
@@ -356,7 +406,6 @@
             micStream = stream;
             audioChunks = [];
 
-            // Pastikan format recorder yang didukung
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
             else if (MediaRecorder.isTypeSupported('audio/mpeg')) mimeType = 'audio/mpeg';
@@ -367,23 +416,22 @@
                 if (e.data && e.data.size > 0) audioChunks.push(e.data);
             };
 
-            mediaRecorder.onstop = async () => {
-                if (audioChunks.length > 0) {
-                    const chunkBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    audioSegments.push(chunkBlob);
-                    audioChunks = [];
-                }
-                await simpanDraftKeDB();
-                renderDraftNotice();
-            };
-
-            mediaRecorder.start(4000); // chunk buffer 4 detik
+            mediaRecorder.start(3000); // chunk slice per 3 detik
             isRecording = true;
             isPaused = false;
             currentSegmentStartTime = Date.now();
 
             clearInterval(timerInterval);
             timerInterval = setInterval(updateTimerTick, 1000);
+
+            // Auto-Flush setiap 30 detik ke disk storage HP (Anti-Mati Mendadak)
+            clearInterval(autoFlushInterval);
+            autoFlushInterval = setInterval(async () => {
+                if (isRecording && !isPaused && mediaRecorder.state === 'recording') {
+                    mediaRecorder.requestData(); // paksa flush data chunk
+                }
+            }, 30000);
+
             initMicVisualizer(stream);
             updateUIStates();
         } catch (err) {
@@ -391,16 +439,45 @@
         }
     }
 
-    function pauseAndSaveDraft() {
+    // Tombol JEDA YANG 100% DIJAMIN MENYIMPAN KE HARDDISK HP
+    async function pauseAndSaveDraft() {
         if (!mediaRecorder || !isRecording || isPaused) return;
-        mediaRecorder.stop();
+
+        // Beri tahu user bahwa proses penyimpanan biner sedang berlangsung
+        recStateSubtitle.textContent = "Menyimpan ke memori fisik HP...";
+        pauseBtn.disabled = true;
+
+        clearInterval(timerInterval);
+        clearInterval(autoFlushInterval);
+
+        // Bungkus event stop agar kita MENUNGGU hingga data rekaman benar-benar masuk
+        await new Promise((resolve) => {
+            mediaRecorder.onstop = () => {
+                if (audioChunks.length > 0) {
+                    const chunkBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    audioSegments.push(chunkBlob);
+                    audioChunks = [];
+                }
+                resolve();
+            };
+            mediaRecorder.stop();
+        });
+
         if (micStream) micStream.getTracks().forEach(t => t.stop());
         
         isPaused = true;
         sessionBaseDurationMs = currentElapsedMs;
-        clearInterval(timerInterval);
+
+        // Simpan biner ke disk fisik IndexedDB
+        await simpanDraftFisikKeDB();
+
         updateUIStates();
-        tampilkanAlert("💾 <strong>Rekaman Dijeda & Aman di HP!</strong> Halaman bisa ditutup atau direfresh kapan saja tanpa hilang.", "bg-amber-50 text-amber-800 border-amber-200");
+        renderDraftNotice();
+
+        tampilkanAlert(
+            `💾 <strong>TERSIMPAN PERMANEN DI HP!</strong><br>Durasi: <b>${formatTime(currentElapsedMs)}</b> (${hitungTotalUkuranSegments()}).<br>Aman ditutup, direfresh, atau dilanjutkan besok/kapan saja.`,
+            "bg-emerald-50 text-emerald-900 border-emerald-300"
+        );
     }
 
     function resumeRecording() {
@@ -451,7 +528,7 @@
             pauseBtn.disabled = true;
             pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
             finishBtn.classList.toggle('hidden', !hasSegments);
-            recStateSubtitle.textContent = hasSegments ? "Rekaman dijeda (Tersimpan aman di HP)" : "Siap merekam hafalan Anda";
+            recStateSubtitle.textContent = hasSegments ? "Rekaman terjeda (Tersimpan aman di memori HP)" : "Siap merekam hafalan Anda";
             
             pocketStatusText.textContent = hasSegments ? "⏸️ Terjeda & Siap Lanjut" : "Standby";
             pocketActionBtn.textContent = hasSegments ? "▶️ Lanjutkan Rekam (Ketuk 2x)" : "🔴 Mulai Rekam (Ketuk 2x)";
@@ -476,7 +553,7 @@
             pauseBtn.disabled = true;
             pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
             finishBtn.classList.remove('hidden');
-            recStateSubtitle.textContent = "Dijeda (Otomatis tersimpan aman)";
+            recStateSubtitle.textContent = `Dijeda (Tersimpan di Disk: ${hitungTotalUkuranSegments()})`;
 
             pocketStatusText.textContent = "⏸️ Rekaman Dijeda";
             pocketActionBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
@@ -488,7 +565,7 @@
     function renderDraftNotice() {
         if (audioSegments.length > 0 && !isRecording) {
             draftNoticeBox.classList.remove('hidden');
-            draftDurationText.textContent = `Durasi: ${formatTime(currentElapsedMs)} (${audioSegments.length} potongan)`;
+            draftDurationText.textContent = `Durasi: ${formatTime(currentElapsedMs)} (${hitungTotalUkuranSegments()})`;
             finishBtn.classList.remove('hidden');
         } else {
             draftNoticeBox.classList.add('hidden');
@@ -503,7 +580,7 @@
     pauseBtn.addEventListener('click', pauseAndSaveDraft);
 
     discardDraftBtn.addEventListener('click', async () => {
-        if (confirm("Hapus draf rekaman saat ini?")) {
+        if (confirm("Hapus seluruh draf rekaman ini dari memori HP?")) {
             audioSegments = [];
             currentElapsedMs = 0;
             sessionBaseDurationMs = 0;
@@ -512,12 +589,12 @@
             await hapusDraftDariDB();
             renderDraftNotice();
             updateUIStates();
-            tampilkanAlert("🗑️ Draft rekaman dibatalkan.", "bg-slate-100 text-slate-700 border-slate-200");
+            tampilkanAlert("🗑️ Draft di memori fisik HP telah dibersihkan.", "bg-slate-100 text-slate-700 border-slate-200");
         }
     });
 
     // ========================================================================
-    // SELESAI & KIRIM DENGAN PERSENTASE REALTIME (AUTO 30 MENIT MP3)
+    // AUTO-POLLING SINKRON SHEET
     // ========================================================================
     function updateProgress(percent, statusMsg, subMsg) {
         uploadProgressContainer.classList.remove('hidden');
@@ -527,29 +604,55 @@
         if (subMsg) uploadDetailSubtext.textContent = subMsg;
     }
 
+    async function pantauSampaiSheetTerisi(totalSebelumnya) {
+        let attempts = 0;
+        const maxAttempts = 60;
+        
+        while (attempts < maxAttempts) {
+            attempts++;
+            updateProgress(
+                Math.min(99, 90 + Math.floor((attempts / maxAttempts) * 9)),
+                `AI Sedang Mentashih (${attempts * 3} dtk)...`,
+                "Menunggu Google Sheet mencatat hasil..."
+            );
+
+            try {
+                const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
+                const data = await res.json();
+                
+                if (Array.isArray(data) && data.length > totalSebelumnya) {
+                    updateProgress(100, "100% Selesai Ditashih!", "Membuka hasil evaluasi...");
+                    await new Promise(r => setTimeout(r, 600));
+                    uploadProgressContainer.classList.add('hidden');
+                    tampilkanAlert("🎉 <strong>Selesai Ditashih!</strong> Evaluasi murojaah Anda telah ditampilkan.", "bg-emerald-50 text-emerald-800 border-emerald-200");
+                    await muatDataSheets(true);
+                    return;
+                }
+            } catch (err) {}
+
+            await new Promise(r => setTimeout(r, 3000));
+        }
+
+        uploadProgressContainer.classList.add('hidden');
+        tampilkanAlert("⚠️ AI sedang sibuk. Silakan klik tombol '🔄 Segarkan' beberapa saat lagi.", "bg-amber-50 text-amber-800 border-amber-200");
+        await muatDataSheets();
+    }
+
     async function prosesSelesaiDanKirim() {
         if (audioSegments.length === 0 && !isRecording) {
-            alert("Belum ada audio rekaman.");
+            alert("Belum ada rekaman audio.");
             return;
         }
 
         if (isRecording) {
-            mediaRecorder.stop();
-            if (micStream) micStream.getTracks().forEach(t => t.stop());
-            clearInterval(timerInterval);
-            isRecording = false;
-            isPaused = false;
-            await new Promise(r => setTimeout(r, 600));
+            await pauseAndSaveDraft();
         }
 
         finishBtn.disabled = true;
-        updateProgress(5, "Menggabungkan audio...", "Menyiapkan file MP3 murni...");
+        updateProgress(5, "Menggabungkan rekaman MP3...", "Menyatukan potongan fisik...");
 
         try {
-            // Memastikan type selalu audio/mp3 agar AI mengenali ekstensi tanpa error
             const combinedBlob = new Blob(audioSegments, { type: 'audio/mp3' });
-            
-            // Batasi batch per 30 menit (1800000 ms)
             const THIRTY_MIN_MS = 30 * 60 * 1000;
             const totalBatches = Math.max(1, Math.ceil(currentElapsedMs / THIRTY_MIN_MS));
             
@@ -558,7 +661,6 @@
             const totalBytes = combinedBlob.size;
             const bytesPerBatch = Math.ceil(totalBytes / totalBatches);
 
-            // Total upload percent dialokasikan dari 20% sampai 90%
             for (let b = 0; b < totalBatches; b++) {
                 const startByte = b * bytesPerBatch;
                 const endByte = Math.min(startByte + bytesPerBatch, totalBytes);
@@ -569,14 +671,12 @@
                     updateProgress(
                         globalProgress, 
                         `Mengirim Bagian ${b + 1}/${totalBatches} (${Math.round(batchPct * 100)}%)...`,
-                        `Format: MP3 | Bagian ${b + 1} dari ${totalBatches}`
+                        `Format: MP3 Murni | Bagian ${b + 1} dari ${totalBatches}`
                     );
                 });
             }
 
-            updateProgress(95, "Selesai Mengunggah!", "Menunggu AI mencatat ke Google Sheet...");
-
-            // Bersihkan data lokal
+            // Bersihkan storage setelah sukses
             audioSegments = [];
             currentElapsedMs = 0;
             sessionBaseDurationMs = 0;
@@ -586,28 +686,23 @@
             timerDisplay.textContent = "00:00:00";
             pocketTimer.textContent = "00:00:00";
 
-            // Polling sampai Sheet update lalu buka otomatis
-            updateProgress(100, "100% Selesai!", "Membuka hasil evaluasi...");
-            setTimeout(async () => {
-                uploadProgressContainer.classList.add('hidden');
-                tampilkanAlert("🎉 <strong>Alhamdulillah Sukses!</strong> AI selesai memeriksa bacaan Anda.", "bg-emerald-50 text-emerald-800 border-emerald-200");
-                await muatDataSheets(true); // Param true: auto-open hari ini
-            }, 3000);
+            updateProgress(90, "Audio Terkirim ke Server AI!", "Menunggu Google Sheet mencatat hasil...");
+            await pantauSampaiSheetTerisi(totalBarisSheetSebelumnya);
 
         } catch (err) {
             uploadProgressContainer.classList.add('hidden');
-            tampilkanAlert("❌ Gagal mengirim: " + err.message + ". Berkas tetap aman di draf HP.", "bg-rose-50 text-rose-800 border-rose-200");
+            tampilkanAlert("❌ Gagal mengirim: " + err.message + ". Berkas tetap aman di memori HP Anda.", "bg-rose-50 text-rose-800 border-rose-200");
         } finally {
             finishBtn.disabled = false;
         }
     }
 
     async function kirimAudioKeServerWithProgress(blob, partIndex, totalParts, hint, onProgress) {
-        const CHUNK_SIZE = 1024 * 1024; // 1 MB per transmisi
+        const CHUNK_SIZE = 1024 * 1024;
         const totalSize = blob.size;
         const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
         const fileId = `sesi_${Date.now()}_part${partIndex}`;
-        const filename = `${fileId}.mp3`; // Ekstensi mutlak .mp3
+        const filename = `${fileId}.mp3`;
 
         for (let c = 0; c < totalChunks; c++) {
             const start = c * CHUNK_SIZE;
@@ -640,7 +735,7 @@
     }
 
     // ========================================================================
-    // MODE SAKU (FULLSCREEN & ANTI-SALAH PENCET)
+    // MODE SAKU (FULLSCREEN & ANTI SALAH KETUK)
     // ========================================================================
     function enterPocketMode() {
         pocketLockScreen.classList.remove('hidden');
@@ -713,12 +808,11 @@
     });
 
     // ========================================================================
-    // PARSER & EKSTRAK AYAT TERAKHIR SESUAI TEMPLATE SHEET
+    // PARSER & EKSTRAK AYAT
     // ========================================================================
     function ekstrakAyatTerakhirDariSheet(teksKolomC) {
         if (!teksKolomC) return null;
 
-        // Mencari format template: "AYAT TERAKHIR YANG ... DIBACA ...: NamaSurah Ayat XX \n Teks Arab"
         const regexHeader = /AYAT TERAKHIR YANG[\s\S]*?:\s*([^\n\r=]+)/i;
         const matchHeader = teksKolomC.match(regexHeader);
         
@@ -727,7 +821,6 @@
 
         if (matchHeader) {
             labelSurah = matchHeader[1].trim();
-            // Ambil baris berikutnya sebelum garis pembatas "=====" sebagai teks Arab
             const setelahHeader = teksKolomC.substring(matchHeader.index + matchHeader[0].length);
             const lines = setelahHeader.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
@@ -738,7 +831,6 @@
         }
 
         if (!labelSurah && !teksArab) {
-            // Fallback jika format berbeda
             const baris = teksKolomC.split('\n').filter(b => b.trim().length > 0);
             return {
                 judul: "Hafalan Terakhir",
@@ -774,16 +866,16 @@
             const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
             const data = await res.json();
             if (!Array.isArray(data) || data.length === 0) {
+                totalBarisSheetSebelumnya = 0;
                 daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Belum ada riwayat rekaman di database.</div>`;
                 lastAyatTitle.textContent = "Belum Ada Data";
                 lastAyatArab.textContent = "Silakan mulai rekaman murojaah pertama Anda.";
                 return;
             }
 
-            // AMBIL BARIS PALING ATAS (Data paling baru)
+            totalBarisSheetSebelumnya = data.length;
+
             const rowTerbaru = data[0];
-            
-            // Ekstrak ayat terakhir
             const parsedAyat = ekstrakAyatTerakhirDariSheet(rowTerbaru.bacaan || rowTerbaru.transkrip || rowTerbaru.koreksi || '');
             if (parsedAyat) {
                 lastAyatTitle.textContent = `📍 ${parsedAyat.judul}`;
@@ -791,11 +883,10 @@
             }
             lastAyatTime.textContent = rowTerbaru.waktu ? new Date(rowTerbaru.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "Baru saja";
 
-            // Kelompokkan data per hari
             riwayatGroupedByDate = {};
             let todayKey = null;
 
-            data.forEach(item => {
+            data.forEach((item, index) => {
                 const dateObj = item.waktu ? new Date(item.waktu) : new Date();
                 const dateKey = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 const isToday = (new Date().toDateString() === dateObj.toDateString());
@@ -807,7 +898,8 @@
                         tanggalStr: dateKey,
                         items: [],
                         totalKoreksi: 0,
-                        isToday: isToday
+                        isToday: isToday,
+                        rawIndices: []
                     };
                 }
 
@@ -816,12 +908,12 @@
                     raw: item,
                     koreksiList: listKoreksi
                 });
+                riwayatGroupedByDate[dateKey].rawIndices.push(index);
                 riwayatGroupedByDate[dateKey].totalKoreksi += listKoreksi.length;
             });
 
             renderGroupedDays();
 
-            // Jika dipanggil setelah upload 100%, langsung buka modal hari ini
             if (autoOpenToday && todayKey) {
                 bukaRekapHari(todayKey);
             }
@@ -855,9 +947,14 @@
                         <strong class="${dayGroup.totalKoreksi > 0 ? 'text-rose-600' : 'text-emerald-600'}">${dayGroup.totalKoreksi} Koreksi</strong>
                     </p>
                 </div>
-                <button onclick="bukaRekapHari('${key}')" class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition">
-                    Lihat Hasil
-                </button>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="hapusRiwayatPerHari('${key}')" title="Hapus Riwayat Hari Ini" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold p-2.5 rounded-xl text-xs transition">
+                        🗑️
+                    </button>
+                    <button onclick="bukaRekapHari('${key}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition">
+                        Lihat Hasil
+                    </button>
+                </div>
             `;
             daftarHariContainer.appendChild(card);
         });
@@ -917,11 +1014,58 @@
         document.body.style.overflow = "";
     });
 
-    // Restore Draft saat Refresh
+    // ========================================================================
+    // FITUR HAPUS TOTAL & PER HARI
+    // ========================================================================
+    window.hapusSemuaRiwayat = async function() {
+        if (!confirm("⚠️ PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat murojaah di Google Sheet?")) {
+            return;
+        }
+
+        tampilkanAlert("⏳ Sedang menghapus seluruh riwayat...", "bg-amber-50 text-amber-800 border-amber-200");
+        try {
+            await fetch(GSCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteAll' })
+            });
+
+            tampilkanAlert("🗑️ Seluruh riwayat berhasil dihapus.", "bg-slate-100 text-slate-700 border-slate-200");
+            setTimeout(muatDataSheets, 1500);
+        } catch (e) {
+            alert("Gagal menghapus: " + e.message);
+        }
+    };
+
+    window.hapusRiwayatPerHari = async function(dateKey) {
+        if (!confirm(`Hapus seluruh riwayat rekaman untuk hari: ${dateKey}?`)) {
+            return;
+        }
+
+        tampilkanAlert(`⏳ Sedang menghapus riwayat ${dateKey}...`, "bg-amber-50 text-amber-800 border-amber-200");
+        try {
+            await fetch(GSCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteDay', tanggal: dateKey })
+            });
+
+            tampilkanAlert(`🗑️ Riwayat ${dateKey} berhasil dibersihkan.`, "bg-slate-100 text-slate-700 border-slate-200");
+            setTimeout(muatDataSheets, 1500);
+        } catch (e) {
+            alert("Gagal menghapus: " + e.message);
+        }
+    };
+
+    // ========================================================================
+    // PEMULIHAN DRAFT FISIK OTOMATIS SAAT BROWSER DIBUKA
+    // ========================================================================
     async function periksaDraftPemulihan() {
-        const savedDraft = await ambilDraftDariDB();
-        if (savedDraft && savedDraft.segments && savedDraft.segments.length > 0) {
-            audioSegments = savedDraft.segments;
+        const savedDraft = await ambilDraftFisikDariDB();
+        if (savedDraft && savedDraft.blobs && savedDraft.blobs.length > 0) {
+            audioSegments = savedDraft.blobs;
             currentElapsedMs = savedDraft.totalMs || 0;
             sessionBaseDurationMs = currentElapsedMs;
             if (savedDraft.hint) surahHintInput.value = savedDraft.hint;
@@ -931,10 +1075,14 @@
             isPaused = true;
             renderDraftNotice();
             updateUIStates();
+            tampilkanAlert(
+                `🔄 <strong>Draf Sebelumnya Dipulihkan!</strong><br>Durasi: <b>${formatTime(currentElapsedMs)}</b> (${hitungTotalUkuranSegments()}). Anda bisa langsung melanjutkan rekam.`,
+                "bg-emerald-50 text-emerald-800 border-emerald-300"
+            );
         }
     }
 
-    // Start Up
+    // Inisialisasi Pertama
     window.addEventListener('DOMContentLoaded', () => {
         initKeepAliveCanvas();
         requestWakeLock();
