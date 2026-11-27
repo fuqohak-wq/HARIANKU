@@ -15,7 +15,7 @@
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
-        .pocket-touch-btn { touch-action: manipulation; }
+        .pocket-btn { touch-action: manipulation; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
@@ -28,7 +28,7 @@
         <div class="max-w-xl mx-auto flex items-center justify-between">
             <div>
                 <h1 class="text-lg font-bold flex items-center gap-2">🕌 Asisten Murojaah AI</h1>
-                <p class="text-[11px] text-emerald-100 mt-0.5">Format MP3 Khusus AI & Mampu Rekam 3+ Jam</p>
+                <p class="text-[11px] text-emerald-100 mt-0.5">Stabil Rekam 3+ Jam & Mode Saku Protektif</p>
             </div>
             <button id="lockScreenBtn" class="bg-emerald-800 hover:bg-emerald-900 border border-emerald-500/50 text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                 🔒 Mode Saku
@@ -59,22 +59,6 @@
             </p>
         </div>
 
-        <!-- NOTIFIKASI DRAFT REKAMAN TERSIMPAN DI STORAGE HP -->
-        <div id="draftNoticeBox" class="hidden bg-emerald-50 border border-emerald-300 rounded-2xl p-4 transition-all">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                        <span class="text-emerald-600">💾</span> Draf Tersimpan di Storage HP
-                    </span>
-                    <p id="draftDurationText" class="text-xs text-emerald-700 mt-0.5">Durasi: 00:00:00 (0 KB)</p>
-                    <p class="text-[10px] text-emerald-600 mt-0.5">Aman ditinggal/tutup browser, bisa disambung kapan saja.</p>
-                </div>
-                <button id="discardDraftBtn" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1">
-                    Hapus Draf
-                </button>
-            </div>
-        </div>
-
         <!-- PUSAT KONTROL UTAMA -->
         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-4">
             <div class="space-y-1">
@@ -91,35 +75,57 @@
             <input type="text" id="surahHintInput" placeholder="🎯 Target surah (Contoh: Al-Baqarah 1-141 / Juz 1-3)" 
                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
 
-            <!-- Tombol Aksi Utama -->
+            <!-- Tombol Aksi Utama (1 Kali Klik) -->
             <div class="grid grid-cols-2 gap-3 pt-1">
                 <button id="mainRecBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
                     🔴 Mulai Rekam
                 </button>
                 <button id="pauseBtn" disabled class="bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
-                    ⏸️ Jeda & Simpan
+                    ⏸️ Jeda
                 </button>
             </div>
 
-            <button id="finishBtn" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+            <button id="finishBtn" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
                 🚀 Selesai & Kirim ke AI (Format MP3)
             </button>
         </div>
 
-        <!-- PROGRESS BOX PENGIRIMAN -->
+        <!-- PROGRESS BOX PENGIRIMAN DENGAN PERSENTASE REAL-TIME -->
         <div id="uploadProgressContainer" class="hidden bg-white border border-blue-200 rounded-2xl p-4 shadow-sm space-y-2">
             <div class="flex items-center justify-between text-xs font-bold text-blue-900">
-                <span id="uploadStatusText">Sedang menyiapkan MP3...</span>
+                <span id="uploadStatusText">Sedang menyiapkan berkas MP3...</span>
                 <span id="uploadPercentText" class="font-mono text-sm text-blue-600">0%</span>
             </div>
             <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
                 <div id="uploadProgressBar" class="bg-blue-600 h-full w-0 transition-all duration-200"></div>
             </div>
-            <p id="uploadDetailSubtext" class="text-[10px] text-slate-500 italic">Mengirim audio dalam format MP3 agar AI mengenali tanpa galat 401...</p>
+            <p id="uploadDetailSubtext" class="text-[10px] text-slate-500 italic">Mengirim format MP3 resmi agar AI mengenali tanpa galat 401...</p>
         </div>
 
         <!-- STATUS ALERT NOTIFIKASI -->
         <div id="statusAlert" class="hidden p-4 rounded-2xl text-xs font-semibold border leading-relaxed"></div>
+
+        <!-- ARSIP AUDIO REKAMAN HARI INI -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 space-y-3">
+            <div class="flex items-center justify-between border-b pb-2.5 border-slate-100">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        📁 Arsip Rekaman Audio Hari Ini
+                        <span id="archiveCountBadge" class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0 File</span>
+                    </h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Tersimpan aman di HP. Otomatis bersih saat berganti hari.</p>
+                </div>
+                <button onclick="bersihkanSemuaArsipManual()" class="text-[10px] text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 bg-rose-50 rounded-lg">
+                    Kosongkan Arsip
+                </button>
+            </div>
+
+            <div id="dailyArchiveContainer" class="space-y-3">
+                <div class="p-4 text-center text-xs text-slate-400 italic">
+                    Belum ada rekaman yang diselesaikan hari ini.
+                </div>
+            </div>
+        </div>
 
         <!-- REKAP RIWAYAT KOREKSI PER HARI -->
         <div class="space-y-3">
@@ -161,7 +167,7 @@
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY -->
+    <!-- POCKET MODE OVERLAY (PROTEKSI KETUK 2x & TIDAK KELUAR KE LAYAR UTAMA SAAT SELESAI) -->
     <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-6 select-none">
         <div class="w-full flex justify-between items-center border-b border-slate-900 pb-3">
             <span class="text-[10px] font-mono tracking-widest text-emerald-400 flex items-center gap-1">
@@ -171,24 +177,36 @@
         </div>
 
         <div class="text-center space-y-3 my-auto w-full max-w-xs">
-            <div class="text-4xl">🛡️</div>
+            <div id="pocketIcon" class="text-4xl">🛡️</div>
             <p id="pocketStatusText" class="text-xs font-semibold text-slate-300">Standby</p>
-            <p class="text-[10px] text-slate-500">
-                Layar diproteksi dari sentuhan badan.<br>Semua tombol membutuhkan <b>2x ketukan cepat</b>.
+            <p id="pocketSubText" class="text-[10px] text-slate-500">
+                Layar aman dari sentuhan badan / saat sepedaan.<br>Semua tombol butuh <b>2x ketukan cepat</b>.
             </p>
 
-            <div class="space-y-2.5 pt-2">
-                <button id="pocketActionBtn" class="pocket-touch-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition active:bg-slate-800">
+            <!-- INDIKATOR PENGIRIMAN KHUSUS DARI DALAM SAKU -->
+            <div id="pocketProgressArea" class="hidden space-y-1.5 pt-2">
+                <div class="flex justify-between text-[11px] font-mono text-emerald-400">
+                    <span id="pocketProgressLabel">Mengirim MP3 ke AI...</span>
+                    <span id="pocketProgressPct">0%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+                    <div id="pocketProgressBar" class="bg-emerald-500 h-full w-0 transition-all duration-200"></div>
+                </div>
+            </div>
+
+            <!-- TOMBOL AKSI MODE SAKU (DOUBLE TAP 2X) -->
+            <div id="pocketActionControls" class="space-y-2.5 pt-2">
+                <button id="pocketActionBtn" class="pocket-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition">
                     🔴 Mulai Rekam (Ketuk 2x)
                 </button>
 
-                <button id="pocketFinishBtn" class="pocket-touch-btn hidden w-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition active:bg-blue-900">
+                <button id="pocketFinishBtn" class="pocket-btn hidden w-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition">
                     🚀 Selesai & Kirim ke AI (Ketuk 2x)
                 </button>
             </div>
         </div>
 
-        <button id="unlockPocketBtn" class="pocket-touch-btn w-full max-w-xs bg-slate-900/90 border border-slate-800 hover:bg-slate-800 text-slate-400 font-semibold text-[11px] py-3 rounded-2xl transition">
+        <button id="unlockPocketBtn" class="pocket-btn w-full max-w-xs bg-slate-900/90 border border-slate-800 hover:bg-slate-800 text-slate-400 font-semibold text-[11px] py-3 rounded-2xl transition">
             🔓 Buka Kunci Saku (PIN: 123)
         </button>
     </div>
@@ -197,31 +215,33 @@
     const BACKEND_URL = "https://fuqohak88-murojaah-backend.hf.space/upload";
     const GSCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFmHspd31V3Kh1W3dO9x4ncQ81v-2y_04UdUpnKqttF3xLE6tBpfVx1wTI2eO5-12y/exec";
 
-    // Durasi per segmen internal: 15 menit (agar RAM HP tetap segar & aman untuk 3-5 jam)
-    const MAX_SEGMENT_DURATION_MS = 15 * 60 * 1000;
-    const AUDIO_BITRATE = 32000; // 32 kbps mono: Suara tajwid jernih, hemat kuota & RAM
-
     // State Rekaman
     let mediaRecorder = null;
-    let activeRecordedChunks = [];
-    let savedAudioBatches = []; 
+    let recordedChunks = [];
     let isRecording = false;
     let isPaused = false;
     let timerInterval = null;
-    let segmentWatcherInterval = null;
-    let sessionBaseDurationMs = 0;
-    let currentSegmentStartTime = 0;
-    let currentElapsedMs = 0;
+    let autoSaveInterval = null;
+    let startTime = 0;
+    let totalElapsedMs = 0;
     let micStream = null;
     let audioCtx = null;
     let analyser = null;
     let wakeLock = null;
+    let isSending = false;
+
+    // Armed State khusus Mode Saku (Ketuk 2x)
+    let pocketActionArmed = false;
+    let pocketActionTimeout = null;
+    let pocketFinishArmed = false;
+    let pocketFinishTimeout = null;
 
     // Database IndexedDB
-    const DB_NAME = "MurojaahCleanAudioDB_v6";
-    const STORE_NAME = "AudioSegmentsStore";
+    const DB_NAME = "MurojaahDailyAudioDB_v2";
+    const STORE_SNAPSHOT = "ActiveSnapshotStore";
+    const STORE_ARCHIVE = "DailyAudioArchiveStore";
 
-    // DOM References
+    // DOM Elements
     const timerDisplay = document.getElementById('timerDisplay');
     const recStateSubtitle = document.getElementById('recStateSubtitle');
     const micMeter = document.getElementById('micMeter');
@@ -229,11 +249,11 @@
     const mainRecBtn = document.getElementById('mainRecBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const finishBtn = document.getElementById('finishBtn');
-    const draftNoticeBox = document.getElementById('draftNoticeBox');
-    const draftDurationText = document.getElementById('draftDurationText');
-    const discardDraftBtn = document.getElementById('discardDraftBtn');
     const statusAlert = document.getElementById('statusAlert');
     const daftarHariContainer = document.getElementById('daftarHariContainer');
+
+    const dailyArchiveContainer = document.getElementById('dailyArchiveContainer');
+    const archiveCountBadge = document.getElementById('archiveCountBadge');
 
     const uploadProgressContainer = document.getElementById('uploadProgressContainer');
     const uploadStatusText = document.getElementById('uploadStatusText');
@@ -250,13 +270,15 @@
     const unlockPocketBtn = document.getElementById('unlockPocketBtn');
     const pocketTimer = document.getElementById('pocketTimer');
     const pocketStatusText = document.getElementById('pocketStatusText');
+    const pocketSubText = document.getElementById('pocketSubText');
     const pocketActionBtn = document.getElementById('pocketActionBtn');
     const pocketFinishBtn = document.getElementById('pocketFinishBtn');
-
-    let actionBtnArmed = false;
-    let actionBtnTimeout = null;
-    let finishBtnArmed = false;
-    let finishBtnTimeout = null;
+    const pocketProgressArea = document.getElementById('pocketProgressArea');
+    const pocketProgressLabel = document.getElementById('pocketProgressLabel');
+    const pocketProgressPct = document.getElementById('pocketProgressPct');
+    const pocketProgressBar = document.getElementById('pocketProgressBar');
+    const pocketActionControls = document.getElementById('pocketActionControls');
+    const pocketIcon = document.getElementById('pocketIcon');
 
     const fullscreenDetailModal = document.getElementById('fullscreenDetailModal');
     const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
@@ -267,24 +289,19 @@
     let riwayatGroupedByDate = {};
     let totalBarisSheetSebelumnya = 0;
 
-    // Pilihan tipe rekaman
-    function getBestAudioType() {
-        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) return 'audio/webm;codecs=opus';
-        if (MediaRecorder.isTypeSupported('audio/mp4')) return 'audio/mp4';
-        if (MediaRecorder.isTypeSupported('audio/webm')) return 'audio/webm';
-        return '';
-    }
-
     // ========================================================================
-    // STORAGE INDEXEDDB (ANTI MEMORY-LEAK / ANTI OOM)
+    // INDEXEDDB DIRECT STORAGE
     // ========================================================================
     function openDB() {
         return new Promise((resolve, reject) => {
             const req = indexedDB.open(DB_NAME, 1);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    db.createObjectStore(STORE_NAME);
+                if (!db.objectStoreNames.contains(STORE_SNAPSHOT)) {
+                    db.createObjectStore(STORE_SNAPSHOT);
+                }
+                if (!db.objectStoreNames.contains(STORE_ARCHIVE)) {
+                    db.createObjectStore(STORE_ARCHIVE, { keyPath: "id" });
                 }
             };
             req.onsuccess = () => resolve(req.target.result);
@@ -292,63 +309,190 @@
         });
     }
 
-    async function simpanDraftFisikKeDB() {
-        if (savedAudioBatches.length === 0) return;
+    async function simpanSnapshotKeDisk(blob, durationMs, hint) {
         try {
             const db = await openDB();
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, "readwrite");
-                const store = tx.objectStore(STORE_NAME);
-                const req = store.put({
-                    blobs: savedAudioBatches,
-                    totalMs: currentElapsedMs,
-                    hint: surahHintInput.value || '',
-                    timestamp: Date.now()
-                }, "valid_batches");
-                req.onsuccess = () => resolve(true);
-                req.onerror = () => reject(req.error);
-            });
-        } catch (e) {
-            console.error("Gagal simpan fisik:", e);
-        }
-    }
-
-    async function ambilDraftFisikDariDB() {
-        try {
-            const db = await openDB();
-            return new Promise((resolve) => {
-                const tx = db.transaction(STORE_NAME, "readonly");
-                const store = tx.objectStore(STORE_NAME);
-                const req = store.get("valid_batches");
-                req.onsuccess = () => {
-                    const res = req.result;
-                    if (!res || !res.blobs || res.blobs.length === 0) {
-                        resolve(null);
-                        return;
-                    }
-                    resolve({
-                        blobs: res.blobs,
-                        totalMs: res.totalMs || 0,
-                        hint: res.hint || ''
-                    });
-                };
-                req.onerror = () => resolve(null);
-            });
-        } catch (e) {
-            return null;
-        }
-    }
-
-    async function hapusDraftDariDB() {
-        try {
-            const db = await openDB();
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).delete("valid_batches");
+            const tx = db.transaction(STORE_SNAPSHOT, "readwrite");
+            tx.objectStore(STORE_SNAPSHOT).put({
+                blob: blob,
+                durationMs: durationMs,
+                hint: hint || '',
+                timestamp: Date.now()
+            }, "current_active_recording");
         } catch (e) {}
     }
 
+    async function hapusSnapshotDariDisk() {
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_SNAPSHOT, "readwrite");
+            tx.objectStore(STORE_SNAPSHOT).delete("current_active_recording");
+        } catch (e) {}
+    }
+
+    async function simpanKeArsipHarian(blob, durationMs, hint) {
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_ARCHIVE, "readwrite");
+            const now = new Date();
+            const record = {
+                id: `sesi_${Date.now()}`,
+                dateKey: now.toDateString(),
+                timestamp: now.getTime(),
+                timeStr: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                blob: blob,
+                durationMs: durationMs,
+                hint: hint || 'Murojaah'
+            };
+            tx.objectStore(STORE_ARCHIVE).put(record);
+            await new Promise(r => tx.oncomplete = r);
+            await muatDanBersihkanArsipHarian();
+            return record.id;
+        } catch (e) {
+            console.error("Gagal simpan arsip:", e);
+        }
+    }
+
+    async function muatDanBersihkanArsipHarian() {
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_ARCHIVE, "readwrite");
+            const store = tx.objectStore(STORE_ARCHIVE);
+            const req = store.getAll();
+
+            req.onsuccess = () => {
+                const list = req.result || [];
+                const todayStr = new Date().toDateString();
+                const todayList = [];
+
+                list.forEach(item => {
+                    if (item.dateKey !== todayStr) {
+                        store.delete(item.id);
+                    } else {
+                        todayList.push(item);
+                    }
+                });
+
+                todayList.sort((a, b) => b.timestamp - a.timestamp);
+                renderTampilanArsip(todayList);
+            };
+        } catch (e) {
+            console.warn("Gagal memuat arsip harian:", e);
+        }
+    }
+
+    async function hapusSatuArsip(id) {
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_ARCHIVE, "readwrite");
+            tx.objectStore(STORE_ARCHIVE).delete(id);
+            tx.oncomplete = () => muatDanBersihkanArsipHarian();
+        } catch (e) {}
+    }
+
+    window.bersihkanSemuaArsipManual = async function() {
+        if (!confirm("Kosongkan seluruh arsip audio rekaman hari ini?")) return;
+        try {
+            const db = await openDB();
+            const tx = db.transaction(STORE_ARCHIVE, "readwrite");
+            tx.objectStore(STORE_ARCHIVE).clear();
+            tx.oncomplete = () => {
+                muatDanBersihkanArsipHarian();
+                tampilkanAlert("🗑️ Arsip audio hari ini telah dikosongkan.", "bg-slate-100 text-slate-700 border-slate-200");
+            };
+        } catch (e) {}
+    };
+
+    function renderTampilanArsip(list) {
+        archiveCountBadge.textContent = `${list.length} File`;
+        if (list.length === 0) {
+            dailyArchiveContainer.innerHTML = `
+                <div class="p-4 text-center text-xs text-slate-400 italic">
+                    Belum ada rekaman yang diselesaikan hari ini.
+                </div>
+            `;
+            return;
+        }
+
+        dailyArchiveContainer.innerHTML = "";
+        list.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = "p-3 sm:p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2.5";
+            
+            const durasiStr = formatTime(item.durationMs || 0);
+            const sizeStr = formatSize(item.blob ? item.blob.size : 0);
+            const audioUrl = URL.createObjectURL(item.blob);
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-800">
+                        🎙️ Sesi #${list.length - idx} (${item.timeStr}) &bull; <span class="text-emerald-700 font-mono">${durasiStr}</span>
+                    </span>
+                    <span class="text-[11px] font-mono text-slate-400">${sizeStr}</span>
+                </div>
+                
+                <audio controls src="${audioUrl}" class="w-full h-8 accent-emerald-600 rounded"></audio>
+
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <span class="text-[10px] text-slate-500 truncate max-w-[140px] sm:max-w-xs">
+                        🎯 ${item.hint || 'Murojaah'}
+                    </span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="downloadArsip('${item.id}')" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition">
+                            ⬇️ Simpan
+                        </button>
+                        <button onclick="kirimUlangDariArsip('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-3 py-1 rounded-lg shadow-sm transition">
+                            🔄 Analisa Ulang
+                        </button>
+                        <button onclick="hapusSatuArsip('${item.id}')" class="text-rose-600 hover:text-rose-800 p-1 text-xs">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+            dailyArchiveContainer.appendChild(card);
+        });
+    }
+
+    window.downloadArsip = async function(id) {
+        const db = await openDB();
+        const tx = db.transaction(STORE_ARCHIVE, "readonly");
+        const req = tx.objectStore(STORE_ARCHIVE).get(id);
+        req.onsuccess = () => {
+            const item = req.result;
+            if (item && item.blob) {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(item.blob);
+                a.download = `Murojaah_${item.timeStr.replace(':','-')}.mp3`;
+                a.click();
+            }
+        };
+    };
+
+    window.kirimUlangDariArsip = async function(id) {
+        if (isSending) {
+            alert("Sedang ada proses pengiriman lain yang berjalan.");
+            return;
+        }
+        const db = await openDB();
+        const tx = db.transaction(STORE_ARCHIVE, "readonly");
+        const req = tx.objectStore(STORE_ARCHIVE).get(id);
+        req.onsuccess = async () => {
+            const item = req.result;
+            if (item && item.blob) {
+                tampilkanAlert(`⏳ Mengirim ulang rekaman sesi ${item.timeStr} ke AI...`, "bg-blue-50 text-blue-800 border-blue-200");
+                try {
+                    await kirimAudioMP3(item.blob, item.hint);
+                } catch (err) {
+                    uploadProgressContainer.classList.add('hidden');
+                    tampilkanAlert(`❌ Gagal: ${err.message}. Arsip tetap ada untuk dikirim ulang kapan saja.`, "bg-rose-50 text-rose-800 border-rose-200");
+                }
+            }
+        };
+    };
+
     // ========================================================================
-    // KEEP-AWAKE (LAYAR TERJAGA SAMPAI 3+ JAM)
+    // KEEP-AWAKE
     // ========================================================================
     async function requestWakeLock() {
         try {
@@ -379,16 +523,22 @@
         return `${hrs.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
     }
 
-    function hitungTotalUkuranBatches() {
-        let total = 0;
-        for (let b of savedAudioBatches) total += b.size;
-        if (total < 1024 * 1024) return (total / 1024).toFixed(1) + " KB";
-        return (total / (1024 * 1024)).toFixed(2) + " MB";
+    function formatSize(bytes) {
+        if (!bytes) return "0 KB";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(2) + " MB";
     }
 
     // ========================================================================
-    // KONTROL PEREKAM BERSIH
+    // PEREKAMAN SUARA STABIL 3+ JAM (HEMAT MEMORI & NON-STOP)
     // ========================================================================
+    function getSupportedMime() {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) return 'audio/webm;codecs=opus';
+        if (MediaRecorder.isTypeSupported('audio/mp4')) return 'audio/mp4';
+        if (MediaRecorder.isTypeSupported('audio/webm')) return 'audio/webm';
+        return '';
+    }
+
     async function startRecording() {
         await requestWakeLock();
         try {
@@ -398,119 +548,68 @@
                 });
             }
 
-            const mime = getBestAudioType();
-            const options = { audioBitsPerSecond: AUDIO_BITRATE };
+            const mime = getSupportedMime();
+            const options = { audioBitsPerSecond: 32000 };
             if (mime) options.mimeType = mime;
 
             mediaRecorder = new MediaRecorder(micStream, options);
-            activeRecordedChunks = [];
 
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) activeRecordedChunks.push(e.data);
+                if (e.data && e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
             };
 
-            mediaRecorder.start(2000);
+            mediaRecorder.start(1000); // Sinkronisasi tiap 1 detik
             isRecording = true;
             isPaused = false;
-            currentSegmentStartTime = Date.now();
+            startTime = Date.now();
 
             clearInterval(timerInterval);
             timerInterval = setInterval(updateTimerTick, 1000);
 
-            // Rotasi segmen per 15 menit agar rekaman berjam-jam tidak memberatkan browser
-            clearInterval(segmentWatcherInterval);
-            segmentWatcherInterval = setInterval(async () => {
-                const segDuration = Date.now() - currentSegmentStartTime;
-                if (isRecording && !isPaused && segDuration >= MAX_SEGMENT_DURATION_MS) {
-                    await rotasiSegmenBaru();
+            // Auto-save snapshot ke disk setiap 10 detik agar tidak hilang
+            clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(() => {
+                if (isRecording && recordedChunks.length > 0) {
+                    const tempBlob = new Blob(recordedChunks, { type: 'audio/mp3' });
+                    simpanSnapshotKeDisk(tempBlob, totalElapsedMs + (Date.now() - startTime), surahHintInput.value);
                 }
             }, 10000);
 
             initMicVisualizer(micStream);
             updateUIStates();
         } catch (err) {
-            alert("Gagal membuka mic: " + err.message);
+            alert("Gagal membuka mikrofon: " + err.message);
         }
     }
 
-    async function rotasiSegmenBaru() {
-        if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
-
-        await new Promise((resolve) => {
-            mediaRecorder.onstop = () => {
-                if (activeRecordedChunks.length > 0) {
-                    const batchBlob = new Blob(activeRecordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-                    savedAudioBatches.push(batchBlob);
-                    activeRecordedChunks = [];
-                }
-                resolve();
-            };
-            mediaRecorder.stop();
-        });
-
-        sessionBaseDurationMs = currentElapsedMs;
-        await simpanDraftFisikKeDB();
-
-        const mime = getBestAudioType();
-        const options = { audioBitsPerSecond: AUDIO_BITRATE };
-        if (mime) options.mimeType = mime;
-
-        mediaRecorder = new MediaRecorder(micStream, options);
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) activeRecordedChunks.push(e.data);
-        };
-        mediaRecorder.start(2000);
-        currentSegmentStartTime = Date.now();
-    }
-
-    async function pauseAndSaveDraft() {
+    function pauseRecording() {
         if (!mediaRecorder || !isRecording || isPaused) return;
-
-        recStateSubtitle.textContent = "Menyimpan audio ke memori HP...";
-        pauseBtn.disabled = true;
-
-        clearInterval(timerInterval);
-        clearInterval(segmentWatcherInterval);
-
-        await new Promise((resolve) => {
-            mediaRecorder.onstop = () => {
-                if (activeRecordedChunks.length > 0) {
-                    const batchBlob = new Blob(activeRecordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-                    savedAudioBatches.push(batchBlob);
-                    activeRecordedChunks = [];
-                }
-                resolve();
-            };
-            mediaRecorder.stop();
-        });
-
-        if (micStream) {
-            micStream.getTracks().forEach(t => t.stop());
-            micStream = null;
-        }
-
+        mediaRecorder.pause();
         isPaused = true;
-        sessionBaseDurationMs = currentElapsedMs;
+        totalElapsedMs += Date.now() - startTime;
+        clearInterval(timerInterval);
 
-        await simpanDraftFisikKeDB();
+        const currentBlob = new Blob(recordedChunks, { type: 'audio/mp3' });
+        simpanSnapshotKeDisk(currentBlob, totalElapsedMs, surahHintInput.value);
+
         updateUIStates();
-        renderDraftNotice();
-
-        tampilkanAlert(
-            `💾 <strong>TERSIMPAN UTUH DI HP!</strong><br>Durasi: <b>${formatTime(currentElapsedMs)}</b> (${hitungTotalUkuranBatches()}).<br>Siap diubah menjadi format MP3 saat dikirim ke AI.`,
-            "bg-emerald-50 text-emerald-900 border-emerald-300"
-        );
     }
 
     function resumeRecording() {
-        sessionBaseDurationMs = currentElapsedMs;
-        startRecording();
+        if (!mediaRecorder || !isRecording || !isPaused) return;
+        mediaRecorder.resume();
+        isPaused = false;
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimerTick, 1000);
+        updateUIStates();
     }
 
     function updateTimerTick() {
         if (isPaused) return;
-        currentElapsedMs = sessionBaseDurationMs + (Date.now() - currentSegmentStartTime);
-        const str = formatTime(currentElapsedMs);
+        const currentMs = totalElapsedMs + (Date.now() - startTime);
+        const str = formatTime(currentMs);
         timerDisplay.textContent = str;
         pocketTimer.textContent = str;
     }
@@ -541,593 +640,153 @@
         } catch (e) {}
     }
 
+    // SINKRONISASI STATUS LAYAR UTAMA & SAKU
     function updateUIStates() {
-        const hasBatches = savedAudioBatches.length > 0;
+        resetPocketActionArm();
+        resetPocketFinishArm();
 
         if (!isRecording && !isPaused) {
-            mainRecBtn.textContent = hasBatches ? "🎙️ Lanjutkan Rekam" : "🔴 Mulai Rekam";
+            // Standby
+            mainRecBtn.textContent = "🔴 Mulai Rekam";
             mainRecBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             pauseBtn.disabled = true;
             pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
-            finishBtn.classList.toggle('hidden', !hasBatches);
-            recStateSubtitle.textContent = hasBatches ? "Rekaman terjeda (Tersimpan aman di memori HP)" : "Siap merekam hafalan Anda";
+            finishBtn.classList.add('hidden');
+            recStateSubtitle.textContent = "Siap merekam hafalan Anda";
             
-            pocketStatusText.textContent = hasBatches ? "⏸️ Terjeda & Siap Lanjut" : "Standby";
-            pocketActionBtn.textContent = hasBatches ? "▶️ Lanjutkan Rekam (Ketuk 2x)" : "🔴 Mulai Rekam (Ketuk 2x)";
-            pocketActionBtn.className = "pocket-touch-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
-            pocketFinishBtn.classList.toggle('hidden', !hasBatches);
+            pocketIcon.textContent = "🛡️";
+            pocketStatusText.textContent = "Standby";
+            pocketActionBtn.textContent = "🔴 Mulai Rekam (Ketuk 2x)";
+            pocketActionBtn.className = "pocket-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketFinishBtn.classList.add('hidden');
+            pocketProgressArea.classList.add('hidden');
+            pocketActionControls.classList.remove('hidden');
         } else if (isRecording && !isPaused) {
+            // Merekam
             mainRecBtn.textContent = "⏺️ Sedang Merekam...";
             mainRecBtn.className = "bg-rose-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm animate-pulse";
             pauseBtn.disabled = false;
-            pauseBtn.textContent = "⏸️ Jeda & Simpan";
+            pauseBtn.textContent = "⏸️ Jeda";
             pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             finishBtn.classList.remove('hidden');
-            recStateSubtitle.textContent = "Merekam bacaan hafalan Anda...";
+            recStateSubtitle.textContent = "Merekam bacaan hafalan Anda (Tersimpan aman di HP)...";
 
-            pocketStatusText.textContent = "🔴 Sedang Merekam...";
-            pocketActionBtn.textContent = "⏸️ Jeda Sementara (Ketuk 2x)";
-            pocketActionBtn.className = "pocket-touch-btn w-full bg-amber-950 border border-amber-600 text-amber-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketIcon.textContent = "🔴";
+            pocketStatusText.textContent = "Sedang Merekam...";
+            pocketActionBtn.textContent = "⏸️ Jeda Rekaman (Ketuk 2x)";
+            pocketActionBtn.className = "pocket-btn w-full bg-amber-950 border border-amber-600 text-amber-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
             pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim ke AI (Ketuk 2x)";
+            pocketFinishBtn.className = "pocket-btn w-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketProgressArea.classList.add('hidden');
+            pocketActionControls.classList.remove('hidden');
         } else if (isPaused) {
-            mainRecBtn.textContent = "▶️ Lanjutkan Rekaman";
+            // Dijeda
+            mainRecBtn.textContent = "▶️ Lanjutkan";
             mainRecBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             pauseBtn.disabled = true;
             pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
             finishBtn.classList.remove('hidden');
-            recStateSubtitle.textContent = `Dijeda (${hitungTotalUkuranBatches()})`;
+            recStateSubtitle.textContent = "Rekaman dijeda (Tersimpan aman di memori HP)";
 
-            pocketStatusText.textContent = "⏸️ Rekaman Dijeda";
+            pocketIcon.textContent = "⏸️";
+            pocketStatusText.textContent = "Rekaman Dijeda";
             pocketActionBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
-            pocketActionBtn.className = "pocket-touch-btn w-full bg-emerald-950 border border-emerald-600 text-emerald-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketActionBtn.className = "pocket-btn w-full bg-emerald-950 border border-emerald-600 text-emerald-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
             pocketFinishBtn.classList.remove('hidden');
+            pocketFinishBtn.textContent = "🚀 Selesai & Kirim ke AI (Ketuk 2x)";
+            pocketFinishBtn.className = "pocket-btn w-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketProgressArea.classList.add('hidden');
+            pocketActionControls.classList.remove('hidden');
         }
     }
 
-    function renderDraftNotice() {
-        if (savedAudioBatches.length > 0 && !isRecording) {
-            draftNoticeBox.classList.remove('hidden');
-            draftDurationText.textContent = `Durasi: ${formatTime(currentElapsedMs)} (${hitungTotalUkuranBatches()})`;
-            finishBtn.classList.remove('hidden');
-        } else {
-            draftNoticeBox.classList.add('hidden');
-        }
-    }
-
+    // LAYAR UTAMA (1x KLIK LANGSUNG JALAN)
     mainRecBtn.addEventListener('click', () => {
         if (!isRecording && !isPaused) startRecording();
         else if (isPaused) resumeRecording();
     });
 
-    pauseBtn.addEventListener('click', pauseAndSaveDraft);
-
-    discardDraftBtn.addEventListener('click', async () => {
-        if (confirm("Hapus seluruh draf rekaman ini dari memori HP?")) {
-            savedAudioBatches = [];
-            currentElapsedMs = 0;
-            sessionBaseDurationMs = 0;
-            timerDisplay.textContent = "00:00:00";
-            pocketTimer.textContent = "00:00:00";
-            await hapusDraftDariDB();
-            renderDraftNotice();
-            updateUIStates();
-            tampilkanAlert("🗑️ Draft di memori fisik HP telah dibersihkan.", "bg-slate-100 text-slate-700 border-slate-200");
-        }
-    });
-
-    // ========================================================================
-    // AUTO-POLLING & PENGIRIMAN FORMAT MP3 BEBAS ERROR 401
-    // ========================================================================
-    function updateProgress(percent, statusMsg, subMsg) {
-        uploadProgressContainer.classList.remove('hidden');
-        const p = Math.min(100, Math.max(0, Math.round(percent)));
-        uploadProgressBar.style.width = p + "%";
-        uploadPercentText.textContent = p + "%";
-        if (statusMsg) uploadStatusText.textContent = statusMsg;
-        if (subMsg) uploadDetailSubtext.textContent = subMsg;
-    }
-
-    async function pantauSampaiSheetTerisi(totalSebelumnya) {
-        let attempts = 0;
-        const maxAttempts = 100;
-        
-        while (attempts < maxAttempts) {
-            attempts++;
-            const tashihPct = 65 + Math.floor((attempts / maxAttempts) * 34); // 65% sampai 99%
-            updateProgress(
-                tashihPct,
-                `AI Sedang Mentashih (${attempts * 3} dtk)...`,
-                "Sedang mencocokkan bacaan hafalan dengan Al-Qur'an..."
-            );
-
-            try {
-                const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
-                const data = await res.json();
-                
-                if (Array.isArray(data) && data.length > totalSebelumnya) {
-                    updateProgress(100, "100% Selesai Ditashih!", "Membuka riwayat koreksi...");
-                    await new Promise(r => setTimeout(r, 700));
-                    uploadProgressContainer.classList.add('hidden');
-                    tampilkanAlert("🎉 <strong>Selesai Ditashih!</strong> Evaluasi hafalan Anda telah ditampilkan di bawah.", "bg-emerald-50 text-emerald-800 border-emerald-200");
-                    await muatDataSheets(true);
-                    return;
-                }
-            } catch (err) {}
-
-            await new Promise(r => setTimeout(r, 3000));
-        }
-
-        uploadProgressContainer.classList.add('hidden');
-        tampilkanAlert("⚠️ AI sedang menyelesaikan antrean. Silakan klik tombol '🔄 Segarkan' dalam beberapa saat.", "bg-amber-50 text-amber-800 border-amber-200");
-        await muatDataSheets();
-    }
-
-    async function prosesSelesaiDanKirim() {
-        if (savedAudioBatches.length === 0 && !isRecording) {
-            alert("Belum ada rekaman audio.");
-            return;
-        }
-
-        if (isRecording) {
-            await pauseAndSaveDraft();
-        }
-
-        finishBtn.disabled = true;
-        updateProgress(5, "Menggabungkan & menyiapkan berkas MP3...", "Menyesuaikan header MP3 resmi untuk Google AI...");
-
-        try {
-            // Gabung seluruh batch menjadi 1 file utuh bertipe MP3
-            const finalMergedBlob = new Blob(savedAudioBatches, { type: 'audio/mp3' });
-            
-            // Kirim menggunakan protokol streaming MP3 chunk
-            await kirimAudioMP3KeServer(finalMergedBlob, surahHintInput.value, (pct) => {
-                const uploadPct = 5 + (pct * 60); // 5% s/d 65%
-                updateProgress(
-                    uploadPct,
-                    `Mengirim Berkas MP3 (${Math.round(pct * 100)}%)...`,
-                    `Ukuran: ${(finalMergedBlob.size / (1024 * 1024)).toFixed(2)} MB | Terkirim sebagai file MP3 valid`
-                );
-            });
-
-            // Bersihkan draft lokal
-            savedAudioBatches = [];
-            currentElapsedMs = 0;
-            sessionBaseDurationMs = 0;
-            await hapusDraftDariDB();
-            renderDraftNotice();
-            updateUIStates();
-            timerDisplay.textContent = "00:00:00";
-            pocketTimer.textContent = "00:00:00";
-
-            updateProgress(65, "MP3 Berhasil Terkirim ke AI!", "AI sedang memeriksa makhraj dan ayat...");
-            await pantauSampaiSheetTerisi(totalBarisSheetSebelumnya);
-
-        } catch (err) {
-            uploadProgressContainer.classList.add('hidden');
-            tampilkanAlert("❌ Gagal mengirim: " + err.message + ". Berkas tetap tersimpan aman di HP.", "bg-rose-50 text-rose-800 border-rose-200");
-        } finally {
-            finishBtn.disabled = false;
-        }
-    }
-
-    // PROTOKOL PENGIRIMAN MP3 SESUAI SCRIPT REFERENSI (BEBAS ERROR 401)
-    async function kirimAudioMP3KeServer(blob, hint, onProgress) {
-        const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5 MB per chunk
-        const totalSize = blob.size;
-        const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
-        
-        // NAMA FILE HARUS DIAKHIRI .mp3 AGAR GOOGLE GEMINI FILESERVICE MENERIMANYA
-        const randomId = Math.random().toString(36).substring(2, 12) + "_" + Date.now();
-        const filename = `${randomId}.mp3`;
-
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            const start = chunkIndex * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, totalSize);
-            const chunkSlice = blob.slice(start, end);
-
-            // Bungkus ke ArrayBuffer lalu simpan sebagai audio/mp3 asli
-            const buffer = await chunkSlice.arrayBuffer();
-            const mp3ChunkBlob = new Blob([buffer], { type: 'audio/mp3' });
-
-            const formData = new FormData();
-            formData.append('file', mp3ChunkBlob, `part_${chunkIndex}`);
-            formData.append('filename', filename);
-            formData.append('chunk_index', chunkIndex);
-            formData.append('total_chunks', totalChunks);
-            if (hint) {
-                formData.append('surah_hint', hint);
-            }
-
-            // Kirim dengan auto-retry
-            let success = false;
-            let retries = 0;
-            while (!success && retries < 3) {
-                try {
-                    const res = await fetch(BACKEND_URL, { method: 'POST', body: formData });
-                    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-                    success = true;
-                } catch (e) {
-                    retries++;
-                    if (retries >= 3) throw new Error(`Gagal mengirim bagian ${chunkIndex + 1}: ${e.message}`);
-                    await new Promise(r => setTimeout(r, 1500));
-                }
-            }
-
-            if (onProgress) onProgress((chunkIndex + 1) / totalChunks);
-        }
-    }
-
+    pauseBtn.addEventListener('click', pauseRecording);
     finishBtn.addEventListener('click', prosesSelesaiDanKirim);
 
-    function tampilkanAlert(pesan, kelas) {
-        statusAlert.className = `p-4 rounded-2xl text-xs font-semibold border ${kelas}`;
-        statusAlert.innerHTML = pesan;
-        statusAlert.classList.remove('hidden');
-    }
-
     // ========================================================================
-    // MODE SAKU (TOUCH-PROTECTION)
+    // MODE SAKU: TOMBOL PERLU 2x KETUK CEPAT (ANTI KENA BADAN SAAT SEPEDAAN)
     // ========================================================================
-    function enterPocketMode() {
-        pocketLockScreen.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-        requestWakeLock();
-
-        const elem = document.documentElement;
-        if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
-        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-        updateUIStates();
+    function resetPocketActionArm() {
+        pocketActionArmed = false;
+        if (pocketActionTimeout) clearTimeout(pocketActionTimeout);
     }
 
-    function exitPocketMode() {
-        pocketLockScreen.classList.add('hidden');
-        document.body.style.overflow = "";
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
-        updateUIStates();
+    function resetPocketFinishArm() {
+        pocketFinishArmed = false;
+        if (pocketFinishTimeout) clearTimeout(pocketFinishTimeout);
     }
-
-    lockScreenBtn.addEventListener('click', enterPocketMode);
 
     pocketActionBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!actionBtnArmed) {
-            actionBtnArmed = true;
-            pocketActionBtn.textContent = "👆 Ketuk 1x Lagi untuk Konfirmasi!";
+        if (isSending) return;
+
+        if (!pocketActionArmed) {
+            pocketActionArmed = true;
+            pocketActionBtn.textContent = "👆 Ketuk 1x Lagi utk Konfirmasi";
             pocketActionBtn.classList.add('scale-105', 'bg-emerald-600', 'text-white');
-            actionBtnTimeout = setTimeout(() => {
-                actionBtnArmed = false;
-                pocketActionBtn.classList.remove('scale-105', 'bg-emerald-600', 'text-white');
+            pocketActionTimeout = setTimeout(() => {
+                pocketActionArmed = false;
                 updateUIStates();
             }, 1800);
         } else {
-            clearTimeout(actionBtnTimeout);
-            actionBtnArmed = false;
-            pocketActionBtn.classList.remove('scale-105', 'bg-emerald-600', 'text-white');
-
+            resetPocketActionArm();
             if (!isRecording && !isPaused) startRecording();
-            else if (isRecording && !isPaused) pauseAndSaveDraft();
+            else if (isRecording && !isPaused) pauseRecording();
             else if (isPaused) resumeRecording();
         }
     });
 
     pocketFinishBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!finishBtnArmed) {
-            finishBtnArmed = true;
-            pocketFinishBtn.textContent = "🚀 Ketuk 1x Lagi untuk Kirim MP3!";
+        if (isSending) return;
+
+        if (!pocketFinishArmed) {
+            pocketFinishArmed = true;
+            pocketFinishBtn.textContent = "🚀 Ketuk 1x Lagi utk Kirim AI!";
             pocketFinishBtn.classList.add('scale-105', 'bg-blue-600', 'text-white');
-            finishBtnTimeout = setTimeout(() => {
-                finishBtnArmed = false;
-                pocketFinishBtn.classList.remove('scale-105', 'bg-blue-600', 'text-white');
+            pocketFinishTimeout = setTimeout(() => {
+                pocketFinishArmed = false;
                 updateUIStates();
             }, 2000);
         } else {
-            clearTimeout(finishBtnTimeout);
-            finishBtnArmed = false;
-            pocketFinishBtn.classList.remove('scale-105', 'bg-blue-600', 'text-white');
-            exitPocketMode();
+            resetPocketFinishArm();
+            // JALANKAN PROSES PENGIRIMAN TANPA KELUAR DARI MODE SAKU!
             prosesSelesaiDanKirim();
         }
     });
 
-    unlockPocketBtn.addEventListener('click', () => {
-        const pin = prompt("Ketik PIN Buka Kunci (123):");
-        if (pin === "123") exitPocketMode();
-    });
-
     // ========================================================================
-    // PARSER & EKSTRAK AYAT
+    // PENGIRIMAN MP3 DENGAN PROGRESS PERSENTASE 0% - 100%
     // ========================================================================
-    function ekstrakAyatTerakhirDariSheet(teksKolomC) {
-        if (!teksKolomC) return null;
-
-        // Abaikan pesan error backend jika pernah terjadi
-        if (teksKolomC.includes("401 UNAUTHENTICATED") || teksKolomC.includes("API key not valid")) {
-            return {
-                judul: "Catatan Sistem",
-                arab: "Rekaman sebelumnya mengalami galat backend. Silakan kirim rekaman baru sekarang (sudah diperbaiki dalam format MP3)."
-            };
-        }
-
-        const regexHeader = /AYAT TERAKHIR YANG[\s\S]*?:\s*([^\n\r=]+)/i;
-        const matchHeader = teksKolomC.match(regexHeader);
+    function updateProgress(percent, statusMsg, subMsg) {
+        const p = Math.min(100, Math.max(0, Math.round(percent)));
         
-        let labelSurah = "";
-        let teksArab = "";
+        // Update di layar utama
+        uploadProgressContainer.classList.remove('hidden');
+        uploadProgressBar.style.width = p + "%";
+        uploadPercentText.textContent = p + "%";
+        if (statusMsg) uploadStatusText.textContent = statusMsg;
+        if (subMsg) uploadDetailSubtext.textContent = subMsg;
 
-        if (matchHeader) {
-            labelSurah = matchHeader[1].trim();
-            const setelahHeader = teksKolomC.substring(matchHeader.index + matchHeader[0].length);
-            const lines = setelahHeader.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            
-            for (let line of lines) {
-                if (line.includes('===') || line.includes('CAKUPAN')) break;
-                teksArab += (teksArab ? ' ' : '') + line;
-            }
-        }
-
-        if (!labelSurah && !teksArab) {
-            const baris = teksKolomC.split('\n').filter(b => b.trim().length > 0);
-            return {
-                judul: "Hafalan Terakhir",
-                arab: baris[0] || "Bacaan tersimpan."
-            };
-        }
-
-        return {
-            judul: labelSurah || "Ayat Terakhir",
-            arab: teksArab || "Teks ayat tersimpan di Google Sheet."
-        };
+        // Update juga di layar Mode Saku (agar terlihat jika sedang sepedaan)
+        pocketProgressArea.classList.remove('hidden');
+        pocketProgressBar.style.width = p + "%";
+        pocketProgressPct.textContent = p + "%";
+        if (statusMsg) pocketProgressLabel.textContent = statusMsg;
     }
 
-    function parseKoreksiLines(teks) {
-        if (!teks) return [];
-        const lines = teks.split('\n');
-        const hasil = [];
-
-        for (let l of lines) {
-            const trim = l.trim();
-            if (trim.includes('---')) {
-                const parts = trim.split('---');
-                if (parts.length === 2) {
-                    hasil.push({ salah: parts[0].trim(), benar: parts[1].trim() });
-                }
-            }
-        }
-        return hasil;
-    }
-
-    async function muatDataSheets(autoOpenToday = false) {
-        try {
-            const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
-            const data = await res.json();
-            if (!Array.isArray(data) || data.length === 0) {
-                totalBarisSheetSebelumnya = 0;
-                daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Belum ada riwayat rekaman di database.</div>`;
-                lastAyatTitle.textContent = "Belum Ada Data";
-                lastAyatArab.textContent = "Silakan mulai rekaman murojaah pertama Anda.";
-                return;
-            }
-
-            totalBarisSheetSebelumnya = data.length;
-
-            const rowTerbaru = data[0];
-            const parsedAyat = ekstrakAyatTerakhirDariSheet(rowTerbaru.bacaan || rowTerbaru.transkrip || rowTerbaru.koreksi || '');
-            if (parsedAyat) {
-                lastAyatTitle.textContent = `📍 ${parsedAyat.judul}`;
-                lastAyatArab.textContent = parsedAyat.arab;
-            }
-            lastAyatTime.textContent = rowTerbaru.waktu ? new Date(rowTerbaru.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "Baru saja";
-
-            riwayatGroupedByDate = {};
-            let todayKey = null;
-
-            data.forEach((item, index) => {
-                const dateObj = item.waktu ? new Date(item.waktu) : new Date();
-                const dateKey = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                const isToday = (new Date().toDateString() === dateObj.toDateString());
-                
-                if (isToday) todayKey = dateKey;
-
-                if (!riwayatGroupedByDate[dateKey]) {
-                    riwayatGroupedByDate[dateKey] = {
-                        tanggalStr: dateKey,
-                        items: [],
-                        totalKoreksi: 0,
-                        isToday: isToday,
-                        rawIndices: []
-                    };
-                }
-
-                const listKoreksi = parseKoreksiLines(item.koreksi || item.bacaan || '');
-                riwayatGroupedByDate[dateKey].items.push({
-                    raw: item,
-                    koreksiList: listKoreksi
-                });
-                riwayatGroupedByDate[dateKey].rawIndices.push(index);
-                riwayatGroupedByDate[dateKey].totalKoreksi += listKoreksi.length;
-            });
-
-            renderGroupedDays();
-
-            if (autoOpenToday && todayKey) {
-                bukaRekapHari(todayKey);
-            }
-        } catch (e) {
-            daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-rose-500 bg-rose-50 rounded-2xl border border-rose-100">Gagal memuat: ${e.message}</div>`;
-        }
-    }
-
-    function renderGroupedDays() {
-        daftarHariContainer.innerHTML = "";
-        const keys = Object.keys(riwayatGroupedByDate);
-
-        keys.forEach(key => {
-            const dayGroup = riwayatGroupedByDate[key];
-            const card = document.createElement('div');
-            
-            if (dayGroup.isToday) {
-                card.className = "p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-sm flex items-center justify-between";
-            } else {
-                card.className = "p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex items-center justify-between";
-            }
-
-            card.innerHTML = `
-                <div class="space-y-1 pr-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold ${dayGroup.isToday ? 'text-emerald-800' : 'text-slate-800'}">${dayGroup.tanggalStr}</span>
-                        ${dayGroup.isToday ? '<span class="text-[9px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">HARI INI</span>' : ''}
-                    </div>
-                    <p class="text-[11px] text-slate-500">
-                        ${dayGroup.items.length} Sesi &bull; 
-                        <strong class="${dayGroup.totalKoreksi > 0 ? 'text-rose-600' : 'text-emerald-600'}">${dayGroup.totalKoreksi} Koreksi</strong>
-                    </p>
-                </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <button onclick="hapusRiwayatPerHari('${key}')" title="Hapus Riwayat Hari Ini" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold p-2.5 rounded-xl text-xs transition">
-                        🗑️
-                    </button>
-                    <button onclick="bukaRekapHari('${key}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition">
-                        Lihat Hasil
-                    </button>
-                </div>
-            `;
-            daftarHariContainer.appendChild(card);
-        });
-    }
-
-    window.bukaRekapHari = function(dateKey) {
-        const group = riwayatGroupedByDate[dateKey];
-        if (!group) return;
-
-        modalDayTitle.textContent = `Evaluasi: ${group.tanggalStr}`;
-        modalDayStats.textContent = `Total ${group.totalKoreksi} koreksi dari ${group.items.length} rekaman`;
-        modalDayBody.innerHTML = "";
-
-        if (group.totalKoreksi === 0) {
-            modalDayBody.innerHTML = `
-                <div class="p-8 text-center bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-bold text-xs sm:text-sm">
-                    ✨ MasyaAllah, seluruh bacaan di hari ini lancar tanpa kesalahan terdeteksi!
-                </div>
-            `;
-        } else {
-            group.items.forEach((sesi, idx) => {
-                if (sesi.koreksiList.length === 0) return;
-
-                const sesiBox = document.createElement('div');
-                sesiBox.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3";
-                
-                let rowsHTML = sesi.koreksiList.map(k => `
-                    <div class="grid grid-cols-2 gap-2.5 bg-white p-3 rounded-xl border border-slate-100">
-                        <div class="bg-rose-50/50 p-2.5 rounded-lg border border-rose-100">
-                            <span class="text-[9px] font-bold text-rose-500 uppercase block mb-1">❌ Salah / Ragu</span>
-                            <p class="arabic-text text-base text-slate-800 text-right select-all">${k.salah}</p>
-                        </div>
-                        <div class="bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
-                            <span class="text-[9px] font-bold text-emerald-600 uppercase block mb-1">✅ Seharusnya</span>
-                            <p class="arabic-text text-base text-emerald-950 font-medium text-right select-all">${k.benar}</p>
-                        </div>
-                    </div>
-                `).join('');
-
-                sesiBox.innerHTML = `
-                    <div class="flex items-center justify-between border-b pb-2 border-slate-200">
-                        <span class="text-xs font-bold text-slate-700">📌 Sesi #${idx + 1} (${sesi.raw.menit || 'Audio MP3'})</span>
-                        <span class="text-[11px] font-bold text-rose-600">${sesi.koreksiList.length} Koreksi</span>
-                    </div>
-                    <div class="space-y-2">${rowsHTML}</div>
-                `;
-                modalDayBody.appendChild(sesiBox);
-            });
-        }
-
-        fullscreenDetailModal.classList.remove('hidden');
-        document.body.style.overflow = "hidden";
-    };
-
-    closeDetailModalBtn.addEventListener('click', () => {
-        fullscreenDetailModal.classList.add('hidden');
-        document.body.style.overflow = "";
-    });
-
-    // ========================================================================
-    // HAPUS RIWAYAT
-    // ========================================================================
-    window.hapusSemuaRiwayat = async function() {
-        if (!confirm("⚠️ PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat murojaah di Google Sheet?")) {
-            return;
-        }
-
-        tampilkanAlert("⏳ Sedang menghapus seluruh riwayat...", "bg-amber-50 text-amber-800 border-amber-200");
-        try {
-            await fetch(GSCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'deleteAll' })
-            });
-
-            tampilkanAlert("🗑️ Seluruh riwayat berhasil dihapus.", "bg-slate-100 text-slate-700 border-slate-200");
-            setTimeout(muatDataSheets, 1500);
-        } catch (e) {
-            alert("Gagal menghapus: " + e.message);
-        }
-    };
-
-    window.hapusRiwayatPerHari = async function(dateKey) {
-        if (!confirm(`Hapus seluruh riwayat rekaman untuk hari: ${dateKey}?`)) {
-            return;
-        }
-
-        tampilkanAlert(`⏳ Sedang menghapus riwayat ${dateKey}...`, "bg-amber-50 text-amber-800 border-amber-200");
-        try {
-            await fetch(GSCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'deleteDay', tanggal: dateKey })
-            });
-
-            tampilkanAlert(`🗑️ Riwayat ${dateKey} berhasil dibersihkan.`, "bg-slate-100 text-slate-700 border-slate-200");
-            setTimeout(muatDataSheets, 1500);
-        } catch (e) {
-            alert("Gagal menghapus data: " + e.message);
-        }
-    };
-
-    // ========================================================================
-    // PEMULIHAN DRAFT
-    // ========================================================================
-    async function periksaDraftPemulihan() {
-        const savedDraft = await ambilDraftFisikDariDB();
-        if (savedDraft && savedDraft.blobs && savedDraft.blobs.length > 0) {
-            savedAudioBatches = savedDraft.blobs;
-            currentElapsedMs = savedDraft.totalMs || 0;
-            sessionBaseDurationMs = currentElapsedMs;
-            if (savedDraft.hint) surahHintInput.value = savedDraft.hint;
-            
-            timerDisplay.textContent = formatTime(currentElapsedMs);
-            pocketTimer.textContent = formatTime(currentElapsedMs);
-            isPaused = true;
-            renderDraftNotice();
-            updateUIStates();
-            tampilkanAlert(
-                `🔄 <strong>Draf Sebelumnya Dipulihkan!</strong><br>Durasi: <b>${formatTime(currentElapsedMs)}</b> (${hitungTotalUkuranBatches()}). Siap dilanjutkan atau langsung dikirim sebagai MP3.`,
-                "bg-emerald-50 text-emerald-800 border-emerald-300"
-            );
-        }
-    }
-
-    // Inisialisasi
-    window.addEventListener('DOMContentLoaded', () => {
-        initKeepAliveCanvas();
-        requestWakeLock();
-        periksaDraftPemulihan();
-        muatDataSheets();
-    });
-</script>
-</body>
-</html>
+    async function pantauHasilSheet(totalSebelumnya) {
+        let attempts = 0;
+        const maxAttempts = 100;
+        
+        while (attempts < maxAttempts) {
+            attempts++;
+            const tashihPct = 60 + Math.floor((attempts / maxAttempts) * 39);
+            updateProgress(
