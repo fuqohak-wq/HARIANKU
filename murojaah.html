@@ -2,15 +2,20 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Asisten Murojaah AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; touch-action: pan-y; }
         .arabic-text { font-family: 'Amiri', serif; direction: rtl; }
-        #pocketLockScreen { touch-action: none; user-select: none; }
-        #pocketActionBtn, #unlockPocketBtn { touch-action: manipulation; }
+        #pocketLockScreen { 
+            touch-action: none; 
+            user-select: none; 
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .pocket-touch-btn { touch-action: manipulation; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
@@ -19,12 +24,12 @@
     <canvas id="keepAwakeCanvas" width="16" height="16" class="hidden"></canvas>
     <video id="keepAliveVideo" playsinline muted loop autoplay class="hidden"></video>
 
-    <!-- HEADER RINGKAS -->
-    <header class="bg-emerald-600 text-white shadow-md py-5 px-4 sticky top-0 z-30">
+    <!-- HEADER -->
+    <header class="bg-emerald-600 text-white shadow-md py-4 px-4 sticky top-0 z-30">
         <div class="max-w-xl mx-auto flex items-center justify-between">
             <div>
-                <h1 class="text-xl font-bold flex items-center gap-2">🕌 Asisten Murojaah AI</h1>
-                <p class="text-xs text-emerald-100 mt-0.5">Auto-chunk 30 menit & Rekap Koreksi Harian</p>
+                <h1 class="text-lg font-bold flex items-center gap-2">🕌 Asisten Murojaah AI</h1>
+                <p class="text-[11px] text-emerald-100 mt-0.5">Auto-chunk 30 Menit MP3 & Mode Saku</p>
             </div>
             <button id="lockScreenBtn" class="bg-emerald-800 hover:bg-emerald-900 border border-emerald-500/50 text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
                 🔒 Mode Saku
@@ -32,112 +37,152 @@
         </div>
     </header>
 
-    <main class="max-w-xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-xl mx-auto px-4 py-5 space-y-5">
 
-        <!-- KOTAK STATUS DRAFT JIKA ADA REKAMAN TERTUNDA -->
+        <!-- KARTU AYAT TERAKHIR YANG DIBACA (BERSIH & SESUAI SHEET) -->
+        <div id="lastAyatBox" class="bg-white border-2 border-emerald-500/30 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    AYAT TERAKHIR DIBACA
+                </span>
+                <span id="lastAyatTime" class="text-[11px] text-slate-400 font-medium">-</span>
+            </div>
+            
+            <div class="space-y-1 my-1">
+                <h3 id="lastAyatTitle" class="text-sm font-bold text-slate-800">Memuat info bacaan...</h3>
+                <p id="lastAyatArab" class="arabic-text text-xl text-emerald-950 font-bold leading-relaxed select-all">
+                    ...
+                </p>
+            </div>
+            <p class="text-[10px] text-slate-400 italic mt-2 border-t pt-1.5 border-slate-100">
+                Silakan lanjutkan hafalan mulai dari ayat setelah ini.
+            </p>
+        </div>
+
+        <!-- NOTIFIKASI DRAFT REKAMAN TERSIMPAN -->
         <div id="draftNoticeBox" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 transition-all">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-xs font-bold text-amber-800 flex items-center gap-1">💾 Ada Rekaman Tertunda</span>
-                    <p id="draftDurationText" class="text-xs text-amber-700 mt-0.5">Tersimpan: 00:00:00</p>
+                    <span class="text-xs font-bold text-amber-800 flex items-center gap-1">💾 Draf Tersimpan di HP</span>
+                    <p id="draftDurationText" class="text-xs text-amber-700 mt-0.5">Durasi: 00:00:00</p>
                 </div>
                 <button id="discardDraftBtn" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1">
-                    Hapus Draft
+                    Hapus Draf
                 </button>
             </div>
         </div>
 
         <!-- PUSAT KONTROL PEREKAM UTAMA -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-5">
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 text-center space-y-4">
             <div class="space-y-1">
                 <span id="timerDisplay" class="text-4xl sm:text-5xl font-mono font-bold text-slate-700 tracking-wider">00:00:00</span>
                 <p id="recStateSubtitle" class="text-xs text-slate-400 font-medium">Siap merekam hafalan Anda</p>
             </div>
 
-            <!-- Visualizer Sederhana -->
-            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+            <!-- Meter Visual Suara -->
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                 <div id="micMeter" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
             </div>
 
             <!-- Target Surah Input -->
-            <input type="text" id="surahHintInput" placeholder="🎯 Target surah (Misal: Al-Baqarah 1-50, Juz 30)" 
+            <input type="text" id="surahHintInput" placeholder="🎯 Target surah (Contoh: Al-Baqarah 1-141 / Juz 1-3)" 
                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
 
-            <!-- Tombol Aksi -->
-            <div class="grid grid-cols-2 gap-3 pt-2">
-                <button id="mainRecBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm">
+            <!-- Tombol Aksi Utama -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button id="mainRecBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
                     🔴 Mulai Rekam
                 </button>
-                <button id="pauseBtn" disabled class="bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm cursor-not-allowed">
+                <button id="pauseBtn" disabled class="bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed">
                     ⏸️ Jeda
                 </button>
             </div>
 
-            <button id="finishBtn" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm">
-                🚀 Selesai & Kirim ke AI (Auto 30 Menitan)
+            <button id="finishBtn" class="hidden w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm">
+                🚀 Selesai & Kirim ke AI
             </button>
         </div>
 
-        <!-- STATUS UPLOAD -->
-        <div id="statusAlert" class="hidden p-4 rounded-2xl text-xs font-semibold border"></div>
+        <!-- PROGRESS BOX PENGIRIMAN DENGAN PERSENTASE -->
+        <div id="uploadProgressContainer" class="hidden bg-white border border-blue-200 rounded-2xl p-4 shadow-sm space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-blue-900">
+                <span id="uploadStatusText">Sedang mengonversi MP3...</span>
+                <span id="uploadPercentText" class="font-mono text-sm text-blue-600">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                <div id="uploadProgressBar" class="bg-blue-600 h-full w-0 transition-all duration-200"></div>
+            </div>
+            <p id="uploadDetailSubtext" class="text-[10px] text-slate-500 italic">Mempersiapkan potongan 30 menitan agar AI presisi...</p>
+        </div>
+
+        <!-- STATUS ALERT NOTIFIKASI -->
+        <div id="statusAlert" class="hidden p-4 rounded-2xl text-xs font-semibold border leading-relaxed"></div>
 
         <!-- REKAP RIWAYAT KOREKSI PER HARI -->
-        <div class="space-y-4">
+        <div class="space-y-3">
             <div class="flex items-center justify-between">
-                <h2 class="text-base font-bold text-slate-700 flex items-center gap-2">
-                    📅 Rekap Evaluasi Harian
+                <h2 class="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                    📅 Rekap Riwayat Koreksi Harian
                 </h2>
                 <button onclick="muatDataSheets()" class="text-xs text-emerald-700 font-semibold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition">
                     🔄 Segarkan
                 </button>
             </div>
 
-            <div id="daftarHariContainer" class="space-y-3">
+            <div id="daftarHariContainer" class="space-y-2.5">
                 <div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
-                    Memuat riwayat evaluasi...
+                    Memuat data riwayat...
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- FULLSCREEN MODAL DETAIL KOREKSI (PER HARI) -->
+    <!-- FULLSCREEN MODAL DETAIL KOREKSI -->
     <div id="fullscreenDetailModal" class="hidden fixed inset-0 z-50 bg-white overflow-y-auto h-screen w-screen">
-        <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm">
+        <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 py-3.5 px-5 flex justify-between items-center z-10 shadow-sm">
             <div>
-                <h3 id="modalDayTitle" class="text-base font-bold text-slate-800">Evaluasi Hari Ini</h3>
-                <p id="modalDayStats" class="text-xs text-slate-400">Total kesalahan terdeteksi</p>
+                <h3 id="modalDayTitle" class="text-sm font-bold text-slate-800">Evaluasi Hari Ini</h3>
+                <p id="modalDayStats" class="text-[11px] text-slate-400">Total kesalahan terdeteksi</p>
             </div>
-            <button id="closeDetailModalBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition">
+            <button id="closeDetailModalBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition">
                 ✕ Tutup
             </button>
         </div>
-        <div class="max-w-2xl mx-auto p-6 space-y-6">
-            <div id="modalDayBody" class="space-y-4"></div>
+        <div class="max-w-2xl mx-auto p-4 space-y-4">
+            <div id="modalDayBody" class="space-y-3"></div>
         </div>
     </div>
 
-    <!-- POCKET MODE OVERLAY DENGAN KONTROL LENGKAP -->
-    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-8 select-none">
-        <div class="w-full flex justify-between items-center">
-            <span class="text-xs font-mono tracking-widest text-emerald-400">🔒 MODE SAKU AKTIF</span>
-            <span id="pocketTimer" class="font-mono text-sm text-slate-400">00:00:00</span>
+    <!-- POCKET MODE OVERLAY DENGAN FULLSCREEN LOCK ANTI BADAN -->
+    <div id="pocketLockScreen" class="hidden fixed inset-0 z-[9999] bg-black text-white flex flex-col justify-between items-center p-6 select-none">
+        <div class="w-full flex justify-between items-center border-b border-slate-900 pb-3">
+            <span class="text-[10px] font-mono tracking-widest text-emerald-400 flex items-center gap-1">
+                🔒 MODE SAKU TERKUNCI (FULLSCREEN)
+            </span>
+            <span id="pocketTimer" class="font-mono text-xs text-slate-400">00:00:00</span>
         </div>
 
-        <div class="text-center space-y-4 my-auto">
-            <div class="text-5xl animate-pulse">🛡️</div>
-            <p id="pocketStatusText" class="text-sm font-semibold text-slate-300">Siap Merekam</p>
-            <p class="text-[11px] text-slate-500 max-w-xs mx-auto">Sentuhan kain saku diblokir. Tombol di bawah butuh 2x ketuk cepat untuk mencegah terpencet tidak sengaja.</p>
+        <div class="text-center space-y-3 my-auto w-full max-w-xs">
+            <div class="text-4xl">🛡️</div>
+            <p id="pocketStatusText" class="text-xs font-semibold text-slate-300">Standby</p>
+            <p class="text-[10px] text-slate-500">
+                Layar diproteksi dari sentuhan badan.<br>Semua tombol membutuhkan <b>2x ketukan cepat</b>.
+            </p>
 
-            <!-- TOMBOL KONTROL DI MODE SAKU (MULAI / JEDA / LANJUT) -->
-            <div class="pt-4">
-                <button id="pocketActionBtn" class="bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold px-6 py-3.5 rounded-full shadow transition">
+            <div class="space-y-2.5 pt-2">
+                <button id="pocketActionBtn" class="pocket-touch-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition active:bg-slate-800">
                     🔴 Mulai Rekam (Ketuk 2x)
+                </button>
+
+                <button id="pocketFinishBtn" class="pocket-touch-btn hidden w-full bg-blue-950 border border-blue-600 text-blue-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition active:bg-blue-900">
+                    🚀 Selesai & Kirim ke AI (Ketuk 2x)
                 </button>
             </div>
         </div>
 
-        <button id="unlockPocketBtn" class="w-full max-w-xs bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-semibold text-xs py-3 rounded-2xl transition">
-            🔓 Buka Kunci (PIN: 123)
+        <button id="unlockPocketBtn" class="pocket-touch-btn w-full max-w-xs bg-slate-900/90 border border-slate-800 hover:bg-slate-800 text-slate-400 font-semibold text-[11px] py-3 rounded-2xl transition">
+            🔓 Buka Kunci Saku (PIN: 123)
         </button>
     </div>
 
@@ -148,7 +193,7 @@
     // State Rekaman
     let mediaRecorder = null;
     let audioChunks = [];
-    let audioSegments = []; // Array of blobs
+    let audioSegments = [];
     let isRecording = false;
     let isPaused = false;
     let timerInterval = null;
@@ -160,11 +205,11 @@
     let analyser = null;
     let wakeLock = null;
 
-    // Database Nama untuk Auto-Save Offline Anti-Refresh
-    const DB_NAME = "MurojaahSimpleDB";
-    const STORE_NAME = "DraftStorage";
+    // Database Offline IndexedDB
+    const DB_NAME = "MurojaahLongAudioDB";
+    const STORE_NAME = "DraftStore";
 
-    // DOM References
+    // DOM Elements
     const timerDisplay = document.getElementById('timerDisplay');
     const recStateSubtitle = document.getElementById('recStateSubtitle');
     const micMeter = document.getElementById('micMeter');
@@ -178,32 +223,47 @@
     const statusAlert = document.getElementById('statusAlert');
     const daftarHariContainer = document.getElementById('daftarHariContainer');
 
-    // Pocket Elements
+    // Progress Elements
+    const uploadProgressContainer = document.getElementById('uploadProgressContainer');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    const uploadPercentText = document.getElementById('uploadPercentText');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const uploadDetailSubtext = document.getElementById('uploadDetailSubtext');
+
+    // DOM Widget Ayat Terakhir
+    const lastAyatTitle = document.getElementById('lastAyatTitle');
+    const lastAyatArab = document.getElementById('lastAyatArab');
+    const lastAyatTime = document.getElementById('lastAyatTime');
+
+    // DOM Pocket
     const lockScreenBtn = document.getElementById('lockScreenBtn');
     const pocketLockScreen = document.getElementById('pocketLockScreen');
     const unlockPocketBtn = document.getElementById('unlockPocketBtn');
     const pocketTimer = document.getElementById('pocketTimer');
     const pocketStatusText = document.getElementById('pocketStatusText');
     const pocketActionBtn = document.getElementById('pocketActionBtn');
-    let pocketBtnArmed = false;
-    let pocketArmTimeout = null;
+    const pocketFinishBtn = document.getElementById('pocketFinishBtn');
 
-    // Detail Modal Elements
+    let actionBtnArmed = false;
+    let actionBtnTimeout = null;
+    let finishBtnArmed = false;
+    let finishBtnTimeout = null;
+
+    // Modal Detail
     const fullscreenDetailModal = document.getElementById('fullscreenDetailModal');
     const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
     const modalDayTitle = document.getElementById('modalDayTitle');
     const modalDayStats = document.getElementById('modalDayStats');
     const modalDayBody = document.getElementById('modalDayBody');
 
-    // Riwayat Pengelompokan Data
     let riwayatGroupedByDate = {};
 
     // ========================================================================
-    // INDEXEDDB: SIMPAN SEMENTARA OTOMATIS ANTI KEREFRESH
+    // INDEXEDDB: AUTO-SAVE KEBAL REFRESH
     // ========================================================================
     function openDB() {
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(DB_NAME, 1);
+            const req = indexedDB.open(DB_NAME, 2);
             req.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -219,12 +279,12 @@
         try {
             const db = await openDB();
             const tx = db.transaction(STORE_NAME, "readwrite");
-            const store = tx.objectStore(STORE_NAME);
-            store.put({
+            tx.objectStore(STORE_NAME).put({
                 segments: audioSegments,
                 totalMs: currentElapsedMs,
-                hint: surahHintInput.value
-            }, "current_draft");
+                hint: surahHintInput.value,
+                updatedAt: Date.now()
+            }, "active_session");
         } catch (e) {
             console.error("Gagal auto-save DB:", e);
         }
@@ -235,8 +295,7 @@
             const db = await openDB();
             return new Promise((resolve) => {
                 const tx = db.transaction(STORE_NAME, "readonly");
-                const store = tx.objectStore(STORE_NAME);
-                const req = store.get("current_draft");
+                const req = tx.objectStore(STORE_NAME).get("active_session");
                 req.onsuccess = () => resolve(req.result || null);
                 req.onerror = () => resolve(null);
             });
@@ -249,12 +308,12 @@
         try {
             const db = await openDB();
             const tx = db.transaction(STORE_NAME, "readwrite");
-            tx.objectStore(STORE_NAME).delete("current_draft");
+            tx.objectStore(STORE_NAME).delete("active_session");
         } catch (e) {}
     }
 
     // ========================================================================
-    // KEEP-AWAKE (ANTI LAYAR MATI)
+    // KEEP-AWAKE
     // ========================================================================
     async function requestWakeLock() {
         try {
@@ -278,9 +337,6 @@
         } catch (e) {}
     }
 
-    // ========================================================================
-    // FORMAT WAKTU
-    // ========================================================================
     function formatTime(ms) {
         const sec = Math.floor((ms / 1000) % 60);
         const min = Math.floor((ms / 1000 / 60) % 60);
@@ -289,10 +345,10 @@
     }
 
     // ========================================================================
-    // KONTROL MIC & PEREKAMAN
+    // PEREKAMAN
     // ========================================================================
     async function startRecording() {
-        requestWakeLock();
+        await requestWakeLock();
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
@@ -300,18 +356,20 @@
             micStream = stream;
             audioChunks = [];
 
+            // Pastikan format recorder yang didukung
             let mimeType = 'audio/webm';
             if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
             else if (MediaRecorder.isTypeSupported('audio/mpeg')) mimeType = 'audio/mpeg';
 
             mediaRecorder = new MediaRecorder(stream, { mimeType });
+
             mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) audioChunks.push(e.data);
+                if (e.data && e.data.size > 0) audioChunks.push(e.data);
             };
 
             mediaRecorder.onstop = async () => {
                 if (audioChunks.length > 0) {
-                    const chunkBlob = new Blob(audioChunks, { type: mimeType });
+                    const chunkBlob = new Blob(audioChunks, { type: 'audio/mp3' });
                     audioSegments.push(chunkBlob);
                     audioChunks = [];
                 }
@@ -319,29 +377,30 @@
                 renderDraftNotice();
             };
 
-            mediaRecorder.start(1000);
+            mediaRecorder.start(4000); // chunk buffer 4 detik
             isRecording = true;
             isPaused = false;
             currentSegmentStartTime = Date.now();
 
+            clearInterval(timerInterval);
             timerInterval = setInterval(updateTimerTick, 1000);
             initMicVisualizer(stream);
             updateUIStates();
         } catch (err) {
-            alert("Izin mic ditolak atau tidak didukung: " + err.message);
+            alert("Gagal membuka mic: " + err.message);
         }
     }
 
     function pauseAndSaveDraft() {
         if (!mediaRecorder || !isRecording || isPaused) return;
-        mediaRecorder.stop(); // memicu onstop yang menyimpan segment & auto-save DB
+        mediaRecorder.stop();
         if (micStream) micStream.getTracks().forEach(t => t.stop());
         
         isPaused = true;
         sessionBaseDurationMs = currentElapsedMs;
         clearInterval(timerInterval);
         updateUIStates();
-        tampilkanAlert("💾 Rekaman dijeda dan otomatis tersimpan di HP. Aman ditutup/refresh kapan saja.", "bg-amber-50 text-amber-800 border-amber-200");
+        tampilkanAlert("💾 <strong>Rekaman Dijeda & Aman di HP!</strong> Halaman bisa ditutup atau direfresh kapan saja tanpa hilang.", "bg-amber-50 text-amber-800 border-amber-200");
     }
 
     function resumeRecording() {
@@ -383,77 +442,68 @@
         } catch (e) {}
     }
 
-    // ========================================================================
-    // UPDATE TAMPILAN INTERFACE UTAMA & MODE SAKU
-    // ========================================================================
     function updateUIStates() {
+        const hasSegments = audioSegments.length > 0;
+
         if (!isRecording && !isPaused) {
-            // Standby
-            mainRecBtn.textContent = audioSegments.length > 0 ? "🎙️ Lanjutkan Rekam" : "🔴 Mulai Rekam";
-            mainRecBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm";
+            mainRecBtn.textContent = hasSegments ? "🎙️ Lanjutkan Rekam" : "🔴 Mulai Rekam";
+            mainRecBtn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             pauseBtn.disabled = true;
-            pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm cursor-not-allowed";
-            finishBtn.classList.toggle('hidden', audioSegments.length === 0);
-            recStateSubtitle.textContent = audioSegments.length > 0 ? "Rekaman tersimpan sementara" : "Siap merekam hafalan Anda";
+            pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
+            finishBtn.classList.toggle('hidden', !hasSegments);
+            recStateSubtitle.textContent = hasSegments ? "Rekaman dijeda (Tersimpan aman di HP)" : "Siap merekam hafalan Anda";
             
-            pocketStatusText.textContent = "Standby";
-            pocketActionBtn.textContent = "🔴 Mulai Rekam (Ketuk 2x)";
-            pocketActionBtn.className = "bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold px-6 py-3.5 rounded-full shadow transition";
+            pocketStatusText.textContent = hasSegments ? "⏸️ Terjeda & Siap Lanjut" : "Standby";
+            pocketActionBtn.textContent = hasSegments ? "▶️ Lanjutkan Rekam (Ketuk 2x)" : "🔴 Mulai Rekam (Ketuk 2x)";
+            pocketActionBtn.className = "pocket-touch-btn w-full bg-slate-900 border border-slate-700 text-emerald-400 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketFinishBtn.classList.toggle('hidden', !hasSegments);
         } else if (isRecording && !isPaused) {
-            // Merekam Aktif
             mainRecBtn.textContent = "⏺️ Sedang Merekam...";
-            mainRecBtn.className = "bg-rose-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm animate-pulse";
+            mainRecBtn.className = "bg-rose-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm animate-pulse";
             pauseBtn.disabled = false;
             pauseBtn.textContent = "⏸️ Jeda & Simpan";
-            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm";
+            pauseBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             finishBtn.classList.remove('hidden');
-            recStateSubtitle.textContent = "Merekam suara hafalan...";
+            recStateSubtitle.textContent = "Merekam bacaan hafalan Anda...";
 
-            pocketStatusText.textContent = "🔴 Merekam";
+            pocketStatusText.textContent = "🔴 Sedang Merekam...";
             pocketActionBtn.textContent = "⏸️ Jeda Sementara (Ketuk 2x)";
-            pocketActionBtn.className = "bg-amber-950 border border-amber-600 text-amber-300 text-xs font-bold px-6 py-3.5 rounded-full shadow transition";
+            pocketActionBtn.className = "pocket-touch-btn w-full bg-amber-950 border border-amber-600 text-amber-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketFinishBtn.classList.remove('hidden');
         } else if (isPaused) {
-            // Dijeda
             mainRecBtn.textContent = "▶️ Lanjutkan Rekaman";
-            mainRecBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-sm";
+            mainRecBtn.className = "bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow transition flex items-center justify-center gap-2 text-xs sm:text-sm";
             pauseBtn.disabled = true;
-            pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-sm cursor-not-allowed";
+            pauseBtn.className = "bg-slate-200 text-slate-400 font-bold py-3.5 px-4 rounded-2xl transition flex items-center justify-center gap-2 text-xs sm:text-sm cursor-not-allowed";
             finishBtn.classList.remove('hidden');
-            recStateSubtitle.textContent = "Dijeda (Tersimpan aman)";
+            recStateSubtitle.textContent = "Dijeda (Otomatis tersimpan aman)";
 
-            pocketStatusText.textContent = "⏸️ Dijeda";
+            pocketStatusText.textContent = "⏸️ Rekaman Dijeda";
             pocketActionBtn.textContent = "▶️ Lanjutkan Rekam (Ketuk 2x)";
-            pocketActionBtn.className = "bg-emerald-950 border border-emerald-600 text-emerald-300 text-xs font-bold px-6 py-3.5 rounded-full shadow transition";
+            pocketActionBtn.className = "pocket-touch-btn w-full bg-emerald-950 border border-emerald-600 text-emerald-300 text-xs font-bold py-3.5 px-4 rounded-2xl shadow transition";
+            pocketFinishBtn.classList.remove('hidden');
         }
     }
 
     function renderDraftNotice() {
         if (audioSegments.length > 0 && !isRecording) {
             draftNoticeBox.classList.remove('hidden');
-            draftDurationText.textContent = `Tersimpan: ${formatTime(currentElapsedMs)} (${audioSegments.length} bagian)`;
+            draftDurationText.textContent = `Durasi: ${formatTime(currentElapsedMs)} (${audioSegments.length} potongan)`;
             finishBtn.classList.remove('hidden');
         } else {
             draftNoticeBox.classList.add('hidden');
         }
     }
 
-    // ========================================================================
-    // EVENT LISTENER KONTROL PEREKAM
-    // ========================================================================
     mainRecBtn.addEventListener('click', () => {
-        if (!isRecording && !isPaused) {
-            startRecording();
-        } else if (isPaused) {
-            resumeRecording();
-        }
+        if (!isRecording && !isPaused) startRecording();
+        else if (isPaused) resumeRecording();
     });
 
-    pauseBtn.addEventListener('click', () => {
-        pauseAndSaveDraft();
-    });
+    pauseBtn.addEventListener('click', pauseAndSaveDraft);
 
     discardDraftBtn.addEventListener('click', async () => {
-        if (confirm("Hapus rekaman tersimpan saat ini?")) {
+        if (confirm("Hapus draf rekaman saat ini?")) {
             audioSegments = [];
             currentElapsedMs = 0;
             sessionBaseDurationMs = 0;
@@ -462,54 +512,71 @@
             await hapusDraftDariDB();
             renderDraftNotice();
             updateUIStates();
-            tampilkanAlert("🗑️ Rekaman dibatalkan.", "bg-slate-100 text-slate-700 border-slate-200");
+            tampilkanAlert("🗑️ Draft rekaman dibatalkan.", "bg-slate-100 text-slate-700 border-slate-200");
         }
     });
 
     // ========================================================================
-    // SELESAI & KIRIM OTOMATIS: AUTO-SPLIT 30 MENIT AGAR AI AKURAT
+    // SELESAI & KIRIM DENGAN PERSENTASE REALTIME (AUTO 30 MENIT MP3)
     // ========================================================================
-    finishBtn.addEventListener('click', async () => {
-        if (isRecording && !isPaused) {
+    function updateProgress(percent, statusMsg, subMsg) {
+        uploadProgressContainer.classList.remove('hidden');
+        uploadProgressBar.style.width = percent + "%";
+        uploadPercentText.textContent = Math.round(percent) + "%";
+        if (statusMsg) uploadStatusText.textContent = statusMsg;
+        if (subMsg) uploadDetailSubtext.textContent = subMsg;
+    }
+
+    async function prosesSelesaiDanKirim() {
+        if (audioSegments.length === 0 && !isRecording) {
+            alert("Belum ada audio rekaman.");
+            return;
+        }
+
+        if (isRecording) {
             mediaRecorder.stop();
             if (micStream) micStream.getTracks().forEach(t => t.stop());
             clearInterval(timerInterval);
             isRecording = false;
             isPaused = false;
+            await new Promise(r => setTimeout(r, 600));
         }
 
         finishBtn.disabled = true;
-        finishBtn.textContent = "⏳ Memproses Audio Murojaah...";
-        tampilkanAlert("⏳ Menyiapkan file audio untuk dianalisis...", "bg-blue-50 text-blue-800 border-blue-200");
+        updateProgress(5, "Menggabungkan audio...", "Menyiapkan file MP3 murni...");
 
         try {
-            // Gabungkan semua segmen
-            const combinedBlob = new Blob(audioSegments, { type: audioSegments[0]?.type || 'audio/mp3' });
+            // Memastikan type selalu audio/mp3 agar AI mengenali ekstensi tanpa error
+            const combinedBlob = new Blob(audioSegments, { type: 'audio/mp3' });
             
-            // Logika Pembagian 30 Menitan
+            // Batasi batch per 30 menit (1800000 ms)
             const THIRTY_MIN_MS = 30 * 60 * 1000;
             const totalBatches = Math.max(1, Math.ceil(currentElapsedMs / THIRTY_MIN_MS));
             
-            tampilkanAlert(`📦 Mengirim ke AI (dibagi ${totalBatches} sesi 30-menitan agar koreksi presisi)...`, "bg-emerald-50 text-emerald-800 border-emerald-200");
+            updateProgress(15, `Memecah audio (${totalBatches} bagian)...`, `Membagi per 30 menit agar AI teliti...`);
 
-            if (totalBatches === 1) {
-                await kirimAudioKeServer(combinedBlob, 1, 1, surahHintInput.value);
-            } else {
-                // Split file proporsional ukuran byte per 30 menit
-                const totalBytes = combinedBlob.size;
-                const bytesPerBatch = Math.ceil(totalBytes / totalBatches);
+            const totalBytes = combinedBlob.size;
+            const bytesPerBatch = Math.ceil(totalBytes / totalBatches);
 
-                for (let b = 0; b < totalBatches; b++) {
-                    const startByte = b * bytesPerBatch;
-                    const endByte = Math.min(startByte + bytesPerBatch, totalBytes);
-                    const sliceBlob = combinedBlob.slice(startByte, endByte, combinedBlob.type);
-                    
-                    tampilkanAlert(`⏳ Mengirim bagian ke-${b + 1} dari ${totalBatches} ke server AI...`, "bg-blue-50 text-blue-800 border-blue-200");
-                    await kirimAudioKeServer(sliceBlob, b + 1, totalBatches, surahHintInput.value);
-                }
+            // Total upload percent dialokasikan dari 20% sampai 90%
+            for (let b = 0; b < totalBatches; b++) {
+                const startByte = b * bytesPerBatch;
+                const endByte = Math.min(startByte + bytesPerBatch, totalBytes);
+                const sliceBlob = combinedBlob.slice(startByte, endByte, 'audio/mp3');
+                
+                await kirimAudioKeServerWithProgress(sliceBlob, b + 1, totalBatches, surahHintInput.value, (batchPct) => {
+                    const globalProgress = 20 + ((b + batchPct) / totalBatches) * 70;
+                    updateProgress(
+                        globalProgress, 
+                        `Mengirim Bagian ${b + 1}/${totalBatches} (${Math.round(batchPct * 100)}%)...`,
+                        `Format: MP3 | Bagian ${b + 1} dari ${totalBatches}`
+                    );
+                });
             }
 
-            // Bersihkan Draft setelah sukses terkirim
+            updateProgress(95, "Selesai Mengunggah!", "Menunggu AI mencatat ke Google Sheet...");
+
+            // Bersihkan data lokal
             audioSegments = [];
             currentElapsedMs = 0;
             sessionBaseDurationMs = 0;
@@ -519,39 +586,52 @@
             timerDisplay.textContent = "00:00:00";
             pocketTimer.textContent = "00:00:00";
 
-            tampilkanAlert("🎉 <strong>Selesai Terkirim!</strong> AI sedang menganalisa hafalan Anda. Laporan akan muncul di evaluasi harian sebentar lagi.", "bg-emerald-50 text-emerald-800 border-emerald-200");
-            setTimeout(muatDataSheets, 5000);
-            setTimeout(muatDataSheets, 15000);
+            // Polling sampai Sheet update lalu buka otomatis
+            updateProgress(100, "100% Selesai!", "Membuka hasil evaluasi...");
+            setTimeout(async () => {
+                uploadProgressContainer.classList.add('hidden');
+                tampilkanAlert("🎉 <strong>Alhamdulillah Sukses!</strong> AI selesai memeriksa bacaan Anda.", "bg-emerald-50 text-emerald-800 border-emerald-200");
+                await muatDataSheets(true); // Param true: auto-open hari ini
+            }, 3000);
+
         } catch (err) {
-            tampilkanAlert("❌ Gagal mengirim: " + err.message + ". Berkas tetap aman di draft HP.", "bg-rose-50 text-rose-800 border-rose-200");
+            uploadProgressContainer.classList.add('hidden');
+            tampilkanAlert("❌ Gagal mengirim: " + err.message + ". Berkas tetap aman di draf HP.", "bg-rose-50 text-rose-800 border-rose-200");
         } finally {
             finishBtn.disabled = false;
-            finishBtn.textContent = "🚀 Selesai & Kirim ke AI (Auto 30 Menitan)";
         }
-    });
+    }
 
-    async function kirimAudioKeServer(blob, partIndex, totalParts, hint) {
-        const CHUNK_SIZE = 1.5 * 1024 * 1024;
+    async function kirimAudioKeServerWithProgress(blob, partIndex, totalParts, hint, onProgress) {
+        const CHUNK_SIZE = 1024 * 1024; // 1 MB per transmisi
         const totalSize = blob.size;
         const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
         const fileId = `sesi_${Date.now()}_part${partIndex}`;
-        const filename = `${fileId}.mp3`;
+        const filename = `${fileId}.mp3`; // Ekstensi mutlak .mp3
 
         for (let c = 0; c < totalChunks; c++) {
             const start = c * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, totalSize);
-            const chunk = blob.slice(start, end);
+            const chunk = blob.slice(start, end, 'audio/mp3');
 
             const formData = new FormData();
             formData.append('file', chunk, `chunk_${c}.mp3`);
             formData.append('filename', filename);
             formData.append('chunk_index', c);
             formData.append('total_chunks', totalChunks);
-            if (hint) formData.append('surah_hint', hint + (totalParts > 1 ? ` (Bagian ${partIndex}/${totalParts})` : ''));
+            
+            let labelHint = hint ? hint : 'Murojaah';
+            if (totalParts > 1) labelHint += ` (Bagian ${partIndex}/${totalParts})`;
+            formData.append('surah_hint', labelHint);
 
-            await fetch(BACKEND_URL, { method: 'POST', body: formData });
+            const res = await fetch(BACKEND_URL, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+
+            if (onProgress) onProgress((c + 1) / totalChunks);
         }
     }
+
+    finishBtn.addEventListener('click', prosesSelesaiDanKirim);
 
     function tampilkanAlert(pesan, kelas) {
         statusAlert.className = `p-4 rounded-2xl text-xs font-semibold border ${kelas}`;
@@ -560,51 +640,118 @@
     }
 
     // ========================================================================
-    // MODE SAKU (DOUBLE TAP ANTI SALAH PENCET + KONTROL MULAI / JEDA)
+    // MODE SAKU (FULLSCREEN & ANTI-SALAH PENCET)
     // ========================================================================
-    lockScreenBtn.addEventListener('click', () => {
+    function enterPocketMode() {
         pocketLockScreen.classList.remove('hidden');
         document.body.style.overflow = "hidden";
         requestWakeLock();
-    });
+
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        updateUIStates();
+    }
+
+    function exitPocketMode() {
+        pocketLockScreen.classList.add('hidden');
+        document.body.style.overflow = "";
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+        updateUIStates();
+    }
+
+    lockScreenBtn.addEventListener('click', enterPocketMode);
 
     pocketActionBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (!pocketBtnArmed) {
-            pocketBtnArmed = true;
-            pocketActionBtn.textContent = "👆 Ketuk 1x Lagi utk Konfirmasi";
-            pocketActionBtn.classList.add('scale-105');
-            pocketArmTimeout = setTimeout(() => {
-                pocketBtnArmed = false;
-                pocketActionBtn.classList.remove('scale-105');
+        if (!actionBtnArmed) {
+            actionBtnArmed = true;
+            pocketActionBtn.textContent = "👆 Ketuk 1x Lagi untuk Konfirmasi!";
+            pocketActionBtn.classList.add('scale-105', 'bg-emerald-600', 'text-white');
+            actionBtnTimeout = setTimeout(() => {
+                actionBtnArmed = false;
+                pocketActionBtn.classList.remove('scale-105', 'bg-emerald-600', 'text-white');
                 updateUIStates();
             }, 1800);
         } else {
-            clearTimeout(pocketArmTimeout);
-            pocketBtnArmed = false;
-            pocketActionBtn.classList.remove('scale-105');
+            clearTimeout(actionBtnTimeout);
+            actionBtnArmed = false;
+            pocketActionBtn.classList.remove('scale-105', 'bg-emerald-600', 'text-white');
 
-            if (!isRecording && !isPaused) {
-                startRecording();
-            } else if (isRecording && !isPaused) {
-                pauseAndSaveDraft();
-            } else if (isPaused) {
-                resumeRecording();
-            }
+            if (!isRecording && !isPaused) startRecording();
+            else if (isRecording && !isPaused) pauseAndSaveDraft();
+            else if (isPaused) resumeRecording();
+        }
+    });
+
+    pocketFinishBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!finishBtnArmed) {
+            finishBtnArmed = true;
+            pocketFinishBtn.textContent = "🚀 Ketuk 1x Lagi untuk Kirim ke AI!";
+            pocketFinishBtn.classList.add('scale-105', 'bg-blue-600', 'text-white');
+            finishBtnTimeout = setTimeout(() => {
+                finishBtnArmed = false;
+                pocketFinishBtn.classList.remove('scale-105', 'bg-blue-600', 'text-white');
+                updateUIStates();
+            }, 2000);
+        } else {
+            clearTimeout(finishBtnTimeout);
+            finishBtnArmed = false;
+            pocketFinishBtn.classList.remove('scale-105', 'bg-blue-600', 'text-white');
+            exitPocketMode();
+            prosesSelesaiDanKirim();
         }
     });
 
     unlockPocketBtn.addEventListener('click', () => {
         const pin = prompt("Ketik PIN Buka Kunci (123):");
-        if (pin === "123") {
-            pocketLockScreen.classList.add('hidden');
-            document.body.style.overflow = "";
-        }
+        if (pin === "123") exitPocketMode();
     });
 
     // ========================================================================
-    // PENGELOMPOKAN DATA PER HARI & REKAP KOREKSI HARI INI
+    // PARSER & EKSTRAK AYAT TERAKHIR SESUAI TEMPLATE SHEET
     // ========================================================================
+    function ekstrakAyatTerakhirDariSheet(teksKolomC) {
+        if (!teksKolomC) return null;
+
+        // Mencari format template: "AYAT TERAKHIR YANG ... DIBACA ...: NamaSurah Ayat XX \n Teks Arab"
+        const regexHeader = /AYAT TERAKHIR YANG[\s\S]*?:\s*([^\n\r=]+)/i;
+        const matchHeader = teksKolomC.match(regexHeader);
+        
+        let labelSurah = "";
+        let teksArab = "";
+
+        if (matchHeader) {
+            labelSurah = matchHeader[1].trim();
+            // Ambil baris berikutnya sebelum garis pembatas "=====" sebagai teks Arab
+            const setelahHeader = teksKolomC.substring(matchHeader.index + matchHeader[0].length);
+            const lines = setelahHeader.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            for (let line of lines) {
+                if (line.includes('===') || line.includes('CAKUPAN')) break;
+                teksArab += (teksArab ? ' ' : '') + line;
+            }
+        }
+
+        if (!labelSurah && !teksArab) {
+            // Fallback jika format berbeda
+            const baris = teksKolomC.split('\n').filter(b => b.trim().length > 0);
+            return {
+                judul: "Hafalan Terakhir",
+                arab: baris[0] || "Bacaan tersimpan."
+            };
+        }
+
+        return {
+            judul: labelSurah || "Ayat Terakhir",
+            arab: teksArab || "Teks ayat tersimpan di Google Sheet."
+        };
+    }
+
     function parseKoreksiLines(teks) {
         if (!teks) return [];
         const lines = teks.split('\n');
@@ -622,32 +769,49 @@
         return hasil;
     }
 
-    async function muatDataSheets() {
-        daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Menyegarkan riwayat evaluasi...</div>`;
+    async function muatDataSheets(autoOpenToday = false) {
         try {
             const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
             const data = await res.json();
             if (!Array.isArray(data) || data.length === 0) {
-                daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Belum ada riwayat rekaman tersimpan.</div>`;
+                daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Belum ada riwayat rekaman di database.</div>`;
+                lastAyatTitle.textContent = "Belum Ada Data";
+                lastAyatArab.textContent = "Silakan mulai rekaman murojaah pertama Anda.";
                 return;
             }
 
+            // AMBIL BARIS PALING ATAS (Data paling baru)
+            const rowTerbaru = data[0];
+            
+            // Ekstrak ayat terakhir
+            const parsedAyat = ekstrakAyatTerakhirDariSheet(rowTerbaru.bacaan || rowTerbaru.transkrip || rowTerbaru.koreksi || '');
+            if (parsedAyat) {
+                lastAyatTitle.textContent = `📍 ${parsedAyat.judul}`;
+                lastAyatArab.textContent = parsedAyat.arab;
+            }
+            lastAyatTime.textContent = rowTerbaru.waktu ? new Date(rowTerbaru.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "Baru saja";
+
+            // Kelompokkan data per hari
             riwayatGroupedByDate = {};
+            let todayKey = null;
 
             data.forEach(item => {
                 const dateObj = item.waktu ? new Date(item.waktu) : new Date();
                 const dateKey = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const isToday = (new Date().toDateString() === dateObj.toDateString());
                 
+                if (isToday) todayKey = dateKey;
+
                 if (!riwayatGroupedByDate[dateKey]) {
                     riwayatGroupedByDate[dateKey] = {
                         tanggalStr: dateKey,
                         items: [],
                         totalKoreksi: 0,
-                        isToday: (new Date().toDateString() === dateObj.toDateString())
+                        isToday: isToday
                     };
                 }
 
-                const listKoreksi = parseKoreksiLines(item.koreksi || '');
+                const listKoreksi = parseKoreksiLines(item.koreksi || item.bacaan || '');
                 riwayatGroupedByDate[dateKey].items.push({
                     raw: item,
                     koreksiList: listKoreksi
@@ -656,8 +820,13 @@
             });
 
             renderGroupedDays();
+
+            // Jika dipanggil setelah upload 100%, langsung buka modal hari ini
+            if (autoOpenToday && todayKey) {
+                bukaRekapHari(todayKey);
+            }
         } catch (e) {
-            daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-rose-500 bg-rose-50 rounded-2xl border border-rose-100">Gagal memuat riwayat: ${e.message}</div>`;
+            daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-rose-500 bg-rose-50 rounded-2xl border border-rose-100">Gagal memuat: ${e.message}</div>`;
         }
     }
 
@@ -670,24 +839,24 @@
             const card = document.createElement('div');
             
             if (dayGroup.isToday) {
-                card.className = "p-5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-sm flex items-center justify-between";
+                card.className = "p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-sm flex items-center justify-between";
             } else {
-                card.className = "p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex items-center justify-between";
+                card.className = "p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex items-center justify-between";
             }
 
             card.innerHTML = `
-                <div class="space-y-1">
+                <div class="space-y-1 pr-2">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-bold ${dayGroup.isToday ? 'text-emerald-800' : 'text-slate-800'}">${dayGroup.tanggalStr}</span>
-                        ${dayGroup.isToday ? '<span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">HARI INI</span>' : ''}
+                        ${dayGroup.isToday ? '<span class="text-[9px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">HARI INI</span>' : ''}
                     </div>
-                    <p class="text-xs text-slate-500">
-                        ${dayGroup.items.length} Sesi Murojaah &bull; 
-                        <strong class="${dayGroup.totalKoreksi > 0 ? 'text-rose-600' : 'text-emerald-600'}">${dayGroup.totalKoreksi} Kesalahan Dicatat</strong>
+                    <p class="text-[11px] text-slate-500">
+                        ${dayGroup.items.length} Sesi &bull; 
+                        <strong class="${dayGroup.totalKoreksi > 0 ? 'text-rose-600' : 'text-emerald-600'}">${dayGroup.totalKoreksi} Koreksi</strong>
                     </p>
                 </div>
-                <button onclick="bukaRekapHari('${key}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm transition">
-                    Lihat Kesalahan
+                <button onclick="bukaRekapHari('${key}')" class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition">
+                    Lihat Hasil
                 </button>
             `;
             daftarHariContainer.appendChild(card);
@@ -699,12 +868,12 @@
         if (!group) return;
 
         modalDayTitle.textContent = `Evaluasi: ${group.tanggalStr}`;
-        modalDayStats.textContent = `Total ${group.totalKoreksi} kesalahan ditemukan dari ${group.items.length} rekaman`;
+        modalDayStats.textContent = `Total ${group.totalKoreksi} koreksi dari ${group.items.length} rekaman`;
         modalDayBody.innerHTML = "";
 
         if (group.totalKoreksi === 0) {
             modalDayBody.innerHTML = `
-                <div class="p-8 text-center bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-bold text-sm">
+                <div class="p-8 text-center bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-bold text-xs sm:text-sm">
                     ✨ MasyaAllah, seluruh bacaan di hari ini lancar tanpa kesalahan terdeteksi!
                 </div>
             `;
@@ -716,24 +885,24 @@
                 sesiBox.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3";
                 
                 let rowsHTML = sesi.koreksiList.map(k => `
-                    <div class="grid grid-cols-2 gap-3 bg-white p-3 rounded-xl border border-slate-100">
-                        <div class="bg-rose-50/50 p-2 rounded-lg border border-rose-100">
+                    <div class="grid grid-cols-2 gap-2.5 bg-white p-3 rounded-xl border border-slate-100">
+                        <div class="bg-rose-50/50 p-2.5 rounded-lg border border-rose-100">
                             <span class="text-[9px] font-bold text-rose-500 uppercase block mb-1">❌ Salah / Ragu</span>
-                            <p class="arabic-text text-lg text-slate-800 text-right select-all">${k.salah}</p>
+                            <p class="arabic-text text-base text-slate-800 text-right select-all">${k.salah}</p>
                         </div>
-                        <div class="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+                        <div class="bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
                             <span class="text-[9px] font-bold text-emerald-600 uppercase block mb-1">✅ Seharusnya</span>
-                            <p class="arabic-text text-lg text-emerald-950 font-medium text-right select-all">${k.benar}</p>
+                            <p class="arabic-text text-base text-emerald-950 font-medium text-right select-all">${k.benar}</p>
                         </div>
                     </div>
                 `).join('');
 
                 sesiBox.innerHTML = `
                     <div class="flex items-center justify-between border-b pb-2 border-slate-200">
-                        <span class="text-xs font-bold text-slate-700">📌 Sesi Rekaman #${idx + 1} (${sesi.raw.menit || 'Audio'})</span>
+                        <span class="text-xs font-bold text-slate-700">📌 Sesi #${idx + 1} (${sesi.raw.menit || 'MP3'})</span>
                         <span class="text-[11px] font-bold text-rose-600">${sesi.koreksiList.length} Koreksi</span>
                     </div>
-                    <div class="space-y-2.5">${rowsHTML}</div>
+                    <div class="space-y-2">${rowsHTML}</div>
                 `;
                 modalDayBody.appendChild(sesiBox);
             });
@@ -748,9 +917,7 @@
         document.body.style.overflow = "";
     });
 
-    // ========================================================================
-    // RESTORE DATA DRAFT OTOMATIS SAAT REFRESH
-    // ========================================================================
+    // Restore Draft saat Refresh
     async function periksaDraftPemulihan() {
         const savedDraft = await ambilDraftDariDB();
         if (savedDraft && savedDraft.segments && savedDraft.segments.length > 0) {
@@ -767,7 +934,7 @@
         }
     }
 
-    // Inisialisasi Pertama
+    // Start Up
     window.addEventListener('DOMContentLoaded', () => {
         initKeepAliveCanvas();
         requestWakeLock();
