@@ -790,3 +790,472 @@
             attempts++;
             const tashihPct = 60 + Math.floor((attempts / maxAttempts) * 39);
             updateProgress(
+                tashihPct,
+                `AI Sedang Mentashih (${attempts * 3} dtk)...`,
+                "Sedang mencocokkan hafalan dengan mushaf Al-Qur'an..."
+            );
+
+            try {
+                const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
+                const data = await res.json();
+                
+                if (Array.isArray(data) && data.length > totalSebelumnya) {
+                    updateProgress(100, "100% Selesai Ditashih!", "Evaluasi tersimpan di Google Sheet.");
+                    await new Promise(r => setTimeout(r, 800));
+                    
+                    uploadProgressContainer.classList.add('hidden');
+                    pocketProgressArea.classList.add('hidden');
+                    pocketStatusText.textContent = "✨ Selesai Ditashih (100%)";
+
+                    tampilkanAlert("🎉 <strong>Selesai Ditashih!</strong> Hasil murojaah Anda telah masuk ke riwayat.", "bg-emerald-50 text-emerald-800 border-emerald-200");
+                    
+                    await hapusSnapshotDariDisk();
+                    await muatDataSheets(true);
+                    return;
+                }
+            } catch (err) {}
+
+            await new Promise(r => setTimeout(r, 3000));
+        }
+
+        uploadProgressContainer.classList.add('hidden');
+        pocketProgressArea.classList.add('hidden');
+        tampilkanAlert("⚠️ AI sedang menyelesaikan antrean. Silakan klik tombol '🔄 Segarkan' beberapa saat lagi.", "bg-amber-50 text-amber-800 border-amber-200");
+        await muatDataSheets();
+    }
+
+    async function prosesSelesaiDanKirim() {
+        if (isSending) return;
+        if (!isRecording && recordedChunks.length === 0) {
+            alert("Belum ada rekaman suara.");
+            return;
+        }
+
+        isSending = true;
+        finishBtn.disabled = true;
+        pocketFinishBtn.disabled = true;
+
+        clearInterval(autoSaveInterval);
+        clearInterval(timerInterval);
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            await new Promise((resolve) => {
+                mediaRecorder.onstop = resolve;
+                mediaRecorder.stop();
+            });
+        }
+
+        if (micStream) {
+            micStream.getTracks().forEach(t => t.stop());
+            micStream = null;
+        }
+
+        const durasiSelesai = totalElapsedMs + (isPaused ? 0 : (Date.now() - startTime));
+        const finalMP3Blob = new Blob(recordedChunks, { type: 'audio/mp3' });
+
+        // Reset state rekaman
+        recordedChunks = [];
+        totalElapsedMs = 0;
+        isRecording = false;
+        isPaused = false;
+        timerDisplay.textContent = "00:00:00";
+        pocketTimer.textContent = "00:00:00";
+        updateUIStates();
+
+        // 1. Simpan ke Arsip Harian (Bisa diulang kapan saja)
+        await simpanKeArsipHarian(finalMP3Blob, durasiSelesai, surahHintInput.value);
+
+        // Ubah tampilan mode saku saat pengiriman
+        pocketActionControls.classList.add('hidden');
+        pocketProgressArea.classList.remove('hidden');
+        pocketStatusText.textContent = "Sedang Mengirim MP3...";
+
+        // 2. Kirim ke AI Backend
+        try {
+            await kirimAudioMP3(finalMP3Blob, surahHintInput.value);
+        } catch (err) {
+            uploadProgressContainer.classList.add('hidden');
+            pocketProgressArea.classList.add('hidden');
+            pocketActionControls.classList.remove('hidden');
+            pocketStatusText.textContent = "Gagal Mengirim";
+            tampilkanAlert(`❌ <strong>Gagal Terkirim:</strong> ${err.message}. Rekaman tersimpan di arsip dan siap dikirim ulang.`, "bg-rose-50 text-rose-800 border-rose-200");
+        } finally {
+            isSending = false;
+            finishBtn.disabled = false;
+            pocketFinishBtn.disabled = false;
+            updateUIStates();
+        }
+    }
+
+    function kirimAudioMP3(blob, hint) {
+        return new Promise(async (resolve, reject) => {
+            const CHUNK_SIZE = 1.5 * 1024 * 1024; // 1.5 MB per chunk
+            const totalSize = blob.size;
+            const totalChunks = Math.ceil(totalSize / CHUNK_SIZE);
+
+            const randomId = Math.random().toString(36).substring(2, 12) + "_" + Date.now();
+            const filename = `${randomId}.mp3`;
+
+            updateProgress(5, "Menyiapkan berkas MP3...", `Ukuran total: ${formatSize(totalSize)}`);
+
+            for (let c = 0; c < totalChunks; c++) {
+                const start = c * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, totalSize);
+                const chunkSlice = blob.slice(start, end);
+                const mp3ChunkBlob = new Blob([chunkSlice], { type: 'audio/mp3' });
+
+                try {
+                    await uploadSatuChunkMP3(mp3ChunkBlob, filename, c, totalChunks, hint);
+                    const pct = 5 + Math.round(((c + 1) / totalChunks) * 55);
+                    updateProgress(
+                        pct,
+                        `Mengirim Berkas MP3 (${pct}%)...`,
+                        `Bagian ${c + 1} dari ${totalChunks} terkirim sebagai format MP3 resmi`
+                    );
+                } catch (e) {
+                    reject(e);
+                    return;
+                }
+            }
+
+            updateProgress(60, "MP3 Berhasil Terkirim!", "AI Google Gemini sedang mentashih bacaan hafalan...");
+            await pantauHasilSheet(totalBarisSheetSebelumnya);
+            resolve();
+        });
+    }
+
+    function uploadSatuChunkMP3(chunkBlob, filename, chunkIndex, totalChunks, hint) {
+        return new Promise((resolve, reject) => {
+            const formData = new FormData();
+            formData.append('file', chunkBlob, `part_${chunkIndex}`);
+            formData.append('filename', filename);
+            formData.append('chunk_index', chunkIndex);
+            formData.append('total_chunks', totalChunks);
+            if (hint) formData.append('surah_hint', hint);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', BACKEND_URL, true);
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve();
+                } else {
+                    reject(new Error(`Server merespon ${xhr.status}`));
+                }
+            };
+
+            xhr.onerror = () => reject(new Error("Koneksi terputus saat mengunggah bagian file"));
+            xhr.ontimeout = () => reject(new Error("Waktu unggah habis (timeout)"));
+            xhr.send(formData);
+        });
+    }
+
+    function tampilkanAlert(pesan, kelas) {
+        statusAlert.className = `p-4 rounded-2xl text-xs font-semibold border ${kelas}`;
+        statusAlert.innerHTML = pesan;
+        statusAlert.classList.remove('hidden');
+    }
+
+    // ========================================================================
+    // KONTROL MODE SAKU (BUKA & KUNCI)
+    // ========================================================================
+    function enterPocketMode() {
+        pocketLockScreen.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+        requestWakeLock();
+
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+        else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+        updateUIStates();
+    }
+
+    function exitPocketMode() {
+        pocketLockScreen.classList.add('hidden');
+        document.body.style.overflow = "";
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+        updateUIStates();
+    }
+
+    lockScreenBtn.addEventListener('click', enterPocketMode);
+
+    unlockPocketBtn.addEventListener('click', () => {
+        const pin = prompt("Ketik PIN Buka Kunci (123):");
+        if (pin === "123") exitPocketMode();
+    });
+
+    // ========================================================================
+    // PARSER & EKSTRAK AYAT DARI GOOGLE SHEET
+    // ========================================================================
+    function ekstrakAyatTerakhirDariSheet(teksKolomC) {
+        if (!teksKolomC) return null;
+
+        if (teksKolomC.includes("401 UNAUTHENTICATED") || teksKolomC.includes("API key not valid")) {
+            return {
+                judul: "Catatan Sistem",
+                arab: "Rekaman sebelumnya mengalami galat 401. Silakan kirim rekaman baru yang sudah diperbaiki dalam format MP3 resmi."
+            };
+        }
+
+        const regexHeader = /AYAT TERAKHIR YANG[\s\S]*?:\s*([^\n\r=]+)/i;
+        const matchHeader = teksKolomC.match(regexHeader);
+        
+        let labelSurah = "";
+        let teksArab = "";
+
+        if (matchHeader) {
+            labelSurah = matchHeader[1].trim();
+            const setelahHeader = teksKolomC.substring(matchHeader.index + matchHeader[0].length);
+            const lines = setelahHeader.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            for (let line of lines) {
+                if (line.includes('===') || line.includes('CAKUPAN')) break;
+                teksArab += (teksArab ? ' ' : '') + line;
+            }
+        }
+
+        if (!labelSurah && !teksArab) {
+            const baris = teksKolomC.split('\n').filter(b => b.trim().length > 0);
+            return {
+                judul: "Hafalan Terakhir",
+                arab: baris[0] || "Bacaan tersimpan."
+            };
+        }
+
+        return {
+            judul: labelSurah || "Ayat Terakhir",
+            arab: teksArab || "Teks ayat tersimpan di Google Sheet."
+        };
+    }
+
+    function parseKoreksiLines(teks) {
+        if (!teks) return [];
+        const lines = teks.split('\n');
+        const hasil = [];
+
+        for (let l of lines) {
+            const trim = l.trim();
+            if (trim.includes('---')) {
+                const parts = trim.split('---');
+                if (parts.length === 2) {
+                    hasil.push({ salah: parts[0].trim(), benar: parts[1].trim() });
+                }
+            }
+        }
+        return hasil;
+    }
+
+    async function muatDataSheets(autoOpenToday = false) {
+        try {
+            const res = await fetch(`${GSCRIPT_URL}?_t=${Date.now()}`);
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                totalBarisSheetSebelumnya = 0;
+                daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">Belum ada riwayat rekaman di database.</div>`;
+                lastAyatTitle.textContent = "Belum Ada Data";
+                lastAyatArab.textContent = "Silakan mulai rekaman murojaah pertama Anda.";
+                return;
+            }
+
+            totalBarisSheetSebelumnya = data.length;
+
+            const rowTerbaru = data[0];
+            const parsedAyat = ekstrakAyatTerakhirDariSheet(rowTerbaru.bacaan || rowTerbaru.transkrip || rowTerbaru.koreksi || '');
+            if (parsedAyat) {
+                lastAyatTitle.textContent = `📍 ${parsedAyat.judul}`;
+                lastAyatArab.textContent = parsedAyat.arab;
+            }
+            lastAyatTime.textContent = rowTerbaru.waktu ? new Date(rowTerbaru.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "Baru saja";
+
+            riwayatGroupedByDate = {};
+            let todayKey = null;
+
+            data.forEach((item, index) => {
+                const dateObj = item.waktu ? new Date(item.waktu) : new Date();
+                const dateKey = dateObj.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const isToday = (new Date().toDateString() === dateObj.toDateString());
+                
+                if (isToday) todayKey = dateKey;
+
+                if (!riwayatGroupedByDate[dateKey]) {
+                    riwayatGroupedByDate[dateKey] = {
+                        tanggalStr: dateKey,
+                        items: [],
+                        totalKoreksi: 0,
+                        isToday: isToday,
+                        rawIndices: []
+                    };
+                }
+
+                const listKoreksi = parseKoreksiLines(item.koreksi || item.bacaan || '');
+                riwayatGroupedByDate[dateKey].items.push({
+                    raw: item,
+                    koreksiList: listKoreksi
+                });
+                riwayatGroupedByDate[dateKey].rawIndices.push(index);
+                riwayatGroupedByDate[dateKey].totalKoreksi += listKoreksi.length;
+            });
+
+            renderGroupedDays();
+
+            // Hanya auto open jika tidak sedang berada dalam Mode Saku
+            if (autoOpenToday && todayKey && pocketLockScreen.classList.contains('hidden')) {
+                bukaRekapHari(todayKey);
+            }
+        } catch (e) {
+            daftarHariContainer.innerHTML = `<div class="p-8 text-center text-xs text-rose-500 bg-rose-50 rounded-2xl border border-rose-100">Gagal memuat: ${e.message}</div>`;
+        }
+    }
+
+    function renderGroupedDays() {
+        daftarHariContainer.innerHTML = "";
+        const keys = Object.keys(riwayatGroupedByDate);
+
+        keys.forEach(key => {
+            const dayGroup = riwayatGroupedByDate[key];
+            const card = document.createElement('div');
+            
+            if (dayGroup.isToday) {
+                card.className = "p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 to-white shadow-sm flex items-center justify-between";
+            } else {
+                card.className = "p-4 sm:p-5 rounded-2xl border border-slate-100 bg-white shadow-sm flex items-center justify-between";
+            }
+
+            card.innerHTML = `
+                <div class="space-y-1 pr-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold ${dayGroup.isToday ? 'text-emerald-800' : 'text-slate-800'}">${dayGroup.tanggalStr}</span>
+                        ${dayGroup.isToday ? '<span class="text-[9px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">HARI INI</span>' : ''}
+                    </div>
+                    <p class="text-[11px] text-slate-500">
+                        ${dayGroup.items.length} Sesi &bull; 
+                        <strong class="${dayGroup.totalKoreksi > 0 ? 'text-rose-600' : 'text-emerald-600'}">${dayGroup.totalKoreksi} Koreksi</strong>
+                    </p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="hapusRiwayatPerHari('${key}')" title="Hapus Riwayat Hari Ini" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold p-2.5 rounded-xl text-xs transition">
+                        🗑️
+                    </button>
+                    <button onclick="bukaRekapHari('${key}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3.5 rounded-xl shadow-sm transition">
+                        Lihat Hasil
+                    </button>
+                </div>
+            `;
+            daftarHariContainer.appendChild(card);
+        });
+    }
+
+    window.bukaRekapHari = function(dateKey) {
+        const group = riwayatGroupedByDate[dateKey];
+        if (!group) return;
+
+        modalDayTitle.textContent = `Evaluasi: ${group.tanggalStr}`;
+        modalDayStats.textContent = `Total ${group.totalKoreksi} koreksi dari ${group.items.length} rekaman`;
+        modalDayBody.innerHTML = "";
+
+        if (group.totalKoreksi === 0) {
+            modalDayBody.innerHTML = `
+                <div class="p-8 text-center bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-bold text-xs sm:text-sm">
+                    ✨ MasyaAllah, seluruh bacaan di hari ini lancar tanpa kesalahan terdeteksi!
+                </div>
+            `;
+        } else {
+            group.items.forEach((sesi, idx) => {
+                if (sesi.koreksiList.length === 0) return;
+
+                const sesiBox = document.createElement('div');
+                sesiBox.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3";
+                
+                let rowsHTML = sesi.koreksiList.map(k => `
+                    <div class="grid grid-cols-2 gap-2.5 bg-white p-3 rounded-xl border border-slate-100">
+                        <div class="bg-rose-50/50 p-2.5 rounded-lg border border-rose-100">
+                            <span class="text-[9px] font-bold text-rose-500 uppercase block mb-1">❌ Salah / Ragu</span>
+                            <p class="arabic-text text-base text-slate-800 text-right select-all">${k.salah}</p>
+                        </div>
+                        <div class="bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
+                            <span class="text-[9px] font-bold text-emerald-600 uppercase block mb-1">✅ Seharusnya</span>
+                            <p class="arabic-text text-base text-emerald-950 font-medium text-right select-all">${k.benar}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                sesiBox.innerHTML = `
+                    <div class="flex items-center justify-between border-b pb-2 border-slate-200">
+                        <span class="text-xs font-bold text-slate-700">📌 Sesi #${idx + 1} (${sesi.raw.menit || 'Audio MP3'})</span>
+                        <span class="text-[11px] font-bold text-rose-600">${sesi.koreksiList.length} Koreksi</span>
+                    </div>
+                    <div class="space-y-2">${rowsHTML}</div>
+                `;
+                modalDayBody.appendChild(sesiBox);
+            });
+        }
+
+        fullscreenDetailModal.classList.remove('hidden');
+        document.body.style.overflow = "hidden";
+    };
+
+    closeDetailModalBtn.addEventListener('click', () => {
+        fullscreenDetailModal.classList.add('hidden');
+        document.body.style.overflow = "";
+    });
+
+    // ========================================================================
+    // HAPUS RIWAYAT DARI GOOGLE SHEET
+    // ========================================================================
+    window.hapusSemuaRiwayat = async function() {
+        if (!confirm("⚠️ PERINGATAN: Apakah Anda yakin ingin MENGHAPUS SEMUA riwayat murojaah di Google Sheet?")) {
+            return;
+        }
+
+        tampilkanAlert("⏳ Sedang menghapus seluruh riwayat...", "bg-amber-50 text-amber-800 border-amber-200");
+        try {
+            await fetch(GSCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteAll' })
+            });
+
+            tampilkanAlert("🗑️ Seluruh riwayat berhasil dihapus.", "bg-slate-100 text-slate-700 border-slate-200");
+            setTimeout(muatDataSheets, 1500);
+        } catch (e) {
+            alert("Gagal menghapus: " + e.message);
+        }
+    };
+
+    window.hapusRiwayatPerHari = async function(dateKey) {
+        if (!confirm(`Hapus seluruh riwayat rekaman untuk hari: ${dateKey}?`)) {
+            return;
+        }
+
+        tampilkanAlert(`⏳ Sedang menghapus riwayat ${dateKey}...`, "bg-amber-50 text-amber-800 border-amber-200");
+        try {
+            await fetch(GSCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteDay', tanggal: dateKey })
+            });
+
+            tampilkanAlert(`🗑️ Riwayat ${dateKey} berhasil dibersihkan.`, "bg-slate-100 text-slate-700 border-slate-200");
+            setTimeout(muatDataSheets, 1500);
+        } catch (e) {
+            alert("Gagal menghapus data: " + e.message);
+        }
+    };
+
+    // ========================================================================
+    // INISIALISASI
+    // ========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+        initKeepAliveCanvas();
+        requestWakeLock();
+        muatDanBersihkanArsipHarian();
+        muatDataSheets();
+    });
+</script>
+</body>
+</html>
