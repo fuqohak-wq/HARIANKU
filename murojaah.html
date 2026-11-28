@@ -437,6 +437,9 @@
   let wakeLock = null;
   let audioCtx = null;
   let silentAudioNode = null;
+  let visualizerSource = null;
+  let visualizerRafId = null;
+  let visualizerGeneration = 0;
   let streamGlobal = null;
   let mediaRecorder = null;
 
@@ -460,6 +463,9 @@
   let activeRunStartTime = 0;
   let timerInterval = null;
   let isRotatingSegment = false;
+  let isResumingMic = false;
+  let pauseFinalizePromise = null;
+  let rotateFinalizePromise = null;
 
   let draftSegments = [];
   let lastRecordedBlob = null;
@@ -709,22 +715,40 @@
         silentAudioNode.connect(audioCtx.destination);
         silentAudioNode.start(0);
       }
+      if (keepAliveMedia && keepAliveMedia.paused) {
+        keepAliveMedia.play().catch(() => {});
+      }
+    } catch {}
+  }
+
+  async function lepaskanFokusAudioSementara() {
+    try {
+      if (audioCtx && audioCtx.state === 'running') {
+        await audioCtx.suspend();
+      }
+    } catch {}
+    try {
+      if (keepAliveMedia && !keepAliveMedia.paused) {
+        keepAliveMedia.pause();
+      }
     } catch {}
   }
 
   ['touchstart', 'mousedown', 'keydown', 'scroll'].forEach((evt) => {
     window.addEventListener(evt, () => {
       mintaWakeLockPermanen();
-      aktifkanAudioKeepAlivePermanen();
-      if (keepAliveMedia && keepAliveMedia.paused) keepAliveMedia.play().catch(() => {});
+      if (!isPaused) {
+        aktifkanAudioKeepAlivePermanen();
+      }
     }, { passive: true });
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       mintaWakeLockPermanen();
-      aktifkanAudioKeepAlivePermanen();
-      if (keepAliveMedia && keepAliveMedia.paused) keepAliveMedia.play().catch(() => {});
+      if (!isPaused) {
+        aktifkanAudioKeepAlivePermanen();
+      }
     }
   });
 
@@ -963,12 +987,14 @@
       segmentsMap.set(ch.segmentIndex, arr);
     }
 
+    const sealedIndices = new Set(sealedRecords.map((r) => r.segmentIndex));
     const recovered = sealedRecords.length > 0
       ? sealedRecords.map((r) => ({ blob: r.blob, durationMs: r.durationMs }))
       : [...existingDraft];
 
     const sortedIndices = Array.from(segmentsMap.keys()).sort((a, b) => a - b);
     for (const segIdx of sortedIndices) {
+      if (sealedIndices.has(segIdx)) continue;
       const blobList = segmentsMap.get(segIdx) || [];
       if (blobList.length > 0) {
         const combinedBlob = new Blob(blobList, { type: meta.mimeType || 'audio/webm' });
@@ -1212,11 +1238,16 @@
 
     if (isRecording) {
       liveRecordingBanner.classList.remove('hidden');
+      testMicBtn.disabled = true;
+      testMicBtn.className = 'bg-gray-100 text-gray-400 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full opacity-60 cursor-not-allowed';
       if (isPaused) {
         liveRecDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500';
-        liveRecText.textContent = '⏸️ Jeda Tersimpan di Browser (Aman jika di-refresh)';
+        liveRecText.textContent = '⏸️ Dijeda & Tersimpan • Mic Dilepas (Bebas Dipakai Instagram / Aplikasi Lain)';
         pauseBtn.textContent = '▶️ Lanjutkan';
         pauseBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex justify-center items-center gap-2 text-base w-full';
+        volumeBar.style.width = '0%';
+        volumeBar.className = 'bg-amber-400 h-full transition-all duration-75';
+        volumeLabel.textContent = '⏸️ Dijeda • Mic Bebas Utk Aplikasi Lain';
       } else {
         liveRecDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping';
         liveRecText.textContent = `🔴 Sedang Merekam Bagian ke-${currentSegmentIndex + 1} (Auto-pecah per 30 menit)`;
@@ -1229,6 +1260,12 @@
     } else {
       liveRecordingBanner.classList.add('hidden');
       pauseBtn.classList.add('hidden');
+      testMicBtn.disabled = false;
+      if (!isTestingMic) {
+        testMicBtn.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full';
+        volumeBar.style.width = '0%';
+        volumeLabel.textContent = 'Mic Mati';
+      }
       if (draftSegments.length > 0) {
         recordBtn.textContent = `🎙️ Lanjutkan (${draftStr})`;
         timerLabel.textContent = draftStr;
@@ -1266,7 +1303,7 @@
     pocketPauseBtn.classList.remove('hidden');
     pocketFinishBtn.classList.remove('hidden');
     if (isPaused) {
-      pocketRecStatus.textContent = '⏸️ DIJEDA (TERSIMPAN)';
+      pocketRecStatus.textContent = '⏸️ DIJEDA • MIC BEBAS';
       pocketRecStatus.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/80 text-amber-300 border border-amber-500/40';
     } else {
       pocketRecStatus.textContent = `🔴 MEREKAM BAGIAN ${currentSegmentIndex + 1}`;
@@ -1374,28 +1411,65 @@
   // ========================================================================
   // VISUALIZER & RECORDING ENGINE (3 JAM NON-STOP + 30-MIN AUTO-ROTATE)
   // ========================================================================
+  function releaseMicHardware() {
+    visualizerGeneration++;
+    if (visualizerRafId !== null) {
+      cancelAnimationFrame(visualizerRafId);
+      visualizerRafId = null;
+    }
+    try {
+      if (visualizerSource) {
+        visualizerSource.disconnect();
+        visualizerSource = null;
+      }
+    } catch {}
+    if (streamGlobal) {
+      try {
+        streamGlobal.getTracks().forEach((t) => t.stop());
+      } catch {}
+      streamGlobal = null;
+    }
+  }
+
   function inisialisasiAudioVisualizer(stream) {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+
+      const gen = ++visualizerGeneration;
+      if (visualizerRafId !== null) {
+        cancelAnimationFrame(visualizerRafId);
+        visualizerRafId = null;
+      }
+      if (visualizerSource) {
+        try { visualizerSource.disconnect(); } catch {}
+        visualizerSource = null;
+      }
+
       const analyser = audioCtx.createAnalyser();
       const source = audioCtx.createMediaStreamSource(stream);
+      visualizerSource = source;
       source.connect(analyser);
       analyser.fftSize = 256;
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
       function draw() {
+        if (gen !== visualizerGeneration) return;
         if (!isRecording && !isTestingMic) {
           volumeBar.style.width = '0%';
           volumeLabel.textContent = 'Mic Mati';
+          visualizerRafId = null;
           return;
         }
-        requestAnimationFrame(draw);
         if (isPaused) {
           volumeBar.style.width = '0%';
-          volumeLabel.textContent = '⏸️ Rekaman Dijeda (Tersimpan)';
+          volumeBar.className = 'bg-amber-400 h-full transition-all duration-75';
+          volumeLabel.textContent = '⏸️ Dijeda • Mic Bebas Utk Aplikasi Lain';
+          visualizerRafId = null;
           return;
         }
+        visualizerRafId = requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
         let total = 0;
         for (let i = 0; i < bufferLength; i++) total += dataArray[i];
@@ -1442,7 +1516,7 @@
   }
 
   function rotateSegmentIfNeeded() {
-    if (!isRecording || isPaused || isRotatingSegment) return;
+    if (!isRecording || isPaused || isRotatingSegment || pauseFinalizePromise) return;
     const activeDelta = Math.max(0, Date.now() - activeRunStartTime);
     const currentSegMs = currentSegmentBaseMs + activeDelta;
     if (currentSegMs < SEGMENT_ROTATE_MS) return;
@@ -1469,16 +1543,26 @@
       const newRecorder = createSafeMediaRecorder(streamGlobal, mime);
       attachRecorderHandlers(newRecorder, newSegIdx, sid);
 
-      oldRecorder.onstop = async () => {
-        const sealedBlob = new Blob(oldChunks, { type: mime });
-        if (sealedBlob.size > 0) {
-          sealedSegments.push({ blob: sealedBlob, durationMs: oldSegDur });
-          await simpanSealedSegment({ sessionId: sid, segmentIndex: oldSegIdx, blob: sealedBlob, durationMs: oldSegDur });
-        }
-        await hapusActiveChunksBySegment(sid, oldSegIdx);
-        saveActiveMetaSnapshot('recording', totalBaseMs, 0);
-        isRotatingSegment = false;
-      };
+      rotateFinalizePromise = new Promise((resolveRotate) => {
+        oldRecorder.onstop = async () => {
+          try {
+            const sealedBlob = new Blob(oldChunks, { type: mime });
+            if (sealedBlob.size > 0) {
+              const segObj = { blob: sealedBlob, durationMs: oldSegDur };
+              sealedSegments.push(segObj);
+              draftSegments = [...sealedSegments];
+              await simpanSealedSegment({ sessionId: sid, segmentIndex: oldSegIdx, blob: sealedBlob, durationMs: oldSegDur });
+              await simpanDraftKeHP(sealedSegments);
+            }
+            await hapusActiveChunksBySegment(sid, oldSegIdx);
+            saveActiveMetaSnapshot('recording', totalBaseMs, 0);
+          } finally {
+            isRotatingSegment = false;
+            rotateFinalizePromise = null;
+            resolveRotate();
+          }
+        };
+      });
 
       newRecorder.start(3000);
       mediaRecorder = newRecorder;
@@ -1489,6 +1573,7 @@
       }, 150);
     } catch {
       isRotatingSegment = false;
+      rotateFinalizePromise = null;
     }
   }
 
@@ -1506,8 +1591,8 @@
     aktifkanAudioKeepAlivePermanen();
     restoredFromRefresh = false;
 
-    if (isTestingMic && streamGlobal) {
-      streamGlobal.getTracks().forEach((t) => t.stop());
+    if (isTestingMic) {
+      releaseMicHardware();
       isTestingMic = false;
       testMicBtn.textContent = '🔊 Tes Suara Mic';
       testMicBtn.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full';
@@ -1560,7 +1645,110 @@
     }
   }
 
-  function stopRecorderAndCollectSegments() {
+  async function pauseCurrentRecording() {
+    if (!isRecording || isPaused || pauseFinalizePromise) return;
+    if (rotateFinalizePromise) await rotateFinalizePromise;
+
+    const oldRecorder = mediaRecorder;
+    const oldChunks = currentChunks;
+    const oldSegIdx = currentSegmentIndex;
+    const sid = sessionId;
+    const mime = mimeTypeGlobal;
+
+    const delta = Math.max(0, Date.now() - activeRunStartTime);
+    totalBaseMs += delta;
+    const segDur = currentSegmentBaseMs + delta;
+
+    currentSegmentBaseMs = 0;
+    currentChunks = [];
+    currentSegmentIndex = oldSegIdx + 1;
+    currentChunkCounter = 0;
+    mediaRecorder = null;
+    isPaused = true;
+
+    perbaruiTampilanRecorderUI();
+    tampilkanStatus(
+      `⏸️ Rekaman Dijeda & Tersimpan (${formatDurasiMs(totalBaseMs)}).`,
+      'Mikrofon dilepas sehingga bisa dipakai untuk Instagram, rekaman lain, atau aplikasi lainnya. Aman meski halaman di-refresh.',
+      'bg-amber-50 border-amber-200 text-amber-800'
+    );
+
+    pauseFinalizePromise = (async () => {
+      try {
+        if (oldRecorder && oldRecorder.state !== 'inactive') {
+          await new Promise((resolveStop) => {
+            oldRecorder.onstop = resolveStop;
+            try { oldRecorder.requestData(); } catch {}
+            oldRecorder.stop();
+          });
+        }
+        releaseMicHardware();
+        await lepaskanFokusAudioSementara();
+
+        const sealedBlob = new Blob(oldChunks, { type: mime });
+        if (sealedBlob.size > 0) {
+          const segObj = { blob: sealedBlob, durationMs: Math.max(1000, segDur) };
+          sealedSegments.push(segObj);
+          draftSegments = [...sealedSegments];
+          await simpanSealedSegment({ sessionId: sid, segmentIndex: oldSegIdx, blob: sealedBlob, durationMs: segObj.durationMs });
+          await simpanDraftKeHP(sealedSegments);
+        }
+        await hapusActiveChunksBySegment(sid, oldSegIdx);
+        saveActiveMetaSnapshot('paused', totalBaseMs, 0);
+      } finally {
+        pauseFinalizePromise = null;
+        perbaruiTampilanRecorderUI();
+      }
+    })();
+
+    await pauseFinalizePromise;
+  }
+
+  async function resumeCurrentRecording() {
+    if (!isRecording || !isPaused || isResumingMic) return;
+    isResumingMic = true;
+    try {
+      if (pauseFinalizePromise) await pauseFinalizePromise;
+      if (!isRecording || !isPaused) return;
+
+      mintaWakeLockPermanen();
+      aktifkanAudioKeepAlivePermanen();
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      streamGlobal = stream;
+      mimeTypeGlobal = getPreferredMimeType();
+
+      currentSegmentBaseMs = 0;
+      currentChunkCounter = 0;
+      activeRunStartTime = Date.now();
+
+      mediaRecorder = createSafeMediaRecorder(stream, mimeTypeGlobal);
+      attachRecorderHandlers(mediaRecorder, currentSegmentIndex, sessionId);
+      mediaRecorder.start(3000);
+
+      isPaused = false;
+      saveActiveMetaSnapshot('recording', totalBaseMs, 0);
+      perbaruiTampilanRecorderUI();
+      inisialisasiAudioVisualizer(stream);
+      tampilkanStatus('🔴 Rekaman Dilanjutkan!', 'Mikrofon kembali aktif & audio terus tersimpan otomatis.', 'bg-emerald-50 border-emerald-200 text-emerald-700');
+    } catch (err) {
+      tampilkanStatus(
+        '⚠️ Mikrofon Belum Tersedia:',
+        `Pastikan aplikasi lain (seperti Instagram) sudah selesai memakai mikrofon, lalu ketuk Lanjutkan lagi. (${err.message})`,
+        'bg-rose-50 border-rose-200 text-rose-700',
+        true
+      );
+    } finally {
+      isResumingMic = false;
+    }
+  }
+
+  async function stopRecorderAndCollectSegments() {
+    if (pauseFinalizePromise) await pauseFinalizePromise;
+    if (rotateFinalizePromise) await rotateFinalizePromise;
+
     return new Promise((resolve) => {
       const recorder = mediaRecorder;
       const mime = mimeTypeGlobal;
@@ -1572,10 +1760,7 @@
       if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
 
       const finishUp = () => {
-        if (streamGlobal) {
-          streamGlobal.getTracks().forEach((t) => t.stop());
-          streamGlobal = null;
-        }
+        releaseMicHardware();
         mediaRecorder = null;
         isRecording = false;
         isPaused = false;
@@ -1655,7 +1840,18 @@
 
   async function finishAndSendImmediately() {
     if (!isRecording) return;
+    aktifkanAudioKeepAlivePermanen();
     const allSegments = await stopRecorderAndCollectSegments();
+    if (!allSegments || allSegments.length === 0) {
+      await hapusDraftDariHP();
+      await bersihkanActiveSession();
+      sessionId = '';
+      draftSegments = [];
+      restoredFromRefresh = false;
+      perbaruiTampilanRecorderUI();
+      tampilkanStatus('⚠️ Rekaman Masih Kosong:', 'Belum ada audio yang sempat terekam.', 'bg-amber-50 border-amber-200 text-amber-800');
+      return;
+    }
     perbaruiTampilanRecorderUI();
     await finalizeSegmentsToArchive(allSegments, true);
   }
@@ -1684,26 +1880,13 @@
     }
   });
 
-  pauseBtn.addEventListener('click', () => {
-    if (!mediaRecorder || !isRecording) return;
+  pauseBtn.addEventListener('click', async () => {
+    if (!isRecording) return;
     mintaWakeLockPermanen();
-    if (mediaRecorder.state === 'recording') {
-      try { mediaRecorder.requestData(); } catch {}
-      mediaRecorder.pause();
-      const delta = Math.max(0, Date.now() - activeRunStartTime);
-      totalBaseMs += delta;
-      currentSegmentBaseMs += delta;
-      isPaused = true;
-      saveActiveMetaSnapshot('paused', totalBaseMs, currentSegmentBaseMs);
-      perbaruiTampilanRecorderUI();
-      tampilkanStatus(`⏸️ Rekaman Dijeda & Tersimpan (${formatDurasiMs(totalBaseMs)}).`, 'Aman meskipun halaman direfresh atau browser ditutup.', 'bg-amber-50 border-amber-200 text-amber-800');
-    } else if (mediaRecorder.state === 'paused') {
-      mediaRecorder.resume();
-      activeRunStartTime = Date.now();
-      isPaused = false;
-      saveActiveMetaSnapshot('recording', totalBaseMs, currentSegmentBaseMs);
-      perbaruiTampilanRecorderUI();
-      tampilkanStatus('🔴 Rekaman Dilanjutkan!', 'Audio terus tersimpan otomatis.', 'bg-emerald-50 border-emerald-200 text-emerald-700');
+    if (!isPaused) {
+      await pauseCurrentRecording();
+    } else {
+      await resumeCurrentRecording();
     }
   });
 
@@ -1712,6 +1895,7 @@
     if (!isTestingMic) {
       if (isRecording) return;
       try {
+        aktifkanAudioKeepAlivePermanen();
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         streamGlobal = stream;
         isTestingMic = true;
@@ -1725,7 +1909,9 @@
       isTestingMic = false;
       testMicBtn.textContent = '🔊 Tes Suara Mic';
       testMicBtn.className = 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition flex justify-center items-center gap-2 text-sm w-full';
-      if (streamGlobal) { streamGlobal.getTracks().forEach((t) => t.stop()); streamGlobal = null; }
+      releaseMicHardware();
+      volumeBar.style.width = '0%';
+      volumeLabel.textContent = 'Mic Mati';
     }
   });
 
